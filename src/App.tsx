@@ -1,7 +1,12 @@
 import React from 'react';
+import RegistrationForm from './pages/Auth/Registration.tsx'
 
 const App: React.FC = () => {
-    return <h1>Привет, мир!</h1>;
+    return (
+        <div className="app">
+            <RegistrationForm />
+        </div>
+    )
 };
 
 export default App;
