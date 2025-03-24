@@ -7,11 +7,16 @@
 
 body {
     background-color: #F6F7F8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
 }
 
 .authorizationFormContainer {
-    margin: 0 367px 0 368px;
-    height: 448px;
+    width: 705px;
+    background-color: #FFFFFF;
     border-radius: 69px;
     border: 4px solid #FFDD2D;
 }
