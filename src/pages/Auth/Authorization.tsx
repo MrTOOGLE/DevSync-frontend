@@ -3,7 +3,7 @@ import React from 'react';
 const AuthorizationForm: React.FC = () => {
     return (
         <div>
-            <p>Привет</p>
+            <p>Hello world</p>
         </div>
     )
 }
