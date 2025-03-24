@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'NT Somic';
-    src: url('src/fonts/NTSomic.ttf') format('truetype'); /* Укажи правильный путь к шрифту */
+    src: url('../fonts/NTSomic.ttf') format('truetype'); /* Укажи правильный путь к шрифту */
     font-weight: normal;
     font-style: normal;
 }

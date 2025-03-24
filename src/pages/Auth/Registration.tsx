@@ -1,6 +1,7 @@
 import React, { useState, FormEvent } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 
-// Типы для нашей формы
+// Типы для формы
 interface FormData {
     city: string;
     lastName: string;
@@ -11,10 +12,13 @@ interface FormData {
     agreeToTerms: boolean;
 }
 
-// Список городов (можно расширить)
+// Список городов
 const cities = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань'];
 
-const RegistrationForm: React.FC = () => {
+/**
+ * Страничка регистрации
+ */
+const Registration: React.FC = () => {
     // Состояние формы
     const [formData, setFormData] = useState<FormData>({
         city: '',
@@ -28,6 +32,8 @@ const RegistrationForm: React.FC = () => {
 
     // Состояние для ошибок валидации
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const navigate = useNavigate();
 
     // Обработчик изменения полей ввода
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -94,7 +100,8 @@ const RegistrationForm: React.FC = () => {
         e.preventDefault();
 
         if (validateForm()) {
-            // Здесь будет код для отправки данных на сервер
+            navigate('/login');
+            // TODO: Здесь будет код для отправки данных на сервер
             console.log('Форма валидна, отправляем данные:', formData);
             // Например, fetch('/api/register', { method: 'POST', body: JSON.stringify(formData) })
             alert('Регистрация успешна!');
@@ -177,7 +184,7 @@ const RegistrationForm: React.FC = () => {
                 </div>
 
                 <div>
-                    <p>У вас уже есть аккаунт? <a href="/login">Войти!</a></p>
+                    <p>У вас уже есть аккаунт? <Link to="/login">Войти!</Link></p>
                 </div>
 
                 <div>
@@ -199,4 +206,4 @@ const RegistrationForm: React.FC = () => {
     );
 };
 
-export default RegistrationForm;
+export default Registration;
