@@ -25,9 +25,9 @@ const Authorization: React.FC = () => {
 
         // Проверка email
         if (!email) {
-            newErrors.email = 'Электронная почта обязательна';
+            newErrors.email = 'Введите электронную почту';
         } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = 'Неверный формат электронной почты';
+            newErrors.email = 'Некорректный формат электронной почты. Пример: user@example.com';
         }
 
         // Проверка пароля
@@ -80,7 +80,7 @@ const Authorization: React.FC = () => {
                 <div className="heading">
                     <h1>Войти</h1>
                 </div>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} noValidate={true}>
                     <div className="form_group">
                         <input
                             type="email"

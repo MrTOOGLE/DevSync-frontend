@@ -72,7 +72,7 @@ const Registration: React.FC = () => {
         if (!formData.email) {
             newErrors.email = 'Введите электронную почту';
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Некорректный формат электронной почты';
+            newErrors.email = 'Некорректный формат электронной почты. Пример: user@example.com';
         }
 
         if (!formData.password) {
@@ -113,7 +113,7 @@ const Registration: React.FC = () => {
     return (
         <div>
             <h1>Регистрация</h1>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate={true}>
                 <div>
                     <select
                         name="city"
