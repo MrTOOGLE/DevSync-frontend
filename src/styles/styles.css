@@ -14,18 +14,14 @@ body {
     margin: 0;
 }
 
-.authorizationFormContainer {
-    width: 705px;
+.authorizationForm {
     background-color: #FFFFFF;
     border-radius: 69px;
     border: 4px solid #FFDD2D;
-}
-
-.authorizationForm {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    width: 705px;
 }
 
 .heading {

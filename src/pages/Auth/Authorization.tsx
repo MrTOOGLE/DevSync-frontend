@@ -1,6 +1,8 @@
-import React, { FormEvent, useState } from 'react';
+import React, {FormEvent, useState} from 'react';
 import '../../styles/styles.css';
-import { useNavigate, Link } from 'react-router-dom';
+import {useNavigate, Link} from 'react-router-dom';
+import {Button} from "../../components/common/Button/Button.tsx";
+import {Input} from "../../components/common/Input/Input.tsx";
 
 // Типизация ошибок формы
 interface FormErrors {
@@ -48,9 +50,9 @@ const Authorization: React.FC = () => {
 
             // Заглушка для эмуляции API запроса
             // TODO: переделать после апи
-            const response = await new Promise<{token: string}>((resolve) => {
+            const response = await new Promise<{ token: string }>((resolve) => {
                 setTimeout(() => {
-                    resolve({ token: 'example_jwt_token' });
+                    resolve({token: 'example_jwt_token'});
                 }, 1000);
             });
 
@@ -60,7 +62,7 @@ const Authorization: React.FC = () => {
             // Перенаправление на dashboard
             navigate('/dashboard');
         } catch (error) {
-            setErrors({ server: 'Ошибка авторизации. Попробуйте еще раз.' });
+            setErrors({server: 'Ошибка авторизации. Попробуйте еще раз.'});
         } finally {
             setIsLoading(false);
         }
@@ -75,47 +77,45 @@ const Authorization: React.FC = () => {
     };
 
     return (
-        <div className="authorizationFormContainer">
-            <div className="authorizationForm">
-                <div className="heading">
-                    <h1>Войти</h1>
-                </div>
-                <form onSubmit={handleSubmit} noValidate={true}>
-                    <div className="form_group">
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            placeholder="Электронная почта*"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className={errors.email ? 'error' : ''}
-                            required
-                        />
-                        {errors.email && <p className="error-message">{errors.email}</p>}
-                    </div>
-                    <div className="form_group">
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Пароль*"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className={errors.password ? 'error' : ''}
-                            required
-                        />
-                        {errors.password && <p className="error-message">{errors.password}</p>}
-                    </div>
-                    {errors.server && <p className="error-message server-error">{errors.server}</p>}
-                    <p className="register-link">
-                        У вас еще нет аккаунта? <Link to="/register">Зарегистрироваться!</Link>
-                    </p>
-                    <button type="submit" disabled={isLoading}>
-                        {isLoading ? 'Подождите...' : 'Войти'}
-                    </button>
-                </form>
+        <div className="authorizationForm">
+            <div className="heading">
+                <h1>Войти</h1>
             </div>
+            <form onSubmit={handleSubmit} noValidate={true}>
+                <div className="form_group">
+                    <Input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Электронная почта*"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={errors.email ? 'error' : ''}
+                        required
+                    />
+                    {errors.email && <p className="error-message">{errors.email}</p>}
+                </div>
+                <div className="form_group">
+                    <Input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Пароль*"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={errors.password ? 'error' : ''}
+                        required
+                    />
+                    {errors.password && <p className="error-message">{errors.password}</p>}
+                </div>
+                {errors.server && <p className="error-message server-error">{errors.server}</p>}
+                <p className="register-link">
+                    У вас еще нет аккаунта? <Link to="/register">Зарегистрироваться!</Link>
+                </p>
+                <Button type="submit" disabled={isLoading}>
+                    {isLoading ? 'Подождите...' : 'Войти'}
+                </Button>
+            </form>
         </div>
     );
 };

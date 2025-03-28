@@ -1,0 +1,20 @@
+.input {
+    width: 573px;
+    height: 55px;
+    border: none;
+    outline: none;
+    border-radius: 14px;
+    background-color: #F6F7F8;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 100%;
+    letter-spacing: 0;
+    color: #353536;
+    padding: 0 22px;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.input::placeholder {
+    color: #7C7C7C;
+}
