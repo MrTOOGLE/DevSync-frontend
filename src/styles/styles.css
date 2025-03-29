@@ -1,8 +1,13 @@
 @font-face {
     font-family: 'NT Somic';
-    src: url('../fonts/NTSomic.ttf') format('truetype'); /* Укажи правильный путь к шрифту */
+    src: url('../fonts/NTSomic-Bold.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -11,24 +16,63 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin: 0;
 }
 
 .authorizationForm {
     background-color: #FFFFFF;
     border-radius: 69px;
     border: 4px solid #FFDD2D;
+    margin: 14px 0 0 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 705px;
+    padding-left: 67px;
+    padding-right: 65px;
 }
 
-.heading {
-    font-family: 'NT Somic', serif;
+.authorizationForm form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 44px;
+    position: relative;
+}
+
+.authorizationForm h1 {
+    font-family: 'NT Somic', sans-serif;
     font-weight: 400;
     font-size: 43px;
     line-height: 100%;
     letter-spacing: 0;
     color: #353536;
+    margin-top: 35px;
+}
+
+#passwordInput {
+    margin-top: 23px;
+}
+
+.authorizationForm .register-link {
+    margin-top: 44px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-weight: 400;
+    font-size: 21px;
+    line-height: 100%;
+    letter-spacing: 0;
+    color: #7C7C7C;
+}
+
+.register_link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.register_link:hover {
+    text-decoration: underline;
+}
+
+.authorizationForm form Button {
+    margin: 33px 0 40px 0;
+    align-self: end;
 }

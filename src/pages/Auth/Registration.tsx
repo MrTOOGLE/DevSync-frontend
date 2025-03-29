@@ -1,5 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import {Input} from "../../components/common/Input/Input.tsx";
+import {Button} from "../../components/common/Button/Button.tsx";
 
 // Типы для формы
 interface FormData {
@@ -129,7 +131,7 @@ const Registration: React.FC = () => {
                 </div>
 
                 <div>
-                    <input
+                    <Input
                         type="text"
                         name="lastName"
                         placeholder="Фамилия*"
@@ -140,7 +142,7 @@ const Registration: React.FC = () => {
                 </div>
 
                 <div>
-                    <input
+                    <Input
                         type="text"
                         name="firstName"
                         placeholder="Имя*"
@@ -151,7 +153,7 @@ const Registration: React.FC = () => {
                 </div>
 
                 <div>
-                    <input
+                    <Input
                         type="email"
                         name="email"
                         placeholder="Электронная почта*"
@@ -162,7 +164,7 @@ const Registration: React.FC = () => {
                 </div>
 
                 <div>
-                    <input
+                    <Input
                         type="password"
                         name="password"
                         placeholder="Пароль*"
@@ -173,7 +175,7 @@ const Registration: React.FC = () => {
                 </div>
 
                 <div>
-                    <input
+                    <Input
                         type="password"
                         name="confirmPassword"
                         placeholder="Повторите пароль*"
@@ -200,7 +202,7 @@ const Registration: React.FC = () => {
                     {errors.agreeToTerms && <div>{errors.agreeToTerms}</div>}
                 </div>
 
-                <button type="submit">Завершить</button>
+                <Button type="submit">Завершить</Button>
             </form>
         </div>
     );
