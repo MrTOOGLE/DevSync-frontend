@@ -1,7 +1,9 @@
-import React, { useState, FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, {useState, FormEvent} from 'react';
+import {useNavigate, Link} from 'react-router-dom';
+import "../../styles/stylesForRegister.css"
 import {Input} from "../../components/common/Input/Input.tsx";
 import {Button} from "../../components/common/Button/Button.tsx";
+import {Select} from "../../components/common/Select/Select.tsx";
 
 // Типы для формы
 interface FormData {
@@ -34,21 +36,26 @@ const Registration: React.FC = () => {
 
     // Состояние для ошибок валидации
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [cityColor, setCityColor] = useState<string>('#7C7C7C')
 
     const navigate = useNavigate();
 
     // Обработчик изменения полей ввода
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData({
             ...formData,
             [name]: value
         });
+
+        if (name === 'city') {
+            setCityColor(value ? '#353536' : '#7C7C7C'); // Если город выбран, меняем цвет на тёмный
+        }
     };
 
     // Обработчик изменения чекбокса
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, checked } = e.target;
+        const {name, checked} = e.target;
         setFormData({
             ...formData,
             [name]: checked
@@ -114,96 +121,101 @@ const Registration: React.FC = () => {
 
     return (
         <div>
-            <h1>Регистрация</h1>
-            <form onSubmit={handleSubmit} noValidate={true}>
-                <div>
-                    <select
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">Город*</option>
-                        {cities.map(city => (
-                            <option key={city} value={city}>{city}</option>
-                        ))}
-                    </select>
-                    {errors.city && <div>{errors.city}</div>}
-                </div>
+            <div className="register-form">
+                <h1>Регистрация</h1>
+                <form onSubmit={handleSubmit} noValidate={true}>
+                    <div>
+                        <Select
+                            name="city"
+                            id={"select-city"}
+                            value={formData.city}
+                            onChange={handleInputChange}
+                            style={{color: cityColor}}
+                        >
+                            <option value="">Город*</option>
+                            {cities.map(city => (
+                                <option key={city} value={city}>{city}</option>
+                            ))}
+                        </Select>
+                        {errors.city && <div>{errors.city}</div>}
+                    </div>
 
-                <div>
-                    <Input
-                        type="text"
-                        name="lastName"
-                        placeholder="Фамилия*"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                    />
-                    {errors.lastName && <div>{errors.lastName}</div>}
-                </div>
-
-                <div>
-                    <Input
-                        type="text"
-                        name="firstName"
-                        placeholder="Имя*"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                    />
-                    {errors.firstName && <div>{errors.firstName}</div>}
-                </div>
-
-                <div>
-                    <Input
-                        type="email"
-                        name="email"
-                        placeholder="Электронная почта*"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                    />
-                    {errors.email && <div>{errors.email}</div>}
-                </div>
-
-                <div>
-                    <Input
-                        type="password"
-                        name="password"
-                        placeholder="Пароль*"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                    />
-                    {errors.password && <div>{errors.password}</div>}
-                </div>
-
-                <div>
-                    <Input
-                        type="password"
-                        name="confirmPassword"
-                        placeholder="Повторите пароль*"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                    />
-                    {errors.confirmPassword && <div>{errors.confirmPassword}</div>}
-                </div>
-
-                <div>
-                    <p>У вас уже есть аккаунт? <Link to="/login">Войти!</Link></p>
-                </div>
-
-                <div>
-                    <label>
-                        <input
-                            type="checkbox"
-                            name="agreeToTerms"
-                            checked={formData.agreeToTerms}
-                            onChange={handleCheckboxChange}
+                    <div>
+                        <Input
+                            type="text"
+                            name="lastName"
+                            placeholder="Фамилия*"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
                         />
-                        Я согласен с <a href="/terms">условиями передачи информации</a>
-                    </label>
-                    {errors.agreeToTerms && <div>{errors.agreeToTerms}</div>}
-                </div>
+                        {errors.lastName && <div>{errors.lastName}</div>}
+                    </div>
 
-                <Button type="submit">Завершить</Button>
-            </form>
+                    <div>
+                        <Input
+                            type="text"
+                            name="firstName"
+                            placeholder="Имя*"
+                            value={formData.firstName}
+                            onChange={handleInputChange}
+                        />
+                        {errors.firstName && <div>{errors.firstName}</div>}
+                    </div>
+
+                    <div>
+                        <Input
+                            type="email"
+                            name="email"
+                            placeholder="Электронная почта*"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                        />
+                        {errors.email && <div>{errors.email}</div>}
+                    </div>
+
+                    <div>
+                        <Input
+                            type="password"
+                            name="password"
+                            placeholder="Пароль*"
+                            value={formData.password}
+                            onChange={handleInputChange}
+                        />
+                        {errors.password && <div>{errors.password}</div>}
+                    </div>
+
+                    <div>
+                        <Input
+                            type="password"
+                            name="confirmPassword"
+                            placeholder="Повторите пароль*"
+                            value={formData.confirmPassword}
+                            onChange={handleInputChange}
+                        />
+                        {errors.confirmPassword && <div>{errors.confirmPassword}</div>}
+                    </div>
+
+                    <div className="login-link">
+                        <p>У вас уже есть аккаунт? <Link to="/login" className="login_link">Войти!</Link></p>
+                    </div>
+
+                    <div className="check_terms">
+                        <label>
+                            <input
+                                id="checkbox_register"
+                                type="checkbox"
+                                name="agreeToTerms"
+                                checked={formData.agreeToTerms}
+                                onChange={handleCheckboxChange}
+                            />
+                            <span className="checkmark"></span>
+                            Я согласен с <a href="/terms">условиями передачи информации</a>
+                        </label>
+                        {errors.agreeToTerms && <div>{errors.agreeToTerms}</div>}
+                        <Button type="submit">Завершить</Button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };
