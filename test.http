@@ -1,8 +1,7 @@
-POST http://localhost:80/api/v1/auth/users/
+POST http://localhost:80/api/auth/token/login/
 Content-Type: application/json
 
 {
   "email": "nikita@gmail.com",
-  "password": "qwerty123qwerty",
-  "re_password": "qwerty123qwerty"
+  "password": "qwerty123qwerty"
 }

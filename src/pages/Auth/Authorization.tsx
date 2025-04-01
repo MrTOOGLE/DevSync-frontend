@@ -3,6 +3,7 @@ import '../../styles/styles.css';
 import {useNavigate, Link} from 'react-router-dom';
 import {Button} from "../../components/common/Button/Button.tsx";
 import {Input} from "../../components/common/Input/Input.tsx";
+import { authService } from "../../hooks/AuthService.tsx";
 
 // Типизация ошибок формы
 interface FormErrors {
@@ -43,36 +44,18 @@ const Authorization: React.FC = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    // Функция авторизации с использованием токена
-    const handleLogin = async () => {
-        try {
-            setIsLoading(true);
-
-            // Заглушка для эмуляции API запроса
-            // TODO: переделать после апи
-            const response = await new Promise<{ token: string }>((resolve) => {
-                setTimeout(() => {
-                    resolve({token: 'example_jwt_token'});
-                }, 1000);
-            });
-
-            // Сохранение токена в localStorage
-            localStorage.setItem('token', response.token);
-
-            // Перенаправление на dashboard
-            navigate('/dashboard');
-        } catch (error) {
-            setErrors({server: 'Ошибка авторизации. Попробуйте еще раз.'});
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
         if (validateForm()) {
-            handleLogin();
+            try {
+                setIsLoading(true);
+                authService.login({email, password}).then(() => navigate('/dashboard'))
+            } catch (error) {
+                setErrors({server: 'Ошибка авторизации. Попробуйте еще раз.'});
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 

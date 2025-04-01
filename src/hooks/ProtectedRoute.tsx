@@ -1,13 +1,13 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { authService } from './AuthService.tsx'
 
 /**
- * Заглушка до того, пока не сделаем апи с токенами
+ * Проверка того, авторизован ли пользователь
  **/
 const ProtectedRoute: React.FC = () => {
     // Здесь проверка, авторизован ли пользователь
-    // TODO: Для простоты юзается localStorage, но потом использовать контекст или Redux???? (мебе нет хихихихи)
-    const isAuthenticated = localStorage.getItem('token') !== null;
+    const isAuthenticated = authService.isAuthenticated();
 
     // Если не авторизован - перенаправляем на страницу входа
     if (!isAuthenticated) {
