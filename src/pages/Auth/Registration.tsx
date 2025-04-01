@@ -114,6 +114,7 @@ const Registration: React.FC = () => {
             console.log('Форма валидна, отправляем данные:', formData);
             // Например, fetch('/api/register', { method: 'POST', body: JSON.stringify(formData) })
             alert('Регистрация успешна!');
+            navigate('/verify-email', { state: { email: formData.email } });
         } else {
             console.log('Форма содержит ошибки');
         }
