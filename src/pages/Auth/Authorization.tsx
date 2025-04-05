@@ -61,7 +61,7 @@ const Authorization: React.FC = () => {
     };
 
     return (
-        <div className="authorizationForm">
+        <div className="form-container">
             <h1>Войти</h1>
             <form onSubmit={handleSubmit} noValidate={true}>
                 <div className="form_group">
@@ -91,8 +91,8 @@ const Authorization: React.FC = () => {
                     {errors.password && <ErrorField message={errors.password} />}
                 </div>
                 {errors.server && <p className="error-message server-error">{errors.server}</p>}
-                <p className="register-link">
-                    У вас еще нет аккаунта? <Link to="/register" className={"register_link"}>Зарегистрироваться!</Link>
+                <p className="link">
+                    У вас еще нет аккаунта? <Link to="/register" id="link">Зарегистрироваться!</Link>
                 </p>
                 <Button type="submit" disabled={isLoading}>
                     {isLoading ? 'Подождите...' : 'Войти'}

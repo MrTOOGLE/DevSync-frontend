@@ -1,6 +1,6 @@
 import React, {useState, FormEvent} from 'react';
 import {useNavigate, Link} from 'react-router-dom';
-import "../../styles/stylesForRegister.css"
+import "../../styles/styles.css"
 import {Input} from "../../components/common/Input/Input.tsx";
 import {Button} from "../../components/common/Button/Button.tsx";
 import {Select} from "../../components/common/Select/Select.tsx";
@@ -123,7 +123,7 @@ const Registration: React.FC = () => {
 
     return (
         <div>
-            <div className="register-form">
+            <div className="form-container">
                 <h1>Регистрация</h1>
                 <form onSubmit={handleSubmit} noValidate={true}>
                     <div>
@@ -197,8 +197,8 @@ const Registration: React.FC = () => {
                         {errors.confirmPassword && <ErrorField message={errors.confirmPassword}/>}
                     </div>
 
-                    <div className="login-link">
-                        <p>У вас уже есть аккаунт? <Link to="/login" className="login_link">Войти!</Link></p>
+                    <div className="link">
+                        <p>У вас уже есть аккаунт? <Link to="/login" id="link">Войти!</Link></p>
                     </div>
 
                     <div className="check_terms">
