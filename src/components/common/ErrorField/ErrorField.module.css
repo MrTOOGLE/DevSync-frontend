@@ -1,0 +1,35 @@
+.wrapper {
+    position: relative;
+    height: 0;
+}
+
+.fieldError {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    transform: translateY(4px);
+    display: flex;
+    align-items: center;
+    background-color: #FEE0E0;
+    border: none;
+    color: #FF2727;
+    font-size: 12px;
+    font-family: 'Helvetica Neue', sans-serif;
+    border-radius: 6px;
+    padding: 4px 8px;
+    z-index: 10;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

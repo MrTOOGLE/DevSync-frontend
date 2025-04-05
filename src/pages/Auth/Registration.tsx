@@ -4,6 +4,7 @@ import "../../styles/stylesForRegister.css"
 import {Input} from "../../components/common/Input/Input.tsx";
 import {Button} from "../../components/common/Button/Button.tsx";
 import {Select} from "../../components/common/Select/Select.tsx";
+import {ErrorField} from "../../components/common/ErrorField/ErrorField.tsx";
 
 // Типы для формы
 interface FormData {
@@ -114,7 +115,7 @@ const Registration: React.FC = () => {
             console.log('Форма валидна, отправляем данные:', formData);
             // Например, fetch('/api/register', { method: 'POST', body: JSON.stringify(formData) })
             alert('Регистрация успешна!');
-            navigate('/verify-email', { state: { email: formData.email } });
+            navigate('/verify-email', {state: {email: formData.email}});
         } else {
             console.log('Форма содержит ошибки');
         }
@@ -138,7 +139,7 @@ const Registration: React.FC = () => {
                                 <option key={city} value={city}>{city}</option>
                             ))}
                         </Select>
-                        {errors.city && <div>{errors.city}</div>}
+                        {errors.city && <ErrorField message={errors.city}/>}
                     </div>
 
                     <div>
@@ -149,7 +150,7 @@ const Registration: React.FC = () => {
                             value={formData.lastName}
                             onChange={handleInputChange}
                         />
-                        {errors.lastName && <div>{errors.lastName}</div>}
+                        {errors.lastName && <ErrorField message={errors.lastName}/>}
                     </div>
 
                     <div>
@@ -160,7 +161,7 @@ const Registration: React.FC = () => {
                             value={formData.firstName}
                             onChange={handleInputChange}
                         />
-                        {errors.firstName && <div>{errors.firstName}</div>}
+                        {errors.firstName && <ErrorField message={errors.firstName}/>}
                     </div>
 
                     <div>
@@ -171,7 +172,7 @@ const Registration: React.FC = () => {
                             value={formData.email}
                             onChange={handleInputChange}
                         />
-                        {errors.email && <div>{errors.email}</div>}
+                        {errors.email && <ErrorField message={errors.email}/>}
                     </div>
 
                     <div>
@@ -182,7 +183,7 @@ const Registration: React.FC = () => {
                             value={formData.password}
                             onChange={handleInputChange}
                         />
-                        {errors.password && <div>{errors.password}</div>}
+                        {errors.password && <ErrorField message={errors.password}/>}
                     </div>
 
                     <div>
@@ -193,7 +194,7 @@ const Registration: React.FC = () => {
                             value={formData.confirmPassword}
                             onChange={handleInputChange}
                         />
-                        {errors.confirmPassword && <div>{errors.confirmPassword}</div>}
+                        {errors.confirmPassword && <ErrorField message={errors.confirmPassword}/>}
                     </div>
 
                     <div className="login-link">
@@ -201,18 +202,26 @@ const Registration: React.FC = () => {
                     </div>
 
                     <div className="check_terms">
-                        <label>
-                            <input
-                                id="checkbox_register"
-                                type="checkbox"
-                                name="agreeToTerms"
-                                checked={formData.agreeToTerms}
-                                onChange={handleCheckboxChange}
-                            />
-                            <span className="checkmark"></span>
-                            Я согласен с <a href="/terms">условиями передачи информации</a>
-                        </label>
-                        {errors.agreeToTerms && <div>{errors.agreeToTerms}</div>}
+                        <div className={`checkbox_wrapper ${errors.agreeToTerms ? 'checkbox_error' : ''}`}>
+                            <label>
+                                <input
+                                    id="checkbox_register"
+                                    type="checkbox"
+                                    name="agreeToTerms"
+                                    checked={formData.agreeToTerms}
+                                    onChange={handleCheckboxChange}
+                                />
+                                <span className="checkmark"></span>
+                                Я согласен с <a href="/terms">условиями передачи информации</a>
+                            </label>
+
+                            {errors.agreeToTerms && (
+                                <div className="error-tooltip">
+                                    <ErrorField message={errors.agreeToTerms}/>
+                                </div>
+                            )}
+                        </div>
+
                         <Button type="submit">Завершить</Button>
                     </div>
                 </form>

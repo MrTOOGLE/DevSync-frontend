@@ -126,3 +126,22 @@ body {
 #checkbox_register {
     display: none;
 }
+
+.checkbox_wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.checkbox_error .checkmark {
+    border: none;
+    background-color: #FEE0E0;
+}
+
+.checkbox_wrapper .error-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    z-index: 5;
+}

@@ -4,6 +4,7 @@ import {useNavigate, Link} from 'react-router-dom';
 import {Button} from "../../components/common/Button/Button.tsx";
 import {Input} from "../../components/common/Input/Input.tsx";
 import { authService } from "../../hooks/AuthService.tsx";
+import {ErrorField} from "../../components/common/ErrorField/ErrorField.tsx";
 
 // Типизация ошибок формы
 interface FormErrors {
@@ -74,7 +75,7 @@ const Authorization: React.FC = () => {
                         className={errors.email ? 'error' : ''}
                         required
                     />
-                    {errors.email && <p className="error-message">{errors.email}</p>}
+                    {errors.email && <ErrorField message={errors.email} />}
                 </div>
                 <div className="form_group">
                     <Input
@@ -87,7 +88,7 @@ const Authorization: React.FC = () => {
                         className={errors.password ? 'error' : ''}
                         required
                     />
-                    {errors.password && <p className="error-message">{errors.password}</p>}
+                    {errors.password && <ErrorField message={errors.password} />}
                 </div>
                 {errors.server && <p className="error-message server-error">{errors.server}</p>}
                 <p className="register-link">
