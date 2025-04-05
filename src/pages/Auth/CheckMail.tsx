@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import '../../styles/styles.css'
+import {Input} from "../../components/common/Input/Input.tsx";
+import {Button} from "../../components/common/Button/Button.tsx";
 
 interface LocationState {
     email?: string;
@@ -71,19 +74,20 @@ const EmailConfirmation: React.FC = () => {
     }
 
     return (
-        <div>
+        <div className="form-container">
             <h1>Подтверждение почты</h1>
-            <p>
-                На адрес электронной почты {email}, указанный при регистрации,
-                пришел код, необходимый для завершения регистрации.
-                Введите его в поле ниже:
-            </p>
+            <div className="text_email">
+                <p>На адрес электронной почты, указанный при регистрации,
+                    пришел код, необходимый для завершения регистрации.
+                    Введите его в поле ниже:</p>
+            </div>
             <div>
-                <input
+                <Input
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    placeholder="Код пароль*"
+                    placeholder="Код из письма*"
+                    id="checkMailInput"
                 />
             </div>
             {message && (
@@ -91,10 +95,10 @@ const EmailConfirmation: React.FC = () => {
                     <p>{message}</p>
                 </div>
             )}
-            <div>
-                <button onClick={handleSubmit}>
+            <div className="button-container">
+                <Button onClick={handleSubmit}>
                     Завершить
-                </button>
+                </Button>
             </div>
         </div>
     );

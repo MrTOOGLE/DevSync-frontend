@@ -152,3 +152,29 @@ body {
     margin-top: 4px;
     z-index: 5;
 }
+
+.text_email p {
+    width: 621px;
+    height: 81px;
+    font-family: 'Helvetica Neue', sans-serif;
+    color: #353536;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 27px;
+    letter-spacing: 0;
+    margin: 18px 61px 0 63px;
+}
+
+#checkMailInput {
+    margin: 18px 0 0 0;
+}
+
+.button-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.button-container Button {
+    margin: 18px 64px 39px 0;
+}
