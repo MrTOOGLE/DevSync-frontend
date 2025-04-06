@@ -34,7 +34,7 @@ interface FormErrors {
 const cities = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань'];
 
 /**
- * Страничка регистрации
+ * Страница регистрации
  */
 const Registration: React.FC = () => {
     // Состояние формы
@@ -119,7 +119,7 @@ const Registration: React.FC = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-// Обработчик ошибок регистрации
+    // Обработчик ошибок регистрации
     const handleRegistrationError = (error: any) => {
         console.error('Ошибка при регистрации:', error);
 
@@ -179,7 +179,6 @@ const Registration: React.FC = () => {
                     city: formData.city
                 };
 
-                // Вызов метода регистрации из authService
                 await authService.register(userData);
 
                 // Перенаправление на страницу подтверждения email

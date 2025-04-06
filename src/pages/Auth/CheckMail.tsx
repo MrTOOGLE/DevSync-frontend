@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, {useState, useEffect} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
 import '../../styles/styles.css'
-import { Input } from '../../components/common/Input/Input.tsx';
-import { Button } from '../../components/common/Button/Button.tsx';
-import { authService} from '../../hooks/AuthService.tsx'; // Импортируем сервис авторизации и интерфейс ошибки
+import {Input} from '../../components/common/Input/Input.tsx';
+import {Button} from '../../components/common/Button/Button.tsx';
+import {authService} from '../../hooks/AuthService.tsx'; // Импортируем сервис авторизации и интерфейс ошибки
 
 interface LocationState {
     email?: string;
 }
 
+/**
+ * Страница для подтверждения почты
+ */
 const EmailConfirmation: React.FC = () => {
     const [code, setCode] = useState('');
     const [message, setMessage] = useState('');
@@ -18,6 +21,8 @@ const EmailConfirmation: React.FC = () => {
     const [codeSent, setCodeSent] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const [canResend, setCanResend] = useState(false);
+    const [timer, setTimer] = useState(60);
 
     useEffect(() => {
         // Получаем email из состояния навигации
@@ -33,6 +38,19 @@ const EmailConfirmation: React.FC = () => {
         }
     }, [location, navigate]);
 
+    // Эффект для работы таймера
+    useEffect(() => {
+        if (!canResend && timer > 0) {
+            const interval = setInterval(() => {
+                setTimer((prevTimer) => prevTimer - 1);
+            }, 1000);
+
+            return () => clearInterval(interval);
+        } else if (timer === 0) {
+            setCanResend(true); // Разблокируем кнопку после завершения таймера
+        }
+    }, [canResend, timer]);
+
     // Функция для отправки кода подтверждения
     const sendVerificationCode = async (emailToVerify: string) => {
         try {
@@ -46,11 +64,13 @@ const EmailConfirmation: React.FC = () => {
             if (error.data) {
                 setErrors(error.data);
             } else {
-                setErrors({ non_field_errors: [error.message || 'Произошла ошибка при отправке кода'] });
+                setErrors({non_field_errors: [error.message || 'Произошла ошибка при отправке кода']});
             }
             console.error('Ошибка отправки кода:', error);
         } finally {
             setIsLoading(false);
+            setCanResend(false); // Блокируем кнопку
+            setTimer(60);
         }
     };
 
@@ -64,12 +84,11 @@ const EmailConfirmation: React.FC = () => {
     // Функция для проверки кода
     const handleSubmit = async () => {
         if (code.trim() === '') {
-            setErrors({ code: ['Пожалуйста, введите код подтверждения'] });
+            setErrors({code: ['Пожалуйста, введите код подтверждения']});
             return;
         }
-
         if (!email) {
-            setErrors({ email: ['Email не найден'] });
+            setErrors({email: ['Email не найден']});
             return;
         }
 
@@ -81,14 +100,14 @@ const EmailConfirmation: React.FC = () => {
 
             // После успешного подтверждения перенаправляем пользователя на страницу входа
             setTimeout(() => {
-                navigate('/login', { state: { emailConfirmed: true } });
+                navigate('/login', {state: {emailConfirmed: true}});
             }, 2000);
         } catch (error: any) {
             // Обрабатываем ошибку как объект с данными от сервера
             if (error.data) {
                 setErrors(error.data);
             } else {
-                setErrors({ non_field_errors: [error.message || 'Произошла ошибка при подтверждении почты'] });
+                setErrors({non_field_errors: [error.message || 'Произошла ошибка при подтверждении почты']});
             }
             console.error('Ошибка подтверждения почты:', error);
         } finally {
@@ -105,9 +124,11 @@ const EmailConfirmation: React.FC = () => {
         <div className="form-container">
             <h1>Подтверждение почты</h1>
             <div className="text_email">
-                <p>На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
+                <p>
+                    На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
                     {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения регистрации.
-                    Введите его в поле ниже:</p>
+                    Введите его в поле ниже:
+                </p>
             </div>
             <div>
                 <Input
@@ -149,9 +170,9 @@ const EmailConfirmation: React.FC = () => {
                 <button
                     onClick={handleResendCode}
                     className="link-button"
-                    disabled={isLoading}
+                    disabled={!canResend || isLoading}
                 >
-                    Отправить код повторно
+                    {canResend ? 'Отправить код повторно' : `Отправить код повторно (${timer} сек.)`}
                 </button>
             </div>
         </div>

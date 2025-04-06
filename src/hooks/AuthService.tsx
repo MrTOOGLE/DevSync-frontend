@@ -16,7 +16,7 @@ export const authService = {
         try {
             const response = await fetch(API_CONFIG.FULL_URL.AUTH.LOGIN_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials)
             });
 
@@ -26,32 +26,26 @@ export const authService = {
             if (data && data.auth_token) {
                 authService.setToken(data.auth_token);
                 return data.auth_token;
-            } else {
-                // Проверяем, содержит ли ответ ошибки (поля с массивами ошибок)
-                // Например: поля email, password могут содержать массивы с сообщениями об ошибках
-                const hasErrors = typeof data === 'object' && (
-                    (data.non_field_errors && Array.isArray(data.non_field_errors)) ||
-                    (data.email && Array.isArray(data.email)) ||
-                    (data.password && Array.isArray(data.password)) ||
-                    data.detail
-                );
+            }
 
-                if (hasErrors) {
-                    throw {
-                        status: response.status,
-                        data: data,
-                        message: 'Ошибка авторизации'
-                    };
-                } else {
-                    throw {
-                        status: response.status,
-                        message: 'Токен не получен от сервера'
-                    };
-                }
+            // Проверяем наличие ошибок в ответе
+            const hasErrors = typeof data === 'object' &&
+                Object.values(data).some(value => Array.isArray(value) && value.length > 0);
+
+            if (hasErrors || data.detail) {
+                throw {
+                    status: response.status,
+                    data: data,
+                    message: 'Ошибка авторизации'
+                };
+            } else {
+                throw {
+                    status: response.status,
+                    message: 'Токен не получен от сервера'
+                };
             }
         } catch (error) {
             console.error('Ошибка в сервисе авторизации:', error);
-            // Прокидываем ошибку дальше для обработки в компоненте
             throw error;
         }
     },
@@ -68,7 +62,6 @@ export const authService = {
             const data = await response.json();
 
             // Проверяем, содержит ли ответ ошибки (поля с массивами ошибок)
-            // Сначала проверяем, является ли data объектом и содержит ли ошибки в виде массивов
             const hasErrors = typeof data === 'object' &&
                 Object.values(data).some(value => Array.isArray(value) && value.length > 0);
 
@@ -99,7 +92,7 @@ export const authService = {
 
             const data = await response.json();
 
-            // Проверяем наличие ошибок в ответе, как в методе регистрации
+            // Проверяем наличие ошибок в ответе
             const hasErrors = typeof data === 'object' &&
                 Object.values(data).some(value => Array.isArray(value) && value.length > 0);
 
@@ -129,7 +122,7 @@ export const authService = {
 
             const data = await response.json();
 
-            // Проверяем наличие ошибок в ответе, как в методе регистрации
+            // Проверяем наличие ошибок в ответе
             const hasErrors = typeof data === 'object' &&
                 Object.values(data).some(value => Array.isArray(value) && value.length > 0);
 

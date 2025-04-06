@@ -14,7 +14,7 @@ interface FormErrors {
 }
 
 /**
- * Страничка авторизации
+ * Страница авторизации
  */
 const Authorization: React.FC = () => {
     const navigate = useNavigate();
@@ -61,7 +61,7 @@ const Authorization: React.FC = () => {
         }
     };
 
-// Обработчик ошибок авторизации
+    // Обработчик ошибок авторизации
     const handleAuthError = (error: any) => {
         console.error('Ошибка авторизации:', error);
 
