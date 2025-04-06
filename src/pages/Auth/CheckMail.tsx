@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../../styles/styles.css'
-import {Input} from "../../components/common/Input/Input.tsx";
-import {Button} from "../../components/common/Button/Button.tsx";
+import { Input } from '../../components/common/Input/Input.tsx';
+import { Button } from '../../components/common/Button/Button.tsx';
+import { authService} from '../../hooks/AuthService.tsx'; // Импортируем сервис авторизации и интерфейс ошибки
 
 interface LocationState {
     email?: string;
@@ -11,7 +12,10 @@ interface LocationState {
 const EmailConfirmation: React.FC = () => {
     const [code, setCode] = useState('');
     const [message, setMessage] = useState('');
+    const [errors, setErrors] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(false);
     const [email, setEmail] = useState<string | null>(null);
+    const [codeSent, setCodeSent] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -21,54 +25,78 @@ const EmailConfirmation: React.FC = () => {
 
         if (state && state.email) {
             setEmail(state.email);
+            // Автоматически отправляем код при загрузке компонента
+            sendVerificationCode(state.email);
         } else {
             // Если email не передан, перенаправляем на страницу регистрации
             navigate('/register');
         }
     }, [location, navigate]);
 
-    // TODO: переделать после апишки, как появится
-    // const verifyCode = async () => {
-    //     if (!email) return;
-    //
-    //     try {
-    //         const response = await fetch('/api/verify-email', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify({
-    //                 email,
-    //                 code
-    //             })
-    //         });
-    //
-    //         if (response.ok) {
-    //             setMessage('Код подтвержден успешно!');
-    //             // После успешного подтверждения перенаправляем на страницу входа
-    //             setTimeout(() => {
-    //                 navigate('/login');
-    //             }, 2000);
-    //         } else {
-    //             const data = await response.json();
-    //             setMessage(data.message || 'Неверный код подтверждения');
-    //         }
-    //     } catch (error) {
-    //         setMessage('Произошла ошибка при проверке кода');
-    //         console.error(error);
-    //     }
-    // };
-
-    const handleSubmit = () => {
-        if (code.trim() === '') {
-            setMessage('Пожалуйста, введите код подтверждения');
-        } else {
-            setMessage('Вы подтвердили почту');
-            // TODO: verifyCode();
+    // Функция для отправки кода подтверждения
+    const sendVerificationCode = async (emailToVerify: string) => {
+        try {
+            setIsLoading(true);
+            setErrors(null);
+            await authService.sendVerificationCode(emailToVerify);
+            setCodeSent(true);
+            setMessage('Код подтверждения отправлен на вашу почту');
+        } catch (error: any) {
+            // Обрабатываем ошибку как объект с данными от сервера
+            if (error.data) {
+                setErrors(error.data);
+            } else {
+                setErrors({ non_field_errors: [error.message || 'Произошла ошибка при отправке кода'] });
+            }
+            console.error('Ошибка отправки кода:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    // Если email не получен, показываем заглушку или возвращаем null
+    // Функция для повторной отправки кода
+    const handleResendCode = () => {
+        if (email) {
+            sendVerificationCode(email);
+        }
+    };
+
+    // Функция для проверки кода
+    const handleSubmit = async () => {
+        if (code.trim() === '') {
+            setErrors({ code: ['Пожалуйста, введите код подтверждения'] });
+            return;
+        }
+
+        if (!email) {
+            setErrors({ email: ['Email не найден'] });
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            setErrors(null);
+            await authService.confirmEmail(email, code);
+            setMessage('Почта успешно подтверждена');
+
+            // После успешного подтверждения перенаправляем пользователя на страницу входа
+            setTimeout(() => {
+                navigate('/login', { state: { emailConfirmed: true } });
+            }, 2000);
+        } catch (error: any) {
+            // Обрабатываем ошибку как объект с данными от сервера
+            if (error.data) {
+                setErrors(error.data);
+            } else {
+                setErrors({ non_field_errors: [error.message || 'Произошла ошибка при подтверждении почты'] });
+            }
+            console.error('Ошибка подтверждения почты:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Если email не получен, показываем заглушку
     if (!email) {
         return <div>Загрузка...</div>;
     }
@@ -77,8 +105,8 @@ const EmailConfirmation: React.FC = () => {
         <div className="form-container">
             <h1>Подтверждение почты</h1>
             <div className="text_email">
-                <p>На адрес электронной почты, указанный при регистрации,
-                    пришел код, необходимый для завершения регистрации.
+                <p>На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
+                    {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения регистрации.
                     Введите его в поле ниже:</p>
             </div>
             <div>
@@ -88,17 +116,43 @@ const EmailConfirmation: React.FC = () => {
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="Код из письма*"
                     id="checkMailInput"
+                    disabled={isLoading}
                 />
             </div>
             {message && (
-                <div>
+                <div className="success-message">
                     <p>{message}</p>
                 </div>
             )}
+            {errors && (
+                <div className="error-messages">
+                    {errors.email?.map((err: string, i: number) => (
+                        <p key={`email-${i}`} className="error-message">{err}</p>
+                    ))}
+                    {errors.code?.map((err: string, i: number) => (
+                        <p key={`code-${i}`} className="error-message">{err}</p>
+                    ))}
+                    {errors.non_field_errors?.map((err: string, i: number) => (
+                        <p key={`nfe-${i}`} className="error-message">{err}</p>
+                    ))}
+                    {errors.detail && (
+                        <p className="error-message">{errors.detail}</p>
+                    )}
+                </div>
+            )}
             <div className="button-container">
-                <Button onClick={handleSubmit}>
-                    Завершить
+                <Button onClick={handleSubmit} disabled={isLoading}>
+                    {isLoading ? 'Проверка...' : 'Завершить'}
                 </Button>
+            </div>
+            <div className="resend-code">
+                <button
+                    onClick={handleResendCode}
+                    className="link-button"
+                    disabled={isLoading}
+                >
+                    Отправить код повторно
+                </button>
             </div>
         </div>
     );

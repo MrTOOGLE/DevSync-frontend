@@ -1,7 +1,28 @@
-POST http://localhost:80/api/auth/token/login/
+#POST http://localhost:80/api/v0/auth/token/login/
+#Content-Type: application/json
+#
+#{
+#  "email": "aboba@gmail.com",
+#  "password": "qwerty"
+#}
+
+
+#POST http://localhost:80/api/v0/users/
+#Content-Type: application/json
+#
+#{
+#  "email": "leva.mokrov@yandex.com",
+#  "password": "qwerty123qq",
+#  "re_password": "qwerty123qq",
+#  "first_name": "Aboba",
+#  "last_name": "Boba",
+#  "city": "Москва"
+#}
+
+DELETE http://localhost:80/api/v0/users/me/
+Authorization: Token acfe08cf723d80be4517f2019d23b7714fecfa0b
 Content-Type: application/json
 
 {
-  "email": "nikita@gmail.com",
-  "password": "qwerty123qwerty"
+  "current_password": "qwerty123qq"
 }

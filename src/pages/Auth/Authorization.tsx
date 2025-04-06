@@ -1,10 +1,10 @@
 import React, {FormEvent, useState} from 'react';
 import '../../styles/styles.css';
 import {useNavigate, Link} from 'react-router-dom';
-import {Button} from "../../components/common/Button/Button.tsx";
-import {Input} from "../../components/common/Input/Input.tsx";
-import { authService } from "../../hooks/AuthService.tsx";
-import {ErrorField} from "../../components/common/ErrorField/ErrorField.tsx";
+import {Button} from '../../components/common/Button/Button.tsx';
+import {Input} from '../../components/common/Input/Input.tsx';
+import { authService } from '../../hooks/AuthService.tsx';
+import {ErrorField} from '../../components/common/ErrorField/ErrorField.tsx';
 
 // Типизация ошибок формы
 interface FormErrors {
@@ -45,19 +45,52 @@ const Authorization: React.FC = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
         if (validateForm()) {
             try {
                 setIsLoading(true);
-                authService.login({email, password}).then(() => navigate('/dashboard'))
+                await authService.login({email, password})
+                navigate('/dashboard')
             } catch (error) {
-                setErrors({server: 'Ошибка авторизации. Попробуйте еще раз.'});
+                handleAuthError(error);
             } finally {
                 setIsLoading(false);
             }
         }
+    };
+
+// Обработчик ошибок авторизации
+    const handleAuthError = (error: any) => {
+        console.error('Ошибка авторизации:', error);
+
+        const newErrors: FormErrors = {};
+
+        // Обработка ошибок из ответа API
+        if (error.data) {
+            // Обрабатываем ошибки для каждого поля
+            if (error.data.email && Array.isArray(error.data.email)) {
+                newErrors.email = error.data.email[0];
+            }
+            if (error.data.password && Array.isArray(error.data.password)) {
+                newErrors.password = error.data.password[0];
+            }
+
+            // Обработка общих ошибок
+            if (error.data.non_field_errors && Array.isArray(error.data.non_field_errors)) {
+                newErrors.server = error.data.non_field_errors[0];
+            } else if (error.data.detail) {
+                newErrors.server = error.data.detail;
+            }
+        }
+
+        // Если нет специфических ошибок, добавляем общую ошибку сервера
+        if (Object.keys(newErrors).length === 0) {
+            newErrors.server = error.message || 'Произошла ошибка при авторизации. Пожалуйста, попробуйте еще раз позже.';
+        }
+
+        setErrors(newErrors);
     };
 
     return (

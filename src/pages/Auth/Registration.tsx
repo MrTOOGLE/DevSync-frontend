@@ -1,10 +1,11 @@
 import React, {useState, FormEvent} from 'react';
 import {useNavigate, Link} from 'react-router-dom';
 import "../../styles/styles.css"
-import {Input} from "../../components/common/Input/Input.tsx";
-import {Button} from "../../components/common/Button/Button.tsx";
-import {Select} from "../../components/common/Select/Select.tsx";
-import {ErrorField} from "../../components/common/ErrorField/ErrorField.tsx";
+import {Input} from '../../components/common/Input/Input.tsx';
+import {Button} from '../../components/common/Button/Button.tsx';
+import {Select} from '../../components/common/Select/Select.tsx';
+import {ErrorField} from '../../components/common/ErrorField/ErrorField.tsx';
+import {authService} from '../../hooks/AuthService.tsx';
 
 // Типы для формы
 interface FormData {
@@ -15,6 +16,18 @@ interface FormData {
     password: string;
     confirmPassword: string;
     agreeToTerms: boolean;
+}
+
+// Типы ошибок формы
+interface FormErrors {
+    city?: string;
+    lastName?: string;
+    firstName?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    agreeToTerms?: string;
+    server?: string;
 }
 
 // Список городов
@@ -36,8 +49,9 @@ const Registration: React.FC = () => {
     });
 
     // Состояние для ошибок валидации
-    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [errors, setErrors] = useState<FormErrors>({});
     const [cityColor, setCityColor] = useState<string>('#7C7C7C')
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const navigate = useNavigate();
 
@@ -105,19 +119,76 @@ const Registration: React.FC = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+// Обработчик ошибок регистрации
+    const handleRegistrationError = (error: any) => {
+        console.error('Ошибка при регистрации:', error);
+
+        const newErrors: FormErrors = {};
+
+        // Обработка ошибок из ответа API
+        if (error.data) {
+            // Обрабатываем ошибки для каждого поля
+            if (error.data.email && Array.isArray(error.data.email)) {
+                newErrors.email = error.data.email[0];
+            }
+            if (error.data.password && Array.isArray(error.data.password)) {
+                newErrors.password = error.data.password[0];
+            }
+            if (error.data.re_password && Array.isArray(error.data.re_password)) {
+                newErrors.confirmPassword = error.data.re_password[0];
+            }
+            if (error.data.first_name && Array.isArray(error.data.first_name)) {
+                newErrors.firstName = error.data.first_name[0];
+            }
+            if (error.data.last_name && Array.isArray(error.data.last_name)) {
+                newErrors.lastName = error.data.last_name[0];
+            }
+            if (error.data.city && Array.isArray(error.data.city)) {
+                newErrors.city = error.data.city[0];
+            }
+            // Обработка общих ошибок
+            if (error.data.non_field_errors && Array.isArray(error.data.non_field_errors)) {
+                newErrors.server = error.data.non_field_errors[0];
+            }
+        }
+
+        // Если нет специфических ошибок, добавляем общую ошибку сервера
+        if (Object.keys(newErrors).length === 0) {
+            newErrors.server = error.message || 'Произошла ошибка при регистрации. Пожалуйста, попробуйте еще раз.';
+        }
+
+        setErrors(newErrors);
+    };
+
     // Обработчик отправки формы
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        setErrors({});
 
         if (validateForm()) {
-            navigate('/login');
-            // TODO: Здесь будет код для отправки данных на сервер
-            console.log('Форма валидна, отправляем данные:', formData);
-            // Например, fetch('/api/register', { method: 'POST', body: JSON.stringify(formData) })
-            alert('Регистрация успешна!');
-            navigate('/verify-email', {state: {email: formData.email}});
-        } else {
-            console.log('Форма содержит ошибки');
+            try {
+                setIsLoading(true);
+
+                // Подготовка данных для API в соответствии с требуемым форматом
+                const userData = {
+                    email: formData.email,
+                    password: formData.password,
+                    re_password: formData.confirmPassword,
+                    first_name: formData.firstName,
+                    last_name: formData.lastName,
+                    city: formData.city
+                };
+
+                // Вызов метода регистрации из authService
+                await authService.register(userData);
+
+                // Перенаправление на страницу подтверждения email
+                navigate('/verify-email', {state: {email: formData.email}});
+            } catch (error) {
+                handleRegistrationError(error);
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -125,6 +196,7 @@ const Registration: React.FC = () => {
         <div>
             <div className="form-container">
                 <h1>Регистрация</h1>
+                {errors.server && <div className="server-error"><ErrorField message={errors.server}/></div>}
                 <form onSubmit={handleSubmit} noValidate={true}>
                     <div>
                         <Select
@@ -222,7 +294,9 @@ const Registration: React.FC = () => {
                             )}
                         </div>
 
-                        <Button type="submit">Завершить</Button>
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? 'Регистрация...' : 'Завершить'}
+                        </Button>
                     </div>
                 </form>
             </div>

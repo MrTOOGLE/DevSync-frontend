@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Registration from './pages/Auth/Registration.tsx'
 import Authorization from "./pages/Auth/Authorization.tsx";
 import Dashboard from './pages/Main/Dashboard.tsx'; // Заглушка главной страницы
-import ProtectedRoute from './hooks/ProtectedRoute.tsx';
+import ProtectedRoute from './routes/ProtectedRoute.tsx';
 import CheckMail from "./pages/Auth/CheckMail.tsx";
 
 const App: React.FC = () => {

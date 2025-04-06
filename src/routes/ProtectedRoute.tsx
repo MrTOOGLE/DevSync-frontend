@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { authService } from './AuthService.tsx'
+import { authService } from '../hooks/AuthService.tsx'
 
 /**
  * Проверка того, авторизован ли пользователь
