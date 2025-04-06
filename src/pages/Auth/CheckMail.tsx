@@ -3,7 +3,10 @@ import {useLocation, useNavigate} from 'react-router-dom';
 import '../../styles/styles.css'
 import {Input} from '../../components/common/Input/Input.tsx';
 import {Button} from '../../components/common/Button/Button.tsx';
-import {authService} from '../../hooks/AuthService.tsx'; // Импортируем сервис авторизации и интерфейс ошибки
+import {authService} from '../../hooks/AuthService.tsx';
+import arrowBack from "../../photos/pngwing.com.png";
+import {Header} from "../../components/common/Header/Header.tsx";
+import {Footer} from "../../components/common/Footer/Footer.tsx"; // Импортируем сервис авторизации и интерфейс ошибки
 
 interface LocationState {
     email?: string;
@@ -121,60 +124,69 @@ const EmailConfirmation: React.FC = () => {
     }
 
     return (
-        <div className="form-container">
-            <h1>Подтверждение почты</h1>
-            <div className="text_email">
-                <p>
-                    На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
-                    {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения регистрации.
-                    Введите его в поле ниже:
-                </p>
-            </div>
-            <div>
-                <Input
-                    type="text"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    placeholder="Код из письма*"
-                    id="checkMailInput"
-                    disabled={isLoading}
-                />
-            </div>
-            {message && (
-                <div className="success-message">
-                    <p>{message}</p>
-                </div>
-            )}
-            {errors && (
-                <div className="error-messages">
-                    {errors.email?.map((err: string, i: number) => (
-                        <p key={`email-${i}`} className="error-message">{err}</p>
-                    ))}
-                    {errors.code?.map((err: string, i: number) => (
-                        <p key={`code-${i}`} className="error-message">{err}</p>
-                    ))}
-                    {errors.non_field_errors?.map((err: string, i: number) => (
-                        <p key={`nfe-${i}`} className="error-message">{err}</p>
-                    ))}
-                    {errors.detail && (
-                        <p className="error-message">{errors.detail}</p>
-                    )}
-                </div>
-            )}
-            <div className="button-container">
-                <Button onClick={handleSubmit} disabled={isLoading}>
-                    {isLoading ? 'Проверка...' : 'Завершить'}
-                </Button>
-            </div>
-            <div className="resend-code">
-                <button
-                    onClick={handleResendCode}
-                    className="link-button"
-                    disabled={!canResend || isLoading}
-                >
-                    {canResend ? 'Отправить код повторно' : `Отправить код повторно (${timer} сек.)`}
+        <div className="main-container">
+            <Header>
+                <button onClick={() => navigate(-1)} className="back-button">
+                    <img src={arrowBack} alt="Back" className='back-icon'/>
+                    <span>Назад</span>
                 </button>
+            </Header>
+            <div className="form-container">
+                <h1>Подтверждение почты</h1>
+                <div className="text_email">
+                    <p>
+                        На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
+                        {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения регистрации.
+                        Введите его в поле ниже:
+                    </p>
+                </div>
+                <div>
+                    <Input
+                        type="text"
+                        value={code}
+                        onChange={(e) => setCode(e.target.value)}
+                        placeholder="Код из письма*"
+                        id="checkMailInput"
+                        disabled={isLoading}
+                    />
+                </div>
+                {message && (
+                    <div className="success-message">
+                        <p>{message}</p>
+                    </div>
+                )}
+                {errors && (
+                    <div className="error-messages">
+                        {errors.email?.map((err: string, i: number) => (
+                            <p key={`email-${i}`} className="error-message">{err}</p>
+                        ))}
+                        {errors.code?.map((err: string, i: number) => (
+                            <p key={`code-${i}`} className="error-message">{err}</p>
+                        ))}
+                        {errors.non_field_errors?.map((err: string, i: number) => (
+                            <p key={`nfe-${i}`} className="error-message">{err}</p>
+                        ))}
+                        {errors.detail && (
+                            <p className="error-message">{errors.detail}</p>
+                        )}
+                    </div>
+                )}
+                <div className="button-container">
+                    <Button onClick={handleSubmit} disabled={isLoading}>
+                        {isLoading ? 'Проверка...' : 'Завершить'}
+                    </Button>
+                </div>
+                <div className="resend-code">
+                    <button
+                        onClick={handleResendCode}
+                        className="link-button"
+                        disabled={!canResend || isLoading}
+                    >
+                        {canResend ? 'Отправить код повторно' : `Отправить код повторно (${timer} сек.)`}
+                    </button>
+                </div>
             </div>
+            <Footer />
         </div>
     );
 };

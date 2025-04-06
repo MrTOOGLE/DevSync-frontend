@@ -1,10 +1,13 @@
 import React, {FormEvent, useState} from 'react';
 import '../../styles/styles.css';
+import arrowBack from '../../photos/pngwing.com.png'
 import {useNavigate, Link} from 'react-router-dom';
 import {Button} from '../../components/common/Button/Button.tsx';
 import {Input} from '../../components/common/Input/Input.tsx';
-import { authService } from '../../hooks/AuthService.tsx';
+import {authService} from '../../hooks/AuthService.tsx';
 import {ErrorField} from '../../components/common/ErrorField/ErrorField.tsx';
+import {Header} from "../../components/common/Header/Header.tsx";
+import {Footer} from "../../components/common/Footer/Footer.tsx";
 
 // Типизация ошибок формы
 interface FormErrors {
@@ -94,43 +97,54 @@ const Authorization: React.FC = () => {
     };
 
     return (
-        <div className="form-container">
-            <h1>Войти</h1>
-            <form onSubmit={handleSubmit} noValidate={true}>
-                <div className="form_group">
-                    <Input
-                        type="email"
-                        id="emailInput"
-                        name="email"
-                        placeholder="Электронная почта*"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className={errors.email ? 'error' : ''}
-                        required
-                    />
-                    {errors.email && <ErrorField message={errors.email} />}
+        <div className="main-container">
+            <Header>
+                <button onClick={() => navigate(-1)} className="back-button">
+                    <img src={arrowBack} alt="Back" className='back-icon'/>
+                    <span>Назад</span>
+                </button>
+            </Header>
+            <div className="main-content">
+                <div className="form-container">
+                    <h1>Войти</h1>
+                    <form onSubmit={handleSubmit} noValidate={true}>
+                        <div className="form_group">
+                            <Input
+                                type="email"
+                                id="emailInput"
+                                name="email"
+                                placeholder="Электронная почта*"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className={errors.email ? 'error' : ''}
+                                required
+                            />
+                            {errors.email && <ErrorField message={errors.email}/>}
+                        </div>
+                        <div className="form_group">
+                            <Input
+                                type="password"
+                                id="passwordInput"
+                                name="password"
+                                placeholder="Пароль*"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className={errors.password ? 'error' : ''}
+                                required
+                            />
+                            {errors.password && <ErrorField message={errors.password}/>}
+                        </div>
+                        {errors.server && <p className="error-message server-error">{errors.server}</p>}
+                        <p className="link">
+                            У вас еще нет аккаунта? <Link to="/register" id="link">Зарегистрироваться!</Link>
+                        </p>
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? 'Подождите...' : 'Войти'}
+                        </Button>
+                    </form>
                 </div>
-                <div className="form_group">
-                    <Input
-                        type="password"
-                        id="passwordInput"
-                        name="password"
-                        placeholder="Пароль*"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className={errors.password ? 'error' : ''}
-                        required
-                    />
-                    {errors.password && <ErrorField message={errors.password} />}
-                </div>
-                {errors.server && <p className="error-message server-error">{errors.server}</p>}
-                <p className="link">
-                    У вас еще нет аккаунта? <Link to="/register" id="link">Зарегистрироваться!</Link>
-                </p>
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? 'Подождите...' : 'Войти'}
-                </Button>
-            </form>
+            </div>
+            <Footer/>
         </div>
     );
 };
