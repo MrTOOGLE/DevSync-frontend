@@ -5,6 +5,7 @@ import Authorization from "./pages/Auth/Authorization.tsx";
 import Dashboard from './pages/Main/Dashboard.tsx'; // Заглушка главной страницы
 import ProtectedRoute from './routes/ProtectedRoute.tsx';
 import CheckMail from "./pages/Auth/CheckMail.tsx";
+import FaqPage from "./pages/FAQ/FaqPage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -14,6 +15,7 @@ const App: React.FC = () => {
                 <Route path="/login" element={<Authorization />} />
                 <Route path="/register" element={<Registration />} />
                 <Route path="/verify-email" element={<CheckMail />} />
+                <Route path="/faq" element={<FaqPage />} />
 
                 {/* Защищенные маршруты */}
                 <Route element={<ProtectedRoute />}>
