@@ -116,7 +116,7 @@ const Authorization: React.FC = () => {
                                 placeholder="Электронная почта*"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className={errors.email ? 'error' : ''}
+                                hasError={!!errors.server || !!errors.email}
                                 required
                             />
                             {errors.email && <ErrorField message={errors.email}/>}
@@ -129,12 +129,12 @@ const Authorization: React.FC = () => {
                                 placeholder="Пароль*"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className={errors.password ? 'error' : ''}
+                                hasError={!!errors.password || !!errors.server}
                                 required
                             />
                             {errors.password && <ErrorField message={errors.password}/>}
                         </div>
-                        {errors.server && <p className="error-message server-error">{errors.server}</p>}
+                        {errors.server && <ErrorField message={errors.server}/>}
                         <p className="link">
                             У вас еще нет аккаунта? <Link to="/register" id="link">Зарегистрироваться!</Link>
                         </p>

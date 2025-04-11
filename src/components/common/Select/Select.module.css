@@ -22,3 +22,7 @@
 .select option {
     color: #353536;
 }
+
+.selectError {
+    background-color: #FEE0E0;
+}

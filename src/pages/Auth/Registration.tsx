@@ -214,6 +214,7 @@ const Registration: React.FC = () => {
                                 value={formData.city}
                                 onChange={handleInputChange}
                                 style={{color: cityColor}}
+                                hasError={!!errors.city}
                             >
                                 <option value="">Город*</option>
                                 {cities.map(city => (
@@ -230,6 +231,7 @@ const Registration: React.FC = () => {
                                 placeholder="Фамилия*"
                                 value={formData.lastName}
                                 onChange={handleInputChange}
+                                hasError={!!errors.lastName}
                             />
                             {errors.lastName && <ErrorField message={errors.lastName}/>}
                         </div>
@@ -241,6 +243,7 @@ const Registration: React.FC = () => {
                                 placeholder="Имя*"
                                 value={formData.firstName}
                                 onChange={handleInputChange}
+                                hasError={!!errors.firstName}
                             />
                             {errors.firstName && <ErrorField message={errors.firstName}/>}
                         </div>
@@ -252,6 +255,7 @@ const Registration: React.FC = () => {
                                 placeholder="Электронная почта*"
                                 value={formData.email}
                                 onChange={handleInputChange}
+                                hasError={!!errors.email}
                             />
                             {errors.email && <ErrorField message={errors.email}/>}
                         </div>
@@ -263,6 +267,7 @@ const Registration: React.FC = () => {
                                 placeholder="Пароль*"
                                 value={formData.password}
                                 onChange={handleInputChange}
+                                hasError={!!errors.password}
                             />
                             {errors.password && <ErrorField message={errors.password}/>}
                         </div>
@@ -274,6 +279,7 @@ const Registration: React.FC = () => {
                                 placeholder="Повторите пароль*"
                                 value={formData.confirmPassword}
                                 onChange={handleInputChange}
+                                hasError={!!errors.confirmPassword}
                             />
                             {errors.confirmPassword && <ErrorField message={errors.confirmPassword}/>}
                         </div>

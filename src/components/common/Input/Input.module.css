@@ -18,3 +18,7 @@
 .input::placeholder {
     color: #7C7C7C;
 }
+
+.inputError {
+    background-color: #FEE0E0;
+}

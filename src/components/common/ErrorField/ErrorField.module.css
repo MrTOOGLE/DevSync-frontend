@@ -1,6 +1,7 @@
 .wrapper {
     position: relative;
     height: 0;
+    background: none;
 }
 
 .fieldError {
@@ -10,16 +11,16 @@
     transform: translateY(4px);
     display: flex;
     align-items: center;
-    background-color: #FEE0E0;
+    background: none;
     border: none;
     color: #FF2727;
-    font-size: 12px;
     font-family: 'Helvetica Neue', sans-serif;
-    border-radius: 6px;
-    padding: 4px 8px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: 0;
     z-index: 10;
     white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     animation: fadeIn 0.2s ease-in-out;
 }
 
