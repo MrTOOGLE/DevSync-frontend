@@ -6,6 +6,7 @@ import Dashboard from './pages/Main/Dashboard.tsx'; // Заглушка глав
 import ProtectedRoute from './routes/ProtectedRoute.tsx';
 import CheckMail from "./pages/Auth/CheckMail.tsx";
 import FaqPage from "./pages/FAQ/FaqPage.tsx";
+import WelcomePage from "./pages/Main/WelcomePage.tsx";
 
 const App: React.FC = () => {
     return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
                 <Route path="/register" element={<Registration />} />
                 <Route path="/verify-email" element={<CheckMail />} />
                 <Route path="/faq" element={<FaqPage />} />
+                <Route path="/" element={<WelcomePage />} />
 
                 {/* Защищенные маршруты */}
                 <Route element={<ProtectedRoute />}>
