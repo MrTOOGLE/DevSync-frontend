@@ -1,4 +1,4 @@
-.header {
+.headerFixed {
     position: fixed;
     top: 0;
     left: 0;
@@ -7,6 +7,9 @@
     background-color: #FFFFFF;
     display: flex;
     align-items: center;
-    padding: 0 0 0 123px;
     z-index: 1000;
+}
+
+.headerContent {
+    width: 100%;
 }

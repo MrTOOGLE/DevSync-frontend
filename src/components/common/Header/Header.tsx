@@ -7,8 +7,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ( {children}) => {
     return (
-        <header className={styles.header}>
-            <div className={styles.content}>
+        <header className={styles.headerFixed}>
+            <div className={styles.headerContent}>
                 {children}
             </div>
         </header>

@@ -2,10 +2,11 @@ import React, {useState} from 'react';
 import styles from '../../styles/FaqPage.module.css'
 import {FaqContent, FaqKey} from "./FaqContent.tsx";
 import {RadioButton} from "../../components/common/RadioButton/RadioButton.tsx";
-import arrowBack from "../../photos/pngwing.com.png";
 import {Header} from "../../components/common/Header/Header.tsx";
 import {useNavigate} from "react-router-dom";
 import {Footer} from "../../components/common/Footer/Footer.tsx";
+import logo from '../../photos/logo.png'
+import bell from '../../photos/bell.png'
 
 const faqSections = [
     {key: 'start', label: 'Начало'},
@@ -22,10 +23,21 @@ const FaqPage: React.FC = () => {
     return (
         <div className={styles.mainContainer}>
             <Header>
-                <button onClick={() => navigate(-1)} className="back-button">
-                    <img src={arrowBack} alt="Back" className='back-icon'/>
-                    <span>Назад</span>
-                </button>
+                <div className={styles.header}>
+                    <div className={styles.leftGroup}>
+                        <img src={logo} alt="DEV SYNC" className={styles.logo} />
+                        <nav className={styles.nav}>
+                            <button onClick={() => navigate('')} className={styles.link}>Создать проект</button>
+                            <button onClick={() => navigate('')} className={styles.link}>FAQ</button>
+                        </nav>
+                    </div>
+                    <div className={styles.right}>
+                        <button className={styles.bell}>
+                            <img src={bell} alt="bell"/>
+                        </button>
+                        <button className={styles.profile}>Личный кабинет</button>
+                    </div>
+                </div>
             </Header>
             <div className={styles.mainContent}>
                 <div className={styles.heading}>
@@ -46,7 +58,6 @@ const FaqPage: React.FC = () => {
                         ))}
                     </aside>
                     <main className={styles.content}>
-                        <h2>{FaqContent[selected].title}</h2>
                         <div>{FaqContent[selected].content}</div>
                     </main>
                 </div>
