@@ -60,6 +60,7 @@ body {
     line-height: 100%;
     letter-spacing: 0;
     color: #313132;
+    cursor: pointer;
 }
 
 .right {
@@ -73,6 +74,7 @@ body {
     border: none;
     width: 25px;
     height: 28px;
+    cursor: pointer;
 }
 
 .bell img {
@@ -93,6 +95,7 @@ body {
     line-height: 100%;
     letter-spacing: 0;
     border: none;
+    cursor: pointer;
 }
 
 .heading {
@@ -176,28 +179,24 @@ body {
 .text-imgSection {
     display: flex;
     justify-content: space-between;
-    margin: 24px 0 0 0;
+    position: relative;
+    margin: 25px 0 0 0;
 }
 
-.text {
-    font-family: 'Helvetica Neue', sans-serif;
-    font-size: 24px;
-    font-weight: 400;
-    letter-spacing: 0;
-    line-height: 140%;
-    color: #353536;
-    flex: 1 1 50%;
+.textWelcome {
+    width: 503px;
+    z-index: 1;
 }
 
-.img {
-    flex: 1 1 50%;
-    display: flex;
+.imgWelcome {
+    margin-top: -70px;
+    z-index: 0;
 }
 
-.img img {
+.imgWelcome img {
     width: auto;
-    height: 272px;
-    padding-left: 50px;
+    height: 319px;
+    object-fit: cover;
 }
 
 .textSection {
@@ -206,4 +205,89 @@ body {
 
 .section ul, ol {
     list-style-position: inside;
+}
+
+.textPersonalAccount {
+    width: 856px;
+    z-index: 1;
+}
+
+.imgPersonalAccount {
+    margin-top: -70px;
+    margin-left: -150px;
+    z-index: 0;
+}
+
+.imgPersonalAccount img {
+    width: 159px;
+    height: 159px;
+    object-fit: cover;
+}
+
+.textCreateProject {
+    width: 727px;
+    z-index: 1;
+}
+
+.imgCreateProject {
+    margin-top: -70px;
+    margin-left: -50px;
+    z-index: 0;
+}
+
+.imgCreateProject img {
+    width: auto;
+    height: 282px;
+    object-fit: cover;
+}
+
+.textTasks {
+    width: 854px;
+    z-index: 1;
+}
+
+.imgTasks {
+    margin-top: 70px;
+    margin-left: -200px;
+    z-index: 0;
+}
+
+.imgTasks img {
+    width: auto;
+    height: 205px;
+    object-fit: cover;
+}
+
+.textSuggestion {
+    width: 781px;
+    z-index: 1;
+}
+
+.imgSuggestion {
+    margin-top: -55px;
+    margin-left: -200px;
+    z-index: 0;
+}
+
+.imgSuggestion img {
+    width: 254px;
+    height: 258px;
+    object-fit: cover;
+}
+
+.textFilter {
+    width: 100%;
+    z-index: 1;
+}
+
+.imgFilter {
+    margin-top: -90px;
+    margin-left: -100px;
+    z-index: 0;
+}
+
+.imgFilter img {
+    width: 327px;
+    height: 245px;
+    object-fit: cover;
 }
