@@ -1,10 +1,10 @@
 import React, {useState, useEffect} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import '../../styles/styles.css'
+import styles from '../../styles/Auth.module.css'
 import {Input} from '../../components/common/Input/Input.tsx';
 import {Button} from '../../components/common/Button/Button.tsx';
 import {authService} from '../../hooks/AuthService.tsx';
-import arrowBack from "../../photos/pngwing.com.png";
 import {Header} from "../../components/common/Header/Header.tsx";
 import {Footer} from "../../components/common/Footer/Footer.tsx"; // Импортируем сервис авторизации и интерфейс ошибки
 
@@ -125,15 +125,10 @@ const EmailConfirmation: React.FC = () => {
 
     return (
         <div className="main-container">
-            <Header>
-                <button onClick={() => navigate(-1)} className="back-button">
-                    <img src={arrowBack} alt="Back" className='back-icon'/>
-                    <span>Назад</span>
-                </button>
-            </Header>
-            <div className="form-container">
+            <Header variant="back"/>
+            <div className={styles.formContainer}>
                 <h1>Подтверждение почты</h1>
-                <div className="text_email">
+                <div className={styles.text_email}>
                     <p>
                         На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
                         {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения регистрации.
@@ -146,7 +141,7 @@ const EmailConfirmation: React.FC = () => {
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
                         placeholder="Код из письма*"
-                        id="checkMailInput"
+                        className={styles.checkMailInput}
                         disabled={isLoading}
                     />
                 </div>

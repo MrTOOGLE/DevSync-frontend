@@ -12,4 +12,96 @@
 
 .headerContent {
     width: 100%;
+    padding: 11px 122px 11px 125px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.backButton {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.backIcon {
+    width: 19px;
+    height: 16px;
+    rotate: 90deg;
+    padding: 0;
+    margin: 0;
+}
+
+.backButton span {
+    font-family: 'Helvetica neue', sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 100%;
+    letter-spacing: 0;
+    color: #7C7C7C;
+    margin: 0 0 0 3px;
+}
+
+.leftGroup {
+    display: flex;
+    align-items: center;
+    gap: 51px;
+}
+
+.logo {
+    width: 122px;
+    height: 58px;
+    object-fit: contain;
+}
+
+.nav {
+    display: flex;
+    gap: 56px;
+}
+
+.link {
+    background: none;
+    border: none;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 100%;
+    letter-spacing: 0;
+    color: #313132;
+    cursor: pointer;
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.bell {
+    background: none;
+    border: none;
+    width: 25px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.bell img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.profile {
+    width: 215px;
+    height: 45px;
+    border-radius: 12px;
+    background-color: #F6F7F8;
+    color: #126DF7;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 100%;
+    letter-spacing: 0;
+    border: none;
+    cursor: pointer;
 }

@@ -1,12 +1,12 @@
 import React, {useState, FormEvent} from 'react';
 import {useNavigate, Link} from 'react-router-dom';
 import "../../styles/styles.css"
+import styles from '../../styles/Auth.module.css'
 import {Input} from '../../components/common/Input/Input.tsx';
 import {Button} from '../../components/common/Button/Button.tsx';
 import {Select} from '../../components/common/Select/Select.tsx';
 import {ErrorField} from '../../components/common/ErrorField/ErrorField.tsx';
 import {authService} from '../../hooks/AuthService.tsx';
-import arrowBack from "../../photos/pngwing.com.png";
 import {Header} from "../../components/common/Header/Header.tsx";
 import {Footer} from "../../components/common/Footer/Footer.tsx";
 
@@ -196,21 +196,16 @@ const Registration: React.FC = () => {
 
     return (
         <div className="main-container">
-            <Header>
-                <button onClick={() => navigate(-1)} className="back-button">
-                    <img src={arrowBack} alt="Back" className='back-icon'/>
-                    <span>Назад</span>
-                </button>
-            </Header>
+            <Header variant="back"/>
             <div className="main-content">
-                <div className="form-container">
+                <div className={styles.formContainer}>
                     <h1>Регистрация</h1>
                     {errors.server && <div className="server-error"><ErrorField message={errors.server}/></div>}
                     <form onSubmit={handleSubmit} noValidate={true}>
                         <div>
                             <Select
                                 name="city"
-                                id={"select-city"}
+                                className={styles.selectedCity}
                                 value={formData.city}
                                 onChange={handleInputChange}
                                 style={{color: cityColor}}
@@ -284,21 +279,21 @@ const Registration: React.FC = () => {
                             {errors.confirmPassword && <ErrorField message={errors.confirmPassword}/>}
                         </div>
 
-                        <div className="link">
-                            <p>У вас уже есть аккаунт? <Link to="/login" id="link">Войти!</Link></p>
+                        <div className={styles.link}>
+                            <p>У вас уже есть аккаунт? <Link to="/login" className={styles.linkText}>Войти!</Link></p>
                         </div>
 
-                        <div className="check_terms">
-                            <div className={`checkbox_wrapper ${errors.agreeToTerms ? 'checkbox_error' : ''}`}>
+                        <div className={styles.check_terms}>
+                            <div className={`${styles.checkbox_wrapper} ${errors.agreeToTerms ? styles.checkbox_error : ''}`}>
                                 <label>
                                     <input
-                                        id="checkbox_register"
+                                        className={styles.checkboxRegister}
                                         type="checkbox"
                                         name="agreeToTerms"
                                         checked={formData.agreeToTerms}
                                         onChange={handleCheckboxChange}
                                     />
-                                    <span className="checkmark"></span>
+                                    <span className={styles.checkmark}></span>
                                     Я согласен с <a href="/terms">условиями передачи информации</a>
                                 </label>
 

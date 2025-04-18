@@ -1,15 +1,43 @@
-import React, {ReactNode} from 'react';
+import React from 'react';
 import styles from './Header.module.css';
+import arrowBack from "../../../photos/pngwing.com.png";
+import {useNavigate} from "react-router-dom";
+import logo from "../../../photos/logo.png";
+import bell from "../../../photos/bell.png";
 
 interface HeaderProps {
-    children?: ReactNode;
+    variant?: 'default' | 'back';
 }
 
-export const Header: React.FC<HeaderProps> = ( {children}) => {
+export const Header: React.FC<HeaderProps> = ({variant = 'default'}) => {
+    const navigate = useNavigate();
+
     return (
         <header className={styles.headerFixed}>
             <div className={styles.headerContent}>
-                {children}
+                {variant === 'back' ? (
+                        <button onClick={() => navigate(-1)} className={styles.backButton}>
+                            <img src={arrowBack} alt="Back" className={styles.backIcon} />
+                            <span>Назад</span>
+                        </button>
+                    ) :
+                    (
+                        <>
+                            <div className={styles.leftGroup}>
+                                <img src={logo} alt="DEV SYNC" className={styles.logo}/>
+                                <nav className={styles.nav}>
+                                    <button onClick={() => navigate('')} className={styles.link}>Создать проект</button>
+                                    <button onClick={() => navigate('')} className={styles.link}>FAQ</button>
+                                </nav>
+                            </div>
+                            <div className={styles.right}>
+                                <button className={styles.bell}>
+                                    <img src={bell} alt="bell"/>
+                                </button>
+                                <button className={styles.profile}>Личный кабинет</button>
+                            </div>
+                        </>
+                    )}
             </div>
         </header>
     )

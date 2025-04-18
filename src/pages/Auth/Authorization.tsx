@@ -1,6 +1,6 @@
 import React, {FormEvent, useState} from 'react';
 import '../../styles/styles.css';
-import arrowBack from '../../photos/pngwing.com.png'
+import styles from '../../styles/Auth.module.css'
 import {useNavigate, Link} from 'react-router-dom';
 import {Button} from '../../components/common/Button/Button.tsx';
 import {Input} from '../../components/common/Input/Input.tsx';
@@ -98,14 +98,9 @@ const Authorization: React.FC = () => {
 
     return (
         <div className="main-container">
-            <Header>
-                <button onClick={() => navigate(-1)} className="back-button">
-                    <img src={arrowBack} alt="Back" className='back-icon'/>
-                    <span>Назад</span>
-                </button>
-            </Header>
+            <Header variant='back'/>
             <div className="main-content">
-                <div className="form-container">
+                <div className={styles.formContainer}>
                     <h1>Войти</h1>
                     <form onSubmit={handleSubmit} noValidate={true}>
                         <div className="form_group">
@@ -135,8 +130,8 @@ const Authorization: React.FC = () => {
                             {errors.password && <ErrorField message={errors.password}/>}
                         </div>
                         {errors.server && <ErrorField message={errors.server}/>}
-                        <p className="link">
-                            У вас еще нет аккаунта? <Link to="/register" id="link">Зарегистрироваться!</Link>
+                        <p className={styles.link}>
+                            У вас еще нет аккаунта? <Link to="/register" className={styles.linkText}>Зарегистрироваться!</Link>
                         </p>
                         <Button type="submit" disabled={isLoading}>
                             {isLoading ? 'Подождите...' : 'Войти'}

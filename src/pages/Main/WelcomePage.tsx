@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import '../../styles/styles.css'
+import styles from "../../styles/WelcomePage.module.css";
+import {Header} from "../../components/common/Header/Header.tsx";
+import {Footer} from "../../components/common/Footer/Footer.tsx";
+import mainImage from '../../photos/pagesImages/mainPicture.png'
+import {Button} from "../../components/common/Button/Button.tsx";
 
 // Определяем типы для вкладок
 type TabType = 'projects' | 'roles' | 'offers' | 'voting';
@@ -7,10 +13,11 @@ type TabType = 'projects' | 'roles' | 'offers' | 'voting';
 const DevSyncPage: React.FC = () => {
     // Состояние для активной вкладки
     const [activeTab, setActiveTab] = useState<TabType>('projects');
+    const navigate = useNavigate();
 
     // Функция для получения пути к изображению в зависимости от активной вкладки
     const getImageForTab = () => {
-        switch(activeTab) {
+        switch (activeTab) {
             case 'projects':
                 return '/assets/images/projects.png';
             case 'roles':
@@ -28,29 +35,24 @@ const DevSyncPage: React.FC = () => {
     // <Link to="/">Создать проект</Link> ----> <Link to="/create_project">Создать проект</Link>
 
     return (
-        <div className="devsync-page">
-            <header>
-                <div className="logo">
-                    <span>DevSync</span>
-                </div>
-                <nav>
-                    <Link to="/">Создать проект</Link>
-                    <Link to="/faq">FAQ</Link>
-                </nav>
-                <Link to="/login">Личный кабинет</Link>
-            </header>
-
-            <main>
-                <section className="hero">
-                    <h1>О DevSync</h1>
-                    <p>Приложение, которое сделает процесс разработки проектов на IT удобным объединением людей, задач и проектов на одной платформе</p>
-
-                    <div className="hero-image">
-                        <img src='src/photos/pagesImages/mainPicture.png' alt={'Базовая картинка'}/>
+        <div className="main-container">
+            <Header/>
+            <div className="main-content">
+                <section className={styles.section}>
+                    <div className={styles.aboutDevSync}>
+                        <div className={styles.heading}>
+                            <h1>О DevSync</h1>
+                            <p>Приложение, которое обеспечивает совместную работу при разработке ПО, которое
+                                обеспечивает
+                                возможность голосования за предложения по изменениям продукта</p>
+                        </div>
+                        <div className={styles.aboutDevSyncImg}>
+                            <img src={mainImage} alt={'Базовая картинка'}/>
+                        </div>
                     </div>
                 </section>
 
-                <section className="features">
+                <section className={styles.section}>
                     <h2>Возможности DevSync</h2>
                     <div className="feature-tabs">
                         <button
@@ -81,26 +83,29 @@ const DevSyncPage: React.FC = () => {
 
                     <div className="feature-content">
                         <div className="feature-image">
-                            <img src={getImageForTab()} alt={`Функция ${activeTab}`} />
+                            <img src={getImageForTab()} alt={`Функция ${activeTab}`}/>
                         </div>
                         <div className="feature-description">
                             {activeTab === 'projects' && (
-                                <p>Создавайте проекты и управляйте ими. Отслеживайте прогресс и достигайте результатов вместе с командой.</p>
+                                <p>Создавайте проекты и управляйте ими. Отслеживайте прогресс и достигайте результатов
+                                    вместе с командой.</p>
                             )}
                             {activeTab === 'roles' && (
                                 <p>Назначайте различные роли участникам команды в зависимости от их навыков и опыта.</p>
                             )}
                             {activeTab === 'offers' && (
-                                <p>Делитесь идеями и предложениями по улучшению проекта. Обсуждайте инициативы команды.</p>
+                                <p>Делитесь идеями и предложениями по улучшению проекта. Обсуждайте инициативы
+                                    команды.</p>
                             )}
                             {activeTab === 'voting' && (
-                                <p>Принимайте решения демократическим путем. Создавайте голосования и узнавайте мнение всей команды.</p>
+                                <p>Принимайте решения демократическим путем. Создавайте голосования и узнавайте мнение
+                                    всей команды.</p>
                             )}
                         </div>
                     </div>
                 </section>
 
-                <section className="benefits">
+                <section className={styles.section}>
                     <h2>Почему именно мы?</h2>
                     <div className="benefits-grid">
                         <div className="benefit">
@@ -122,7 +127,7 @@ const DevSyncPage: React.FC = () => {
                     </div>
                 </section>
 
-                <section className="get-started">
+                <section className={styles.section}>
                     <h2>Начни сегодня</h2>
                     <ol>
                         <li>
@@ -135,17 +140,18 @@ const DevSyncPage: React.FC = () => {
                         </li>
                         <li>
                             <h3>Собирай команду разработчиков</h3>
-                            <p>Добавь в команду людей которые помогут реализовать твой проект, создавай и выполняй задачи</p>
+                            <p>Добавь в команду людей которые помогут реализовать твой проект, создавай и выполняй
+                                задачи</p>
                         </li>
                         <li>
                             <h3>Начинай работу</h3>
                             <p>Создавай задачи и ставь дедлайны, работаем!</p>
                         </li>
                     </ol>
+                    <Button onClick={() => navigate('/register')}>Регистрация</Button>
                 </section>
-            </main>
-
-            <Link to="/register">Регистрация</Link>
+            </div>
+            <Footer/>
         </div>
     );
 };
