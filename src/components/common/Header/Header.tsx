@@ -24,17 +24,17 @@ export const Header: React.FC<HeaderProps> = ({variant = 'default'}) => {
                     (
                         <>
                             <div className={styles.leftGroup}>
-                                <img src={logo} alt="DEV SYNC" className={styles.logo}/>
+                                <img onClick={() => navigate('/')} src={logo} alt="DEV SYNC" className={styles.logo}/>
                                 <nav className={styles.nav}>
-                                    <button onClick={() => navigate('')} className={styles.link}>Создать проект</button>
-                                    <button onClick={() => navigate('')} className={styles.link}>FAQ</button>
+                                    <button onClick={() => navigate('/login')} className={styles.link}>Создать проект</button>
+                                    <button onClick={() => navigate('/faq')} className={styles.link}>FAQ</button>
                                 </nav>
                             </div>
                             <div className={styles.right}>
                                 <button className={styles.bell}>
                                     <img src={bell} alt="bell"/>
                                 </button>
-                                <button className={styles.profile}>Личный кабинет</button>
+                                <button onClick={() => navigate('/login')} className={styles.profile}>Личный кабинет</button>
                             </div>
                         </>
                     )}

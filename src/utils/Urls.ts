@@ -3,9 +3,9 @@ const API_CONFIG = {
 
     ENDPOINTS: {
         AUTH: {
-            REGISTER_URL: "api/v0/users/",
-            LOGIN_URL: "api/v0/auth/token/login/",
-            LOGOUT_URL: "api/v0/auth/token/logout/",
+            REGISTER_URL: "api/v1/users/",
+            LOGIN_URL: "api/v1/auth/token/login/",
+            LOGOUT_URL: "api/v1/auth/token/logout/",
             SEND_CODE_URL: "api/v1/users/send-code/",
             CONFIRM_EMAIL_URL: "api/v1/users/confirm-email/",
         }
