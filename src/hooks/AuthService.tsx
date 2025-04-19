@@ -144,6 +144,7 @@ export const authService = {
     // Выход из системы (локальное удаление токена)
     logout: (): void => {
         authService.removeToken();
+        window.location.href = '/';
         // TODO: Здесь можно также добавить вызов API для инвалидации токена на сервере
     },
 

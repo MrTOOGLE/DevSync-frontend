@@ -18,14 +18,12 @@ const AuthRedirect: React.FC = () => {
     useEffect(() => {
         const isAuthenticated = authService.isAuthenticated();
 
-        const publicPaths = ['/login', '/register', '/verify-email', '/faq'];
+        // Страницы, которые должны быть доступны только неавторизованным пользователям
+        const authOnlyPaths = ['/login', '/register', '/verify-email'];
 
-        if (isAuthenticated && publicPaths.includes(location.pathname)) {
+        // Если пользователь авторизован и пытается зайти на страницу только для неавторизованных
+        if (isAuthenticated && authOnlyPaths.includes(location.pathname)) {
             navigate('/profile');
-        }
-
-        if (!isAuthenticated && !publicPaths.includes(location.pathname) && location.pathname !== '/') {
-            navigate('/login');
         }
     }, [navigate, location]);
 

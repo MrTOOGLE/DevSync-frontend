@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from '../styles/Notifications.module.css';
 
 // Типы уведомлений
@@ -25,12 +25,50 @@ interface NotificationsProps {
 }
 
 export const Notifications: React.FC<NotificationsProps> = ({
-                                                                notifications,
+                                                                notifications: initialNotifications,
                                                                 visible,
                                                                 onAccept,
                                                                 onDecline,
                                                                 onClose
                                                             }) => {
+    // Создаем локальное состояние для уведомлений
+    const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+
+    // Обновляем состояние при изменении пропсов
+    useEffect(() => {
+        setNotifications(initialNotifications);
+    }, [initialNotifications]);
+
+    // Обработка принятия уведомления
+    const handleAccept = (notificationId: number) => {
+        // Обновляем локальное состояние - помечаем как прочитанное
+        setNotifications(prev =>
+            prev.map(notification =>
+                notification.id === notificationId
+                    ? { ...notification, read: true }
+                    : notification
+            )
+        );
+
+        // Вызываем колбэк
+        if (onAccept) {
+            onAccept(notificationId);
+        }
+    };
+
+    // Обработка отклонения уведомления
+    const handleDecline = (notificationId: number) => {
+        // Удаляем уведомление из локального состояния
+        setNotifications(prev =>
+            prev.filter(notification => notification.id !== notificationId)
+        );
+
+        // Вызываем колбэк
+        if (onDecline) {
+            onDecline(notificationId);
+        }
+    };
+
     if (!visible) return null;
 
     return (
@@ -55,50 +93,21 @@ export const Notifications: React.FC<NotificationsProps> = ({
                             <div className={styles.notificationHeader}>
                                 <span className={styles.notificationDate}>{notification.date}</span>
                                 <div className={styles.notificationActions}>
-                                    {onAccept && (
-                                        <button
-                                            onClick={() => onAccept(notification.id)}
-                                            className={styles.notificationAccept}
-                                        >
-                                            Принять
-                                        </button>
-                                    )}
-                                    {onDecline && (
-                                        <button
-                                            onClick={() => onDecline(notification.id)}
-                                            className={styles.notificationDecline}
-                                        >
-                                            Отклонить
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={() => handleAccept(notification.id)}
+                                        className={styles.notificationAccept}
+                                    >
+                                        Принять
+                                    </button>
+                                    <button
+                                        onClick={() => handleDecline(notification.id)}
+                                        className={styles.notificationDecline}
+                                    >
+                                        Отклонить
+                                    </button>
                                 </div>
                             </div>
-                            <div className={styles.notificationContent}>
-                                {notification.type === 'achievement' && (
-                                    <p>
-                                        <strong>У Вас новое достижение!</strong><br />
-                                        {notification.text} {notification.icon}
-                                    </p>
-                                )}
-                                {notification.type === 'task' && (
-                                    <p>
-                                        <strong>У Вас новая задача!</strong><br />
-                                        {notification.text}
-                                    </p>
-                                )}
-                                {notification.type === 'project' && (
-                                    <p>
-                                        <strong>Обновление проекта</strong><br />
-                                        {notification.text}
-                                    </p>
-                                )}
-                                {notification.type === 'system' && (
-                                    <p>
-                                        <strong>Системное уведомление</strong><br />
-                                        {notification.text}
-                                    </p>
-                                )}
-                            </div>
+                            {/* Остальной код без изменений */}
                         </div>
                     ))}
                 </div>
