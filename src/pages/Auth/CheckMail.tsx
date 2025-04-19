@@ -126,62 +126,65 @@ const EmailConfirmation: React.FC = () => {
     return (
         <div className="main-container">
             <Header variant="back"/>
-            <div className={styles.formContainer}>
-                <h1>Подтверждение почты</h1>
-                <div className={styles.text_email}>
-                    <p>
-                        На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
-                        {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения регистрации.
-                        Введите его в поле ниже:
-                    </p>
-                </div>
-                <div>
-                    <Input
-                        type="text"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        placeholder="Код из письма*"
-                        className={styles.checkMailInput}
-                        disabled={isLoading}
-                    />
-                </div>
-                {message && (
-                    <div className="success-message">
-                        <p>{message}</p>
+            <div className="main-content">
+                <div className={styles.formContainer}>
+                    <h1>Подтверждение почты</h1>
+                    <div className={styles.text_email}>
+                        <p>
+                            На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
+                            {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения
+                            регистрации.
+                            Введите его в поле ниже:
+                        </p>
                     </div>
-                )}
-                {errors && (
-                    <div className="error-messages">
-                        {errors.email?.map((err: string, i: number) => (
-                            <p key={`email-${i}`} className="error-message">{err}</p>
-                        ))}
-                        {errors.code?.map((err: string, i: number) => (
-                            <p key={`code-${i}`} className="error-message">{err}</p>
-                        ))}
-                        {errors.non_field_errors?.map((err: string, i: number) => (
-                            <p key={`nfe-${i}`} className="error-message">{err}</p>
-                        ))}
-                        {errors.detail && (
-                            <p className="error-message">{errors.detail}</p>
-                        )}
+                    <div>
+                        <Input
+                            type="text"
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                            placeholder="Код из письма*"
+                            className={styles.checkMailInput}
+                            disabled={isLoading}
+                        />
                     </div>
-                )}
-                <div className="button-container">
-                    <Button onClick={handleSubmit} disabled={isLoading}>
-                        {isLoading ? 'Проверка...' : 'Завершить'}
-                    </Button>
+                    {message && (
+                        <div className="success-message">
+                            <p>{message}</p>
+                        </div>
+                    )}
+                    {errors && (
+                        <div className="error-messages">
+                            {errors.email?.map((err: string, i: number) => (
+                                <p key={`email-${i}`} className="error-message">{err}</p>
+                            ))}
+                            {errors.code?.map((err: string, i: number) => (
+                                <p key={`code-${i}`} className="error-message">{err}</p>
+                            ))}
+                            {errors.non_field_errors?.map((err: string, i: number) => (
+                                <p key={`nfe-${i}`} className="error-message">{err}</p>
+                            ))}
+                            {errors.detail && (
+                                <p className="error-message">{errors.detail}</p>
+                            )}
+                        </div>
+                    )}
+                    <div className="button-container">
+                        <Button onClick={handleSubmit} disabled={isLoading}>
+                            {isLoading ? 'Проверка...' : 'Завершить'}
+                        </Button>
+                    </div>
+                    <div className="resend-code">
+                        <button
+                            onClick={handleResendCode}
+                            className="link-button"
+                            disabled={!canResend || isLoading}
+                        >
+                            {canResend ? 'Отправить код повторно' : `Отправить код повторно (${timer} сек.)`}
+                        </button>
+                    </div>
                 </div>
-                <div className="resend-code">
-                    <button
-                        onClick={handleResendCode}
-                        className="link-button"
-                        disabled={!canResend || isLoading}
-                    >
-                        {canResend ? 'Отправить код повторно' : `Отправить код повторно (${timer} сек.)`}
-                    </button>
-                </div>
+                <Footer/>
             </div>
-            <Footer />
         </div>
     );
 };

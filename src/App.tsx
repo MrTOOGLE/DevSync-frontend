@@ -7,6 +7,7 @@ import ProtectedRoute from './routes/ProtectedRoute.tsx';
 import CheckMail from "./pages/Auth/CheckMail.tsx";
 import FaqPage from "./pages/FAQ/FaqPage.tsx";
 import WelcomePage from "./pages/Main/WelcomePage.tsx";
+import ProfilePage from "./pages/Profile/Profile.tsx";
 
 const App: React.FC = () => {
     return (
@@ -18,6 +19,7 @@ const App: React.FC = () => {
                 <Route path="/verify-email" element={<CheckMail />} />
                 <Route path="/faq" element={<FaqPage />} />
                 <Route path="/" element={<WelcomePage />} />
+                <Route path="/profile" element={<ProfilePage />} />
 
                 {/* Защищенные маршруты */}
                 <Route element={<ProtectedRoute />}>
