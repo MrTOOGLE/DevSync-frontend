@@ -1,11 +1,37 @@
 import React, { useState } from 'react';
-import {useNavigate} from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 import { Header } from "../../components/common/Header/Header.tsx";
 import { Footer } from "../../components/common/Footer/Footer.tsx";
 import '../../styles/styles.css';
 
+// Типы для данных достижений
+interface Achievement {
+    id: number;
+    title: string;
+    icon?: string;
+}
+
+// Типы для данных проектов
+interface Project {
+    id: number;
+    title: string;
+    isPrivate: boolean;
+    emoji: string;
+}
+
+// Типы для данных пользователя
+interface UserData {
+    firstName: string;
+    lastName: string;
+    email: string;
+    city: string;
+    avatar: string;
+    achievements: Achievement[];
+    projects: Project[];
+}
+
 // Заглушка для данных пользователя
-const mockUserData = {
+const mockUserData: UserData = {
     firstName: 'Александра',
     lastName: 'Лапшакова',
     email: 'avk65@tbank.ru',
@@ -29,8 +55,8 @@ const mockUserData = {
 };
 
 const ProfilePage: React.FC = () => {
-    const navigate = useNavigate();
-    const [userData, setUserData] = useState(mockUserData);
+    // const navigate = useNavigate();
+    const [userData] = useState<UserData>(mockUserData);
 
     // Заглушка для обработчика редактирования профиля
     const handleEdit = () => {
@@ -64,7 +90,7 @@ const ProfilePage: React.FC = () => {
                             <div className="achievements-content">
                                 {userData.achievements.length > 0 ? (
                                     <ul className="achievements-list">
-                                        {userData.achievements.map(achievement => (
+                                        {userData.achievements.map((achievement) => (
                                             <li key={achievement.id} className="achievement-item">
                                                 {achievement.icon} {achievement.title}
                                             </li>
@@ -110,7 +136,7 @@ const ProfilePage: React.FC = () => {
                 <div className="profile-projects-section">
                     <h2>Мои проекты</h2>
                     <div className="projects-list">
-                        {userData.projects.map(project => (
+                        {userData.projects.map((project) => (
                             <div
                                 key={project.id}
                                 className="project-item"

@@ -55,7 +55,7 @@ const Authorization: React.FC = () => {
             try {
                 setIsLoading(true);
                 await authService.login({email, password})
-                navigate('/dashboard')
+                navigate('/profile')
             } catch (error) {
                 handleAuthError(error);
             } finally {

@@ -1,0 +1,106 @@
+.notificationsContainer {
+    position: absolute;
+    top: 70px;
+    right: 30px;
+    width: 400px;
+    max-height: 500px;
+    overflow-y: auto;
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.notificationsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #F6F7F8;
+}
+
+.notificationsHeader h3 {
+    margin: 0;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #353536;
+}
+
+.notificationsClose {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #7C7C7C;
+}
+
+.notificationsEmpty {
+    padding: 20px;
+    text-align: center;
+    color: #7C7C7C;
+}
+
+.notificationsList {
+    padding: 0;
+}
+
+.notificationItem {
+    padding: 15px 20px;
+    border-bottom: 1px solid #F6F7F8;
+}
+
+.notificationItem:last-child {
+    border-bottom: none;
+}
+
+.unread {
+    background-color: rgba(255, 221, 45, 0.05);
+}
+
+.notificationHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.notificationDate {
+    font-size: 12px;
+    color: #7C7C7C;
+}
+
+.notificationActions {
+    display: flex;
+    gap: 10px;
+}
+
+.notificationAccept {
+    background-color: #FFDD2D;
+    border: none;
+    border-radius: 11px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.notificationDecline {
+    background-color: #F6F7F8;
+    border: none;
+    border-radius: 11px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.notificationContent {
+    font-size: 14px;
+    color: #353536;
+}
+
+.notificationContent p {
+    margin: 0;
+}
+
+.notificationContent strong {
+    font-weight: 500;
+}

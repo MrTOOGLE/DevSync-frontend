@@ -1,9 +1,9 @@
 services:
   frontend:
-    image: nginx:stable
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: frontend_container
     ports:
       - "3000:80"
-    volumes:
-      - ./dist:/usr/share/nginx/html:ro
     restart: unless-stopped

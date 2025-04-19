@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from '../styles/Notifications.module.css';
 
 // Типы уведомлений
 export type NotificationType = 'achievement' | 'task' | 'project' | 'system';
@@ -33,29 +34,31 @@ export const Notifications: React.FC<NotificationsProps> = ({
     if (!visible) return null;
 
     return (
-        <div className="notifications-container">
-            <div className="notifications-header">
-                <h3>Уведомления</h3>
+        <div className={styles.notificationsContainer}>
+            <div className={styles.notificationsHeader}>
+                <h3>Ваши уведомления</h3>
                 {onClose && (
-                    <button onClick={onClose} className="notifications-close">
+                    <button onClick={onClose} className={styles.notificationsClose}>
                         ✕
                     </button>
                 )}
             </div>
 
             {notifications.length === 0 ? (
-                <p className="notifications-empty">У вас нет уведомлений</p>
+                <p className={styles.notificationsEmpty}>У вас нет уведомлений</p>
             ) : (
-                <div className="notifications-list">
+                <div className={styles.notificationsList}>
                     {notifications.map(notification => (
-                        <div key={notification.id} className={`notification-item ${notification.read ? 'read' : 'unread'}`}>
-                            <div className="notification-header">
-                                <span className="notification-date">{notification.date}</span>
-                                <div className="notification-actions">
+                        <div key={notification.id}
+                             className={`${styles.notificationItem} ${notification.read ? styles.read : styles.unread}`}
+                        >
+                            <div className={styles.notificationHeader}>
+                                <span className={styles.notificationDate}>{notification.date}</span>
+                                <div className={styles.notificationActions}>
                                     {onAccept && (
                                         <button
                                             onClick={() => onAccept(notification.id)}
-                                            className="notification-accept"
+                                            className={styles.notificationAccept}
                                         >
                                             Принять
                                         </button>
@@ -63,14 +66,14 @@ export const Notifications: React.FC<NotificationsProps> = ({
                                     {onDecline && (
                                         <button
                                             onClick={() => onDecline(notification.id)}
-                                            className="notification-decline"
+                                            className={styles.notificationDecline}
                                         >
                                             Отклонить
                                         </button>
                                     )}
                                 </div>
                             </div>
-                            <div className="notification-content">
+                            <div className={styles.notificationContent}>
                                 {notification.type === 'achievement' && (
                                     <p>
                                         <strong>У Вас новое достижение!</strong><br />
