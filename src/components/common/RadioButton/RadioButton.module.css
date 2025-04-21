@@ -3,15 +3,16 @@
 }
 
 .radio_wrapper {
-    width: 215px;
+    min-width: 145px;
     height: 47px;
-    padding: 6px 21px 6px 22px;
     border-radius: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: transparent;
     border: 3px solid #FFDD2D;
+    width: auto;
+    padding: 0 20px;
 }
 
 .radio_wrapper:hover {
@@ -25,6 +26,7 @@
     line-height: 35px;
     letter-spacing: 0;
     color: #000000;
+    display: inline-block;
 }
 
 .checked {

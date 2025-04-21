@@ -7,7 +7,7 @@ import {Header} from "../../components/common/Header/Header.tsx";
 import {Footer} from "../../components/common/Footer/Footer.tsx";
 
 const faqSections = [
-    {key: 'start', label: 'Начало'},
+    {key: 'start', label: 'Начало работы'},
     {key: 'projects', label: 'Проекты'},
     {key: 'tasks', label: 'Задачи'},
     {key: 'suggestions', label: 'Предложения'},
@@ -35,6 +35,7 @@ const FaqPage: React.FC = () => {
                                 name="faq"
                                 checked={selected === section.key}
                                 onChange={(e) => setSelected(e.target.value as typeof selected)}
+                                width={215}
                             />
                         ))}
                     </aside>
