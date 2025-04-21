@@ -34,6 +34,29 @@ const DevSyncPage: React.FC = () => {
         }
     };
 
+    const steps = [
+        {
+            number: 1,
+            title: "Пройди регистрацию",
+            description: "Пройди и заверши регистрацию для работы с платформой",
+        },
+        {
+            number: 2,
+            title: "Создай проект",
+            description: "Создай проект со своими настройками и описанием",
+        },
+        {
+            number: 3,
+            title: "Собирай команду разработчиков",
+            description: "Добавляй участников в проект, назначай роли, создавай отделы и назначай руководителей",
+        },
+        {
+            number: 4,
+            title: "Начинай работу",
+            description: "Создавай задачи и ставь дедлайны, работаем!",
+        },
+    ]
+
     // TODO: переделать потом ссылку, когда будет создание проекта
     // <Link to="/">Создать проект</Link> ----> <Link to="/create_project">Создать проект</Link>
 
@@ -109,7 +132,7 @@ const DevSyncPage: React.FC = () => {
                             </div>
                             <div className={styles.featureCard}>
                                 <div className={styles.text}>
-                                <h3>Свой проект</h3>
+                                    <h3>Свой проект</h3>
                                     <p>Создавай проект на любую тему: от программирования до плана уборки комнаты.</p>
                                 </div>
                             </div>
@@ -136,27 +159,21 @@ const DevSyncPage: React.FC = () => {
                 </section>
 
                 <section className={styles.section}>
-                    <h2>Начни сегодня</h2>
-                    <ol>
-                        <li>
-                            <h3>Пройди регистрацию</h3>
-                            <p>Пройди и заверши регистрацию для работы с платформой</p>
-                        </li>
-                        <li>
-                            <h3>Создай проект</h3>
-                            <p>Создай проект со своими настройками и описанием</p>
-                        </li>
-                        <li>
-                            <h3>Собирай команду разработчиков</h3>
-                            <p>Добавь в команду людей которые помогут реализовать твой проект, создавай и выполняй
-                                задачи</p>
-                        </li>
-                        <li>
-                            <h3>Начинай работу</h3>
-                            <p>Создавай задачи и ставь дедлайны, работаем!</p>
-                        </li>
-                    </ol>
-                    <Button onClick={() => navigate('/register')}>Регистрация</Button>
+                    <div className={styles.startToday}>
+                        <h2>Начни сегодня</h2>
+                        <div className={styles.steps}>
+                            {steps.map((step) => (
+                                <div key={step.number} className={styles.step}>
+                                    <div className={styles.stepNumber}>{step.number}</div>
+                                    <div className={styles.stepContent}>
+                                        <h3 className={styles.stepTitle}>{step.title}</h3>
+                                        <p className={styles.stepDescription}>{step.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <Button onClick={() => navigate('/register')}>Зарегистрироваться</Button>
+                    </div>
                 </section>
             </div>
             <Footer/>
