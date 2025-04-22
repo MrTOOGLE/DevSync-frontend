@@ -43,6 +43,10 @@
     padding-right: 60px;
 }
 
+.radio_wrapper {
+    width: 300px;
+}
+
 .section {
     max-width: 900px;
     margin: 24px 0 0 0;
