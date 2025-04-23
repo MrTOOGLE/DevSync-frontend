@@ -1,0 +1,406 @@
+.createProjectContainer {
+    max-width: 900px;
+    margin: 40px auto;
+    background-color: #FFFFFF;
+    border-radius: 25px;
+    padding: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.createProjectContainer h1 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 36px;
+    font-weight: 400;
+    color: #353536;
+    margin-bottom: 24px;
+}
+
+.subtitle {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 140%;
+    color: #353536;
+    margin-bottom: 16px;
+}
+
+.required {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #7C7C7C;
+    margin-bottom: 32px;
+}
+
+.formGroup {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.textarea {
+    width: 100%;
+    height: 150px;
+    border: none;
+    outline: none;
+    border-radius: 14px;
+    background-color: #F6F7F8;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 140%;
+    letter-spacing: 0;
+    color: #353536;
+    padding: 16px 22px;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.2);
+    resize: vertical;
+}
+
+.textarea::placeholder {
+    color: #7C7C7C;
+}
+
+.sectionContainer {
+    margin-top: 40px;
+    padding: 30px;
+    background-color: #F6F7F8;
+    border-radius: 20px;
+}
+
+.sectionContainer h2 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+    color: #353536;
+    margin-bottom: 16px;
+}
+
+.sectionContainer h3 {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #353536;
+    margin-top: 20px;
+    margin-bottom: 12px;
+}
+
+.sectionContainer p {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 140%;
+    color: #353536;
+    margin-bottom: 20px;
+}
+
+/* Поиск участников */
+.searchContainer {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.searchInputWrapper {
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+}
+
+.searchInput {
+    width: 100%;
+    height: 55px;
+    border: none;
+    outline: none;
+    border-radius: 14px;
+    background-color: #FFFFFF;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 21px;
+    font-weight: 400;
+    color: #353536;
+    padding: 0 22px 0 50px;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.searchInput::placeholder {
+    color: #7C7C7C;
+}
+
+.searchResults {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.searchResultItem {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.searchResultItem:hover {
+    background-color: #F6F7F8;
+}
+
+.userAvatar, .defaultAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #FFDD2D;
+    color: #353536;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+}
+
+.userAvatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.userInfo {
+    flex: 1;
+}
+
+.userName {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #353536;
+    margin-bottom: 4px;
+}
+
+.userEmail {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #7C7C7C;
+}
+
+.noResults {
+    padding: 20px;
+    text-align: center;
+    color: #7C7C7C;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+}
+
+/* Список участников */
+.membersList {
+    margin-top: 20px;
+}
+
+.memberItem {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    padding: 12px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.memberAvatar {
+    margin-right: 12px;
+}
+
+.memberInfo {
+    flex: 1;
+}
+
+.memberName {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #353536;
+    margin-bottom: 4px;
+}
+
+.memberEmail {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #7C7C7C;
+}
+
+.removeButton {
+    background: none;
+    border: none;
+    color: #FF4444;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.removeButton:hover {
+    opacity: 1;
+}
+
+/* Отделы */
+.departmentForm {
+    margin-bottom: 30px;
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.addDepartmentButton {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.departmentsList {
+    margin-top: 30px;
+}
+
+.departmentItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.departmentContent {
+    flex: 1;
+}
+
+.departmentTitle {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #353536;
+    margin: 0 0 8px 0;
+}
+
+.departmentDescription {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    color: #7C7C7C;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Настройки приватности */
+.privacyOptions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.privacyOption {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.privacyOption.selected {
+    border-color: #FFDD2D;
+    background-color: rgba(255, 221, 45, 0.05);
+}
+
+.privacyIcon {
+    font-size: 24px;
+    margin-right: 15px;
+}
+
+.privacyContent {
+    flex: 1;
+}
+
+.privacyContent h3 {
+    margin: 0 0 5px 0;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #353536;
+}
+
+.privacyContent p {
+    margin: 0;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    color: #7C7C7C;
+}
+
+.privacyRadio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+}
+
+.radioCircle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #E0E0E0;
+    position: relative;
+}
+
+.radioCircle.radioChecked::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #FFDD2D;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Отображение ошибок */
+.serverError {
+    background-color: #FEE0E0;
+    border-radius: 14px;
+    padding: 15px 20px;
+    margin: 20px 0;
+}
+
+/* Кнопка отправки */
+.submitContainer {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.submitContainer button {
+    width: auto;
+    min-width: 200px;
+    padding: 0 30px;
+    font-size: 18px;
+}

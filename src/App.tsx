@@ -8,6 +8,7 @@ import CheckMail from "./pages/Auth/CheckMail.tsx";
 import FaqPage from "./pages/FAQ/FaqPage.tsx";
 import WelcomePage from "./pages/Main/WelcomePage.tsx";
 import ProfilePage from "./pages/Profile/Profile.tsx";
+import CreateProject from "./pages/Create_project/CreateProject.tsx";
 import { authService } from './hooks/AuthService.tsx';
 
 // Компонент для проверки авторизации и перенаправления
@@ -47,6 +48,7 @@ const App: React.FC = () => {
                 {/* Защищенные маршруты */}
                 <Route element={<ProtectedRoute />}>
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path={"/create-project"} element={<CreateProject />} />
                 </Route>
 
                 {/* Обработка несуществующих путей */}
