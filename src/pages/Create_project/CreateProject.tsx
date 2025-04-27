@@ -74,24 +74,40 @@ const CreateProjectPage: React.FC = () => {
         });
     };
 
-    // Поиск пользователей (заглушка для демонстрации)
+    // Поиск пользователей
     useEffect(() => {
-        if (memberSearch.length > 2) {
-            // Заглушка для поиска пользователей
-            const mockUsers: UserSearchResult[] = [
-                { id: 1, name: 'Александра Лапшакова', email: 'avk65@tbank.ru', avatar: null },
-                { id: 2, name: 'Иван Петров', email: 'ipetrov@tbank.ru', avatar: null },
-                { id: 3, name: 'Мария Смирнова', email: 'msmirnova@tbank.ru', avatar: null },
-                { id: 4, name: 'Алексей Козлов', email: 'akozlov@tbank.ru', avatar: null }
-            ];
+        const searchTimeout = setTimeout(async () => {
+            if (memberSearch.length > 2) {
+                // Пока используем заглушку, позже заменим на реальный API
+                const mockUsers: UserSearchResult[] = [
+                    { id: 1, name: 'Александра Лапшакова', email: 'avk65@tbank.ru', avatar: null },
+                    { id: 2, name: 'Иван Петров', email: 'ipetrov@tbank.ru', avatar: null },
+                    { id: 3, name: 'Мария Смирнова', email: 'msmirnova@tbank.ru', avatar: null },
+                    { id: 4, name: 'Алексей Козлов', email: 'akozlov@tbank.ru', avatar: null }
+                ];
 
-            setSearchResults(mockUsers.filter(user =>
-                user.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
-                user.email.toLowerCase().includes(memberSearch.toLowerCase())
-            ));
-        } else {
-            setSearchResults([]);
-        }
+                // Фильтруем пользователей по поисковому запросу
+                const filteredUsers = mockUsers.filter(user =>
+                    user.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+                    user.email.toLowerCase().includes(memberSearch.toLowerCase())
+                );
+
+                setSearchResults(filteredUsers);
+
+                // TODO: Раскомментировать, когда API будет готово:
+                // try {
+                //    const results = await projectService.searchUsers(memberSearch);
+                //    setSearchResults(results);
+                // } catch (error) {
+                //    console.error('Ошибка при поиске:', error);
+                //    setSearchResults([]);
+                // }
+            } else {
+                setSearchResults([]);
+            }
+        }, 300); // Уменьшаем задержку для более быстрого отклика
+
+        return () => clearTimeout(searchTimeout);
     }, [memberSearch]);
 
     // Добавление участника в список
@@ -112,14 +128,23 @@ const CreateProjectPage: React.FC = () => {
 
     // Добавление отдела
     const handleAddDepartment = () => {
-        if (departmentTitle.trim()) {
-            setDepartments([...departments, {
-                title: departmentTitle,
-                description: departmentDescription
-            }]);
-            setDepartmentTitle('');
-            setDepartmentDescription('');
+        if (!departmentTitle.trim()) {
+            setErrors(prev => ({ ...prev, departments: 'Название отдела обязательно' }));
+            return;
         }
+
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.departments;
+            return newErrors;
+        });
+
+        setDepartments([...departments, {
+            title: departmentTitle,
+            description: departmentDescription
+        }]);
+        setDepartmentTitle('');
+        setDepartmentDescription('');
     };
 
     // Удаление отдела
@@ -137,13 +162,25 @@ const CreateProjectPage: React.FC = () => {
             newErrors.title = 'Поле обязательное';
         }
 
+        const hasEmptyDepartmentTitle = departments.some(dept => !dept.title.trim());
+        if (hasEmptyDepartmentTitle) {
+            newErrors.departments = 'Название отдела обязательно';
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     // Отправка формы на сервер
     const handleSubmit = async () => {
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            // Прокручиваем к первой ошибке
+            const errorElement = document.querySelector('.error-field');
+            if (errorElement) {
+                errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
 
         try {
             setIsLoading(true);

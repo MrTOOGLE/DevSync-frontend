@@ -44,6 +44,7 @@ const App: React.FC = () => {
                 <Route path="/verify-email" element={<CheckMail />} />
                 <Route path="/faq" element={<FaqPage />} />
                 <Route path="/" element={<WelcomePage />} />
+                <Route path={"/create-project"} element={<CreateProject />} />
 
                 {/* Защищенные маршруты */}
                 <Route element={<ProtectedRoute />}>

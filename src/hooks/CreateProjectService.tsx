@@ -18,6 +18,14 @@ export interface ProjectData {
     avatar?: string | null;
 }
 
+// Типы для пользователя в поиск
+export interface UserSearchResult {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string | null;
+}
+
 // Типы для участника проекта
 export interface ProjectMember {
     user: {
@@ -340,6 +348,33 @@ export const projectService = {
         } catch (error) {
             console.error('Ошибка при удалении участника:', error);
             throw error;
+        }
+    },
+
+    // Поиск участников
+    searchUsers: async (query: string): Promise<UserSearchResult[]> => {
+        try {
+            const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/users/search?query=${encodeURIComponent(query)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка поиска пользователей'
+                };
+            }
+
+            const data = await response.json();
+            return data.users || [];
+        } catch (error) {
+            console.error('Ошибка при поиске пользователей:', error);
+            // В случае ошибки возвращаем пустой массив
+            return [];
         }
     },
 

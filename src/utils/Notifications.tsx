@@ -14,6 +14,8 @@ export interface Notification {
     icon?: string;
     projectId?: number;
     taskId?: number;
+    hasActions?: boolean;
+    action?: string;
 }
 
 interface NotificationsProps {
@@ -92,22 +94,42 @@ export const Notifications: React.FC<NotificationsProps> = ({
                         >
                             <div className={styles.notificationHeader}>
                                 <span className={styles.notificationDate}>{notification.date}</span>
-                                <div className={styles.notificationActions}>
-                                    <button
-                                        onClick={() => handleAccept(notification.id)}
-                                        className={styles.notificationAccept}
-                                    >
-                                        Принять
-                                    </button>
-                                    <button
-                                        onClick={() => handleDecline(notification.id)}
-                                        className={styles.notificationDecline}
-                                    >
-                                        Отклонить
-                                    </button>
-                                </div>
+                                {notification.hasActions && (
+                                    <div className={styles.notificationActions}>
+                                        {notification.action ? (
+                                            <button
+                                                onClick={() => handleAccept(notification.id)}
+                                                className={styles.notificationAccept}
+                                            >
+                                                {notification.action}
+                                            </button>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    onClick={() => handleAccept(notification.id)}
+                                                    className={styles.notificationAccept}
+                                                >
+                                                    Принять
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDecline(notification.id)}
+                                                    className={styles.notificationDecline}
+                                                >
+                                                    Отклонить
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                            {/* Остальной код без изменений */}
+                            <div className={styles.notificationContent}>
+                                <p>{notification.text}</p>
+                                {notification.icon && (
+                                    <div className={styles.notificationIcon}>
+                                        {notification.icon}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>
