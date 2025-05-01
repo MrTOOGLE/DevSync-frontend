@@ -7,7 +7,7 @@ import { Button } from '../../components/common/Button/Button.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
 import { Header } from "../../components/common/Header/Header.tsx";
 import { Footer } from "../../components/common/Footer/Footer.tsx";
-import { projectService, ProjectData, Department } from '../../hooks/CreateProjectService.tsx';
+import { projectService, ProjectData} from '../../hooks/CreateProjectService.tsx';
 
 // Типы для формы создания проекта
 interface CreateProjectFormData {
@@ -22,6 +22,16 @@ interface UserSearchResult {
     name: string;
     email: string;
     avatar?: string | null;
+}
+
+// Типы для отдела с выбранными участниками
+interface DepartmentWithSelectedMembers {
+    id?: number;
+    title: string;
+    description: string;
+    project?: number;
+    date_created?: string;
+    selectedMembers: UserSearchResult[];
 }
 
 // Типы для ошибок формы
@@ -45,7 +55,7 @@ const CreateProjectPage: React.FC = () => {
 
     // Списки участников и отделов
     const [members, setMembers] = useState<UserSearchResult[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
+    const [departments, setDepartments] = useState<DepartmentWithSelectedMembers[]>([]);
     const [errors, setErrors] = useState<FormErrors>({});
     const [isLoading, setIsLoading] = useState(false);
 
@@ -56,6 +66,9 @@ const CreateProjectPage: React.FC = () => {
     // Состояния для полей отдела
     const [departmentTitle, setDepartmentTitle] = useState('');
     const [departmentDescription, setDepartmentDescription] = useState('');
+
+    // Состояние для модального окна добавления участников в отдел
+    const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null);
 
     // Обработчик изменения полей формы
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -74,43 +87,27 @@ const CreateProjectPage: React.FC = () => {
         });
     };
 
-    // Поиск пользователей
+    // Поиск пользователей (заглушка для демонстрации)
     useEffect(() => {
-        const searchTimeout = setTimeout(async () => {
-            if (memberSearch.length > 2) {
-                // Пока используем заглушку, позже заменим на реальный API
-                const mockUsers: UserSearchResult[] = [
-                    { id: 1, name: 'Александра Лапшакова', email: 'avk65@tbank.ru', avatar: null },
-                    { id: 2, name: 'Иван Петров', email: 'ipetrov@tbank.ru', avatar: null },
-                    { id: 3, name: 'Мария Смирнова', email: 'msmirnova@tbank.ru', avatar: null },
-                    { id: 4, name: 'Алексей Козлов', email: 'akozlov@tbank.ru', avatar: null }
-                ];
+        if (memberSearch.length > 2) {
+            // Заглушка для поиска пользователей
+            const mockUsers: UserSearchResult[] = [
+                { id: 1, name: 'Александра Лапшакова', email: 'avk65@tbank.ru', avatar: null },
+                { id: 2, name: 'Иван Петров', email: 'ipetrov@tbank.ru', avatar: null },
+                { id: 3, name: 'Мария Смирнова', email: 'msmirnova@tbank.ru', avatar: null },
+                { id: 4, name: 'Алексей Козлов', email: 'akozlov@tbank.ru', avatar: null }
+            ];
 
-                // Фильтруем пользователей по поисковому запросу
-                const filteredUsers = mockUsers.filter(user =>
-                    user.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
-                    user.email.toLowerCase().includes(memberSearch.toLowerCase())
-                );
-
-                setSearchResults(filteredUsers);
-
-                // TODO: Раскомментировать, когда API будет готово:
-                // try {
-                //    const results = await projectService.searchUsers(memberSearch);
-                //    setSearchResults(results);
-                // } catch (error) {
-                //    console.error('Ошибка при поиске:', error);
-                //    setSearchResults([]);
-                // }
-            } else {
-                setSearchResults([]);
-            }
-        }, 300); // Уменьшаем задержку для более быстрого отклика
-
-        return () => clearTimeout(searchTimeout);
+            setSearchResults(mockUsers.filter(user =>
+                user.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+                user.email.toLowerCase().includes(memberSearch.toLowerCase())
+            ));
+        } else {
+            setSearchResults([]);
+        }
     }, [memberSearch]);
 
-    // Добавление участника в список
+    // Добавление участника в общий список
     const handleAddMember = (user: UserSearchResult) => {
         // Проверяем, не добавлен ли уже такой участник
         if (!members.find(m => m.id === user.id)) {
@@ -121,36 +118,52 @@ const CreateProjectPage: React.FC = () => {
         setSearchResults([]);
     };
 
-    // Удаление участника из списка
+    // Удаление участника из общего списка
     const handleRemoveMember = (userId: number) => {
         setMembers(members.filter(m => m.id !== userId));
+
+        // Также удаляем участника из всех отделов
+        setDepartments(departments.map(dept => ({
+            ...dept,
+            selectedMembers: dept.selectedMembers.filter(m => m.id !== userId)
+        })));
     };
 
     // Добавление отдела
     const handleAddDepartment = () => {
-        if (!departmentTitle.trim()) {
-            setErrors(prev => ({ ...prev, departments: 'Название отдела обязательно' }));
-            return;
+        if (departmentTitle.trim()) {
+            setDepartments([...departments, {
+                title: departmentTitle,
+                description: departmentDescription,
+                selectedMembers: []
+            }]);
+            setDepartmentTitle('');
+            setDepartmentDescription('');
         }
-
-        setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors.departments;
-            return newErrors;
-        });
-
-        setDepartments([...departments, {
-            title: departmentTitle,
-            description: departmentDescription
-        }]);
-        setDepartmentTitle('');
-        setDepartmentDescription('');
     };
 
     // Удаление отдела
     const handleRemoveDepartment = (index: number) => {
         const newDepartments = [...departments];
         newDepartments.splice(index, 1);
+        setDepartments(newDepartments);
+    };
+
+    // Добавление участника в отдел
+    const handleAddMemberToDepartment = (user: UserSearchResult, departmentIndex: number) => {
+        // Проверяем, не добавлен ли пользователь уже в отдел
+        if (!departments[departmentIndex].selectedMembers.find(m => m.id === user.id)) {
+            const newDepartments = [...departments];
+            newDepartments[departmentIndex].selectedMembers.push(user);
+            setDepartments(newDepartments);
+        }
+    };
+
+    // Удаление участника из отдела
+    const handleRemoveMemberFromDepartment = (userId: number, departmentIndex: number) => {
+        const newDepartments = [...departments];
+        newDepartments[departmentIndex].selectedMembers =
+            newDepartments[departmentIndex].selectedMembers.filter(m => m.id !== userId);
         setDepartments(newDepartments);
     };
 
@@ -162,25 +175,13 @@ const CreateProjectPage: React.FC = () => {
             newErrors.title = 'Поле обязательное';
         }
 
-        const hasEmptyDepartmentTitle = departments.some(dept => !dept.title.trim());
-        if (hasEmptyDepartmentTitle) {
-            newErrors.departments = 'Название отдела обязательно';
-        }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     // Отправка формы на сервер
     const handleSubmit = async () => {
-        if (!validateForm()) {
-            // Прокручиваем к первой ошибке
-            const errorElement = document.querySelector('.error-field');
-            if (errorElement) {
-                errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            return;
-        }
+        if (!validateForm()) return;
 
         try {
             setIsLoading(true);
@@ -192,20 +193,56 @@ const CreateProjectPage: React.FC = () => {
                 is_public: formData.is_public
             });
 
-            // После успешного создания проекта, добавляем отделы
+            // После успешного создания проекта добавляем отделы
             for (const department of departments) {
-                await projectService.createDepartment(createdProject.id!, {
-                    title: department.title,
-                    description: department.description
-                });
+                try {
+                    const createdDepartment = await projectService.createDepartment(createdProject.id!, {
+                        title: department.title,
+                        description: department.description
+                    });
+
+                    // Добавляем участников в отдел
+                    for (const member of department.selectedMembers) {
+                        try {
+                            // Сначала создаем приглашение, если пользователь еще не приглашен
+                            await projectService.createInvitation(createdProject.id!, member.id);
+
+                            // Затем добавляем в отдел
+                            if (createdDepartment.id) {
+                                await projectService.assignUserToDepartment(
+                                    createdProject.id!,
+                                    member.id,
+                                    createdDepartment.id
+                                );
+                            }
+                        } catch (error) {
+                            console.error(`Ошибка при добавлении участника ${member.id} в отдел:`, error);
+                            // Продолжаем, не останавливаясь при ошибке
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Ошибка при создании отдела ${department.title}:`, error);
+                    // Продолжаем, не останавливаясь при ошибке
+                }
             }
 
-            // Приглашаем участников
+            // Приглашаем участников, которые не в отделах
+            const membersInDepartments = new Set(
+                departments.flatMap(dept => dept.selectedMembers.map(m => m.id))
+            );
+
             for (const member of members) {
-                await projectService.createInvitation(createdProject.id!, member.id);
+                if (!membersInDepartments.has(member.id)) {
+                    try {
+                        await projectService.createInvitation(createdProject.id!, member.id);
+                    } catch (error) {
+                        console.error(`Ошибка при приглашении участника ${member.id}:`, error);
+                        // Продолжаем, не останавливаясь при ошибке
+                    }
+                }
             }
 
-            // Перенаправляем пользователя на страницу проекта
+            // Перенаправляем на страницу проекта
             navigate(`/projects/${createdProject.id}`);
         } catch (error: any) {
             console.error('Ошибка при создании проекта:', error);
@@ -394,6 +431,47 @@ const CreateProjectPage: React.FC = () => {
                                             {department.description && (
                                                 <p className={styles.departmentDescription}>{department.description}</p>
                                             )}
+
+                                            {/* Секция для отображения участников отдела */}
+                                            {department.selectedMembers.length > 0 && (
+                                                <div className={styles.departmentMembers}>
+                                                    <h5>Участники отдела:</h5>
+                                                    <div className={styles.membersList}>
+                                                        {department.selectedMembers.map(member => (
+                                                            <div key={member.id} className={styles.memberItem}>
+                                                                <div className={styles.memberAvatar}>
+                                                                    {member.avatar ? (
+                                                                        <img src={member.avatar} alt={member.name} />
+                                                                    ) : (
+                                                                        <div className={styles.defaultAvatar}>
+                                                                            {member.name.charAt(0)}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className={styles.memberInfo}>
+                                                                    <div className={styles.memberName}>{member.name}</div>
+                                                                    <div className={styles.memberEmail}>{member.email}</div>
+                                                                </div>
+                                                                <button
+                                                                    className={styles.removeButton}
+                                                                    onClick={() => handleRemoveMemberFromDepartment(member.id, index)}
+                                                                    aria-label="Удалить участника из отдела"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Кнопка для добавления участников в отдел */}
+                                            <button
+                                                className={styles.addToDepartmentButton}
+                                                onClick={() => setSelectedDepartment(index)}
+                                            >
+                                                Добавить участников в отдел
+                                            </button>
                                         </div>
                                         <button
                                             className={styles.removeButton}
@@ -472,6 +550,69 @@ const CreateProjectPage: React.FC = () => {
                 </div>
             </div>
             <Footer />
+
+            {/* Модальное окно для добавления участников в отдел */}
+            {selectedDepartment !== null && (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <div className={styles.modalHeader}>
+                            <h3>Добавление участников в отдел "{departments[selectedDepartment].title}"</h3>
+                            <button
+                                className={styles.closeButton}
+                                onClick={() => setSelectedDepartment(null)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className={styles.modalBody}>
+                            <div className={styles.availableMembers}>
+                                <h4>Доступные участники:</h4>
+                                {members.filter(member =>
+                                    !departments[selectedDepartment].selectedMembers.some(m => m.id === member.id)
+                                ).length > 0 ? (
+                                    members.filter(member =>
+                                        !departments[selectedDepartment].selectedMembers.some(m => m.id === member.id)
+                                    ).map(member => (
+                                        <div key={member.id} className={styles.memberItem}>
+                                            <div className={styles.memberAvatar}>
+                                                {member.avatar ? (
+                                                    <img src={member.avatar} alt={member.name} />
+                                                ) : (
+                                                    <div className={styles.defaultAvatar}>
+                                                        {member.name.charAt(0)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className={styles.memberInfo}>
+                                                <div className={styles.memberName}>{member.name}</div>
+                                                <div className={styles.memberEmail}>{member.email}</div>
+                                            </div>
+                                            <button
+                                                className={styles.addButton}
+                                                onClick={() => handleAddMemberToDepartment(member, selectedDepartment)}
+                                                aria-label="Добавить участника в отдел"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className={styles.noAvailableMembers}>
+                                        {members.length === 0
+                                            ? "Сначала добавьте участников в проект"
+                                            : "Все участники уже добавлены в этот отдел"}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        <div className={styles.modalFooter}>
+                            <Button onClick={() => setSelectedDepartment(null)}>
+                                Закрыть
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -378,6 +378,31 @@ export const projectService = {
         }
     },
 
+    // Назначение пользователя в отдел
+    assignUserToDepartment: async (projectId: number, userId: number, departmentId: number): Promise<{ success: boolean }> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.ASSIGN_DEPARTMENT(projectId, userId, departmentId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка назначения пользователя в отдел'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при назначении пользователя в отдел:', error);
+            throw error;
+        }
+    },
+
     // РАБОТА С ОТДЕЛАМИ
 
     // Получение списка отделов проекта
