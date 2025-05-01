@@ -1,0 +1,350 @@
+/* Profile.css */
+
+.profile-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    margin: 20px 120px;
+}
+
+.profile-left-column {
+    flex: 0 0 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.profile-right-column {
+    flex: 1;
+    max-width: 700px;
+}
+
+.profile-avatar-container {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.avatar-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #4CAF50;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.avatar-status::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.profile-avatar {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.change-avatar-button {
+    margin-top: 15px;
+    background-color: #FFDD2D;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 15px;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #353536;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.change-avatar-button:hover {
+    background-color: #FFC641;
+}
+
+.profile-achievements {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.profile-achievements h2 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #FFDD2D;
+    color: #353536;
+}
+
+.achievements-content {
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7C7C7C;
+    font-family: "Helvetica Neue", sans-serif;
+}
+
+.achievements-list {
+    list-style-type: none;
+    padding: 0;
+    width: 100%;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #F6F7F8;
+    border-radius: 10px;
+}
+
+.profile-info-container {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.profile-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #F6F7F8;
+}
+
+.profile-info-header h2 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #353536;
+    margin: 0;
+}
+
+.edit-button {
+    background-color: transparent;
+    border: none;
+    color: #126DF7;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: color 0.2s;
+}
+
+.edit-button:hover {
+    color: #0056b3;
+}
+
+.save-cancel-buttons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.cancel-button {
+    background-color: transparent;
+    border: none;
+    color: #7C7C7C;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: color 0.2s;
+}
+
+.cancel-button:hover {
+    color: #535353;
+}
+
+.profile-info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profile-info-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.info-label {
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #7C7C7C;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 21px;
+    font-weight: 400;
+    color: #353536;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #7C7C7C;
+    margin-bottom: 5px;
+}
+
+.required-label {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    color: #7C7C7C;
+    margin-top: 5px;
+}
+
+.profile-projects-section {
+    margin: 40px 120px;
+}
+
+.profile-projects-section h2 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #353536;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #FFDD2D;
+}
+
+.projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    border-radius: 15px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.project-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.project-emoji {
+    font-size: 24px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #F6F7F8;
+    border-radius: 50%;
+}
+
+.project-title {
+    flex: 1;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #353536;
+}
+
+.project-private-icon {
+    font-size: 18px;
+    color: #7C7C7C;
+    margin-left: 10px;
+}
+
+.all-projects-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.save-message {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    animation: fadeInOut 3s forwards;
+}
+
+.save-loader {
+    background-color: rgba(255, 221, 45, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 20px 120px;
+    color: #353536;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 14px;
+    position: relative;
+}
+
+.save-loader::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background-color: #FFDD2D;
+    animation: loadingBar 2s infinite;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -20px); }
+    10% { opacity: 1; transform: translate(-50%, 0); }
+    90% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+@keyframes loadingBar {
+    0% { width: 0; }
+    50% { width: 100%; }
+    100% { width: 0; }
+}
