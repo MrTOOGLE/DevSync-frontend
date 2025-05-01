@@ -48,10 +48,16 @@
 .notificationItem {
     padding: 15px 20px;
     border-bottom: 1px solid #F6F7F8;
+    transition: background-color 0.2s ease;
 }
 
 .notificationItem:last-child {
     border-bottom: none;
+}
+
+/* Добавляем эффект при наведении для кликабельных уведомлений */
+.notificationItem[style*="cursor: pointer"]:hover {
+    background-color: #F6F7F8;
 }
 
 .unread {
@@ -95,12 +101,26 @@
 .notificationContent {
     font-size: 14px;
     color: #353536;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .notificationContent p {
     margin: 0;
+    flex: 1;
 }
 
 .notificationContent strong {
     font-weight: 500;
+}
+
+.notificationIcon {
+    margin-left: 10px;
+}
+
+.notificationIcon img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
 }

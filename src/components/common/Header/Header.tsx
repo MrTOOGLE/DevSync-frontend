@@ -16,37 +16,36 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
     const [showNotifications, setShowNotifications] = useState(false);
     const isAuthenticated = authService.isAuthenticated();
 
-    // Заглушка для уведомлений
-    const mockNotifications: NotificationType[] = [
+    // Заглушка для уведомлений с указанием, имеют ли они кнопки действий
+    const initialNotifications: NotificationType[] = [
         {
             id: 1,
-            type: 'project',
-            text: 'Дорогой пользователь, Вы приглашены в проект "Создание сайта для генерации кричка "Какой ты крипс сегодня?"',
+            type: 'achievement',
+            text: 'Вы получили значок "Самый продуктивный работник"',
             date: '12.04.2025',
             read: false,
-            hasActions: true
+            icon: '🏆',
+            hasActions: false // Убираем кнопки у уведомлений о достижениях
         },
         {
             id: 2,
-            type: 'achievement',
-            text: 'Дорогой пользователь, Вам присужден значок "Самый продуктивный работник"',
+            type: 'task',
+            text: 'У Вас новая задача в проекте "Создание сайта для генерации кричка "Какой ты крипс сегодня?"',
             date: '11.04.2025',
             read: false,
-            icon: '🏆',
-            hasActions: false
+            hasActions: true // У задач оставляем кнопки действий
         },
         {
             id: 3,
-            type: 'task',
-            text: 'Дорогой пользователь, у Вас новая задача в проекте "Создание сайта для генерации кричка "Какой ты крипс сегодня?"',
-            date: '09.12.2024',
+            type: 'project',
+            text: 'Вас пригласили в проект "Создание сайта для генерации кричка "Какой ты крипс сегодня?"',
+            date: '15.04.2025',
             read: false,
-            hasActions: true,
-            action: 'Просмотреть'
+            hasActions: true // У приглашений в проект оставляем кнопки действий
         }
     ];
 
-    const [notificationsList, setNotificationsList] = useState<NotificationType[]>(mockNotifications);
+    const [notificationsList, setNotificationsList] = useState<NotificationType[]>(initialNotifications);
 
     // Показ/скрытие уведомлений
     const toggleNotifications = () => {
@@ -56,32 +55,36 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
     // Обработчик принятия уведомления
     const handleAcceptNotification = (id: number) => {
         console.log(`Принято уведомление ${id}`);
-        // Помечаем уведомление как прочитанное
+
+        // Удаляем уведомление из состояния
         setNotificationsList(prev =>
-            prev.map(notification =>
-                notification.id === id
-                    ? { ...notification, read: true }
-                    : notification
-            )
+            prev.filter(notification => notification.id !== id)
         );
-        // TODO В реальном приложении здесь будет вызов API
+
+        // В реальном приложении здесь должен быть вызов API для сохранения статуса уведомления
+        // Например, axios.post('/api/notifications/accept', { id });
     };
 
     // Обработчик отклонения уведомления
     const handleDeclineNotification = (id: number) => {
         console.log(`Отклонено уведомление ${id}`);
-        // Удаляем уведомление
+
+        // Удаляем уведомление из состояния
         setNotificationsList(prev =>
             prev.filter(notification => notification.id !== id)
         );
-        // TODO В реальном приложении здесь будет вызов API
+
+        // В реальном приложении здесь должен быть вызов API для сохранения статуса уведомления
+        // Например, axios.post('/api/notifications/decline', { id });
     };
 
     // Обработчик для кнопки 'назад'
     const handleBack = () => {
-        if (document.referrer) {
-            window.history.back();
+        // Проверяем, есть ли история для возврата
+        if (window.history.length > 1) {
+            navigate(-1);
         } else {
+            // Если истории нет, перенаправляем на главную страницу
             navigate('/');
         }
     };
@@ -121,7 +124,6 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
                                 >
                                     <img src={bell} alt="Уведомления"/>
                                 </button>
-                                {/* Заменил вызов метода на обработчик с перенаправлением */}
                                 <button onClick={handleLogout}>Выйти</button>
                                 <button
                                     className={styles.profile}
@@ -130,7 +132,6 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
                                     Личный кабинет
                                 </button>
 
-                                {/* Компонент уведомлений теперь использует обновленный список */}
                                 <Notifications
                                     notifications={notificationsList}
                                     visible={showNotifications}

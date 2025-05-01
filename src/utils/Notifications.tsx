@@ -14,8 +14,8 @@ export interface Notification {
     icon?: string;
     projectId?: number;
     taskId?: number;
+    // Флаг для определения, есть ли у уведомления кнопки действий
     hasActions?: boolean;
-    action?: string;
 }
 
 interface NotificationsProps {
@@ -36,20 +36,22 @@ export const Notifications: React.FC<NotificationsProps> = ({
     // Создаем локальное состояние для уведомлений
     const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
 
-    // Обновляем состояние при изменении пропсов
+    // Обновляем состояние только при первом рендере или изменении видимости
+    // Убираем зависимость от initialNotifications, чтобы избежать сброса локальных изменений
     useEffect(() => {
-        setNotifications(initialNotifications);
-    }, [initialNotifications]);
+        if (visible) {
+            setNotifications(initialNotifications);
+        }
+    }, [visible]); // Теперь зависим только от visible
 
-    // Обработка принятия уведомления
-    const handleAccept = (notificationId: number) => {
-        // Обновляем локальное состояние - помечаем как прочитанное
+    // Обработка принятия уведомления - теперь удаляет его
+    const handleAccept = (notificationId: number, e: React.MouseEvent) => {
+        // Останавливаем всплытие события
+        e.stopPropagation();
+
+        // Удаляем уведомление из локального состояния (вместо пометки как прочитанное)
         setNotifications(prev =>
-            prev.map(notification =>
-                notification.id === notificationId
-                    ? { ...notification, read: true }
-                    : notification
-            )
+            prev.filter(notification => notification.id !== notificationId)
         );
 
         // Вызываем колбэк
@@ -59,7 +61,10 @@ export const Notifications: React.FC<NotificationsProps> = ({
     };
 
     // Обработка отклонения уведомления
-    const handleDecline = (notificationId: number) => {
+    const handleDecline = (notificationId: number, e: React.MouseEvent) => {
+        // Останавливаем всплытие события
+        e.stopPropagation();
+
         // Удаляем уведомление из локального состояния
         setNotifications(prev =>
             prev.filter(notification => notification.id !== notificationId)
@@ -68,6 +73,17 @@ export const Notifications: React.FC<NotificationsProps> = ({
         // Вызываем колбэк
         if (onDecline) {
             onDecline(notificationId);
+        }
+    };
+
+    // Обработка клика по уведомлению (для закрытия уведомлений без кнопок)
+    const handleNotificationClick = (notification: Notification) => {
+        // Проверяем, нет ли у уведомления кнопок действий
+        if (!notification.hasActions) {
+            // Удаляем уведомление из локального состояния
+            setNotifications(prev =>
+                prev.filter(item => item.id !== notification.id)
+            );
         }
     };
 
@@ -89,36 +105,28 @@ export const Notifications: React.FC<NotificationsProps> = ({
             ) : (
                 <div className={styles.notificationsList}>
                     {notifications.map(notification => (
-                        <div key={notification.id}
-                             className={`${styles.notificationItem} ${notification.read ? styles.read : styles.unread}`}
+                        <div
+                            key={notification.id}
+                            className={`${styles.notificationItem} ${notification.read ? styles.read : styles.unread}`}
+                            onClick={() => handleNotificationClick(notification)}
+                            style={{ cursor: !notification.hasActions ? 'pointer' : 'default' }}
                         >
                             <div className={styles.notificationHeader}>
                                 <span className={styles.notificationDate}>{notification.date}</span>
-                                {notification.hasActions && (
+                                {notification.hasActions !== false && (
                                     <div className={styles.notificationActions}>
-                                        {notification.action ? (
-                                            <button
-                                                onClick={() => handleAccept(notification.id)}
-                                                className={styles.notificationAccept}
-                                            >
-                                                {notification.action}
-                                            </button>
-                                        ) : (
-                                            <>
-                                                <button
-                                                    onClick={() => handleAccept(notification.id)}
-                                                    className={styles.notificationAccept}
-                                                >
-                                                    Принять
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDecline(notification.id)}
-                                                    className={styles.notificationDecline}
-                                                >
-                                                    Отклонить
-                                                </button>
-                                            </>
-                                        )}
+                                        <button
+                                            onClick={(e) => handleAccept(notification.id, e)}
+                                            className={styles.notificationAccept}
+                                        >
+                                            Принять
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDecline(notification.id, e)}
+                                            className={styles.notificationDecline}
+                                        >
+                                            Отклонить
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -126,7 +134,7 @@ export const Notifications: React.FC<NotificationsProps> = ({
                                 <p>{notification.text}</p>
                                 {notification.icon && (
                                     <div className={styles.notificationIcon}>
-                                        {notification.icon}
+                                        <img src={notification.icon} alt="Иконка уведомления" />
                                     </div>
                                 )}
                             </div>
