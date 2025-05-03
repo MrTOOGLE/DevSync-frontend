@@ -34,29 +34,6 @@ const DevSyncPage: React.FC = () => {
         }
     };
 
-    const steps = [
-        {
-            number: 1,
-            title: "Пройди регистрацию",
-            description: "Пройди и заверши регистрацию для работы с платформой",
-        },
-        {
-            number: 2,
-            title: "Создай проект",
-            description: "Создай проект со своими настройками и описанием",
-        },
-        {
-            number: 3,
-            title: "Собирай команду разработчиков",
-            description: "Добавляй участников в проект, назначай роли, создавай отделы и назначай руководителей",
-        },
-        {
-            number: 4,
-            title: "Начинай работу",
-            description: "Создавай задачи и ставь дедлайны, работаем!",
-        },
-    ]
-
     // TODO: переделать потом ссылку, когда будет создание проекта
     // <Link to="/">Создать проект</Link> ----> <Link to="/create_project">Создать проект</Link>
 
@@ -162,17 +139,36 @@ const DevSyncPage: React.FC = () => {
                     <div className={styles.startToday}>
                         <h2>Начни сегодня</h2>
                         <div className={styles.steps}>
-                            {steps.map((step) => (
-                                <div key={step.number} className={styles.step}>
-                                    <div className={styles.stepNumber}>{step.number}</div>
-                                    <div className={styles.stepContent}>
-                                        <h3 className={styles.stepTitle}>{step.title}</h3>
-                                        <p className={styles.stepDescription}>{step.description}</p>
-                                    </div>
+                            <div className={styles.step1}>
+                                <div className={styles.stepNumber}>1</div>
+                                <div className={styles.stepContent1}>
+                                    <h3 className={styles.stepTitle}>Пройди регистрацию</h3>
+                                    <p className={styles.stepDescription}>Пройди и заверши регистрацию для работы с платформой</p>
                                 </div>
-                            ))}
+                            </div>
+                            <div className={styles.step2}>
+                                <div className={styles.stepNumber}>2</div>
+                                <div className={styles.stepContent2}>
+                                    <h3 className={styles.stepTitle}>Создай проект</h3>
+                                    <p className={styles.stepDescription}>Создай проект со своими настройками и описанием</p>
+                                </div>
+                            </div>
+                            <div className={styles.step3}>
+                                <div className={styles.stepNumber}>3</div>
+                                <div className={styles.stepContent3}>
+                                    <h3 className={styles.stepTitle}>Собирай команду разработчиков</h3>
+                                    <p className={styles.stepDescription}>Добавляй участников в проект, назначай роли, создавай отделы и назначай руководителей</p>
+                                </div>
+                            </div>
+                            <div className={styles.step4}>
+                                <div className={styles.stepNumber}>4</div>
+                                <div className={styles.stepContent4}>
+                                    <h3 className={styles.stepTitle}>Начинай работу</h3>
+                                    <p className={styles.stepDescription}>Создавай задачи и ставь дедлайны, работаем!</p>
+                                </div>
+                            </div>
                         </div>
-                        <Button onClick={() => navigate('/register')}>Зарегистрироваться</Button>
+                        <Button className={styles.registerButton} onClick={() => navigate('/register')}>Зарегистрироваться</Button>
                     </div>
                 </section>
             </div>

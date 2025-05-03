@@ -162,42 +162,97 @@
     text-align: center;
 }
 
-
-
 .steps {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, auto);
-    gap: 60px 80px;
-    max-width: 1000px;
-    margin: 37px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
 }
 
-.step {
-    position: relative;
-    padding: 50px;
-    max-width: 1000px;
-    min-height: 150px;
-    background-size: contain;
-    background: url("../photos/WelcomePage/backgroundStep.svg") no-repeat left top;
+.step1, .step2, .step3, .step4 {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin: 0;
+}
+
+.step1 {
+    margin-right: 20%;
+}
+
+.step2 {
+    margin-left: 20%;
+}
+
+.step3 {
+    margin-right: 20%;
+}
+
+.step4 {
+    margin-left: 20%;
 }
 
 .stepNumber {
-    position: absolute;
-    top: 0;
-    left: 0;
     font-size: 123px;
     font-weight: 400;
     color: #FFDD2D;
     font-family: 'Pilowlava', sans-serif;
-    line-height: 40px;
-    letter-spacing: 0;
-    z-index: 0;
+    line-height: 100px;
+    width: 100px;
+    text-align: center;
+    justify-content: center;
 }
 
-.stepContent {
-    position: relative;
-    z-index: 1;
+.stepContent1 {
+    background-image: url("../photos/WelcomePage/backgroundStep.svg");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: center;
+    padding: 30px 70px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 666px;
+}
+
+.stepContent2 {
+    background-image: url("../photos/WelcomePage/backgroundStep.svg");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: center;
+    padding: 30px 70px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 396px;
+}
+
+.stepContent3 {
+    background-image: url("../photos/WelcomePage/backgroundStep.svg");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: center;
+    padding: 30px 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 784px;
+}
+
+.stepContent4 {
+    background-image: url("../photos/WelcomePage/backgroundStep.svg");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: center;
+    padding: 30px 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 549px;
 }
 
 .stepTitle {
@@ -217,4 +272,24 @@
     font-family: 'Helvetica Neue', sans-serif;
     line-height: 40px;
     letter-spacing: 0;
+}
+
+.registerButton {
+    width: 230px;
+    height: 53px;
+    border: none;
+    border-radius: 11px;
+    background-color: #FFDD2D;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 100%;
+    letter-spacing: 0;
+    color: #353536;
+    margin-top: 25px;
+}
+
+.registerButton:hover {
+    background-color: #FFC641;
+    cursor: pointer;
 }
