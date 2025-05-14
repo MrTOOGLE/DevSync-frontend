@@ -1,12 +1,14 @@
-import React, {useState, useEffect} from 'react';
-import {Header} from "../../components/common/Header/Header";
-import {Footer} from "../../components/common/Footer/Footer";
-import {Button} from "../../components/common/Button/Button";
-import {Input} from "../../components/common/Input/Input";
-import {Select} from "../../components/common/Select/Select";
-import {ErrorField} from "../../components/common/ErrorField/ErrorField";
-import '../../styles/styles.css';
-import './Profile.css';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Header } from "../../components/common/Header/Header.tsx";
+import { Footer } from "../../components/common/Footer/Footer.tsx";
+import { profileService, UserProfile } from "../../hooks/ProfileService.tsx";
+import { projectService } from "../../hooks/CreateProjectService.tsx";
+import { Input } from "../../components/common/Input/Input.tsx";
+import { Button } from "../../components/common/Button/Button.tsx";
+import { ErrorField } from "../../components/common/ErrorField/ErrorField.tsx";
+import "../../styles/styles.css";
+import "./Profile.css";
 
 // Типы для данных достижений
 interface Achievement {
@@ -23,259 +25,222 @@ interface Project {
     emoji: string;
 }
 
-// Типы для данных пользователя
-interface UserData {
-    firstName: string;
-    lastName: string;
-    email: string;
-    city: string;
-    avatar: string | null;
-    achievements: Achievement[];
-    projects: Project[];
-}
-
-// Доступные города
-const cities = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Томск'];
-
 const ProfilePage: React.FC = () => {
-    // Заглушка для данных пользователя
-    const initialUserData: UserData = {
-        firstName: 'Александра',
-        lastName: 'Лапшакова',
-        email: 'avk65@tbank.ru',
-        city: 'Томск',
-        avatar: null, // Изменено на null для тестирования стандартного аватара
-        achievements: [],
-        projects: [
-            {
-                id: 1,
-                title: 'Разработка и внедрение приложения для работы робота-пылесоса',
-                isPrivate: false,
-                emoji: '🤖'
-            },
-            {
-                id: 2,
-                title: 'Создание сайта для генерации кричка "Какой ты крипс сегодня?"',
-                isPrivate: true,
-                emoji: '🦊'
-            }
-        ]
-    };
+    const navigate = useNavigate();
 
-    // Состояние пользователя и режима редактирования
-    const [userData, setUserData] = useState<UserData>(initialUserData);
-    const [editMode, setEditMode] = useState<boolean>(false);
-    const [formData, setFormData] = useState<Omit<UserData, 'achievements' | 'projects'>>(
-        {firstName: '', lastName: '', email: '', city: '', avatar: null}
-    );
+    // Состояние профиля
+    const [isLoading, setIsLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [userData, setUserData] = useState<UserProfile | null>(null);
+    const [achievements, setAchievements] = useState<Achievement[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Состояние для изменения аватара
-    const [showAvatarModal, setShowAvatarModal] = useState<boolean>(false);
-    const [tempAvatar, setTempAvatar] = useState<string | null>(null);
+    // Состояние формы
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        city: ''
+    });
 
-    // Состояние валидации
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [showSavedMessage, setShowSavedMessage] = useState<boolean>(false);
+    // Аватар
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-    // Инициализация формы данными пользователя при переходе в режим редактирования
+    // Загрузка данных профиля
     useEffect(() => {
-        if (editMode) {
-            setFormData({
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                email: userData.email,
-                city: userData.city,
-                avatar: userData.avatar
-            });
-        }
-    }, [editMode, userData]);
+        const fetchUserData = async () => {
+            try {
+                // Получаем данные пользователя
+                const userData = await profileService.getCurrentUser();
 
-    // Обработчик переключения в режим редактирования
-    const handleEdit = () => {
-        setEditMode(true);
-    };
+                // Заполняем форму данными пользователя
+                setUserData(userData);
+                setFormData({
+                    firstName: userData.first_name || '',
+                    lastName: userData.last_name || '',
+                    email: userData.email || '',
+                    city: userData.city || ''
+                });
+                // @ts-ignore
+                setAvatarPreview(userData.avatar);
+
+                // Получаем проекты пользователя
+                try {
+                    const userProjects = await projectService.getProjects();
+
+                    // Преобразуем проекты в нужный формат
+                    const formattedProjects = userProjects.map(project => ({
+                        id: project.id!,
+                        title: project.title,
+                        isPrivate: !project.is_public,
+                        emoji: '🚀' // Заглушка, в реальном API нужно будет брать из данных проекта
+                    }));
+
+                    setProjects(formattedProjects);
+                } catch (error) {
+                    console.error('Ошибка при загрузке проектов:', error);
+                }
+
+                // TODO: Загрузка достижений пользователя, если API будет поддерживать
+
+                setIsLoading(false);
+            } catch (error) {
+                console.error('Ошибка при загрузке данных профиля:', error);
+                setErrors({
+                    general: 'Не удалось загрузить данные профиля'
+                });
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     // Обработчик изменения полей формы
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const {name, value} = e.target;
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
+    };
 
-        // Сбрасываем ошибку для поля при его изменении
-        if (errors[name]) {
-            setErrors(prev => {
-                const newErrors = {...prev};
-                delete newErrors[name];
-                return newErrors;
-            });
+    // Обработчик изменения аватара
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const preview = URL.createObjectURL(file);
+
+            setAvatarFile(file);
+            setAvatarPreview(preview);
         }
     };
 
-    // Валидация формы
-    const validateForm = (): boolean => {
-        const newErrors: { [key: string]: string } = {};
-
-        if (!formData.firstName.trim()) {
-            newErrors.firstName = 'Поле обязательное';
-        }
-
-        if (!formData.lastName.trim()) {
-            newErrors.lastName = 'Поле обязательное';
-        }
-
-        if (!formData.email.trim()) {
-            newErrors.email = 'Поле обязательное';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'Некорректный формат электронной почты. Пример: user@example.com';
-        }
-
-        if (!formData.city) {
-            newErrors.city = 'Поле обязательное';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+    // Включение режима редактирования
+    const handleEdit = () => {
+        setIsEditing(true);
     };
 
-    // Обработчик сохранения изменений
-    const handleSave = () => {
-        if (validateForm()) {
-            setIsSaving(true);
-
-            // Имитация сохранения на сервере
-            setTimeout(() => {
-                setUserData(prev => ({
-                    ...prev,
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    city: formData.city,
-                    avatar: formData.avatar
-                }));
-
-                setIsSaving(false);
-                setEditMode(false);
-                setShowSavedMessage(true);
-
-                // Скрыть сообщение через 3 секунды
-                setTimeout(() => {
-                    setShowSavedMessage(false);
-                }, 3000);
-            }, 1000);
-        }
-    };
-
-    // Обработчик отмены редактирования
+    // Отмена редактирования
     const handleCancel = () => {
-        setEditMode(false);
-        setErrors({});
+        // Возвращаем изначальные данные из userData
+        if (userData) {
+            setFormData({
+                firstName: userData.first_name || '',
+                lastName: userData.last_name || '',
+                email: userData.email || '',
+                city: userData.city || ''
+            });
+            setAvatarFile(null);
+            // @ts-ignore
+            setAvatarPreview(userData.avatar);
+            setErrors({});
+            setIsEditing(false);
+        }
     };
 
-    // Обработчик открытия проекта
+    // Сохранение обновленных данных профиля
+    const handleSave = async () => {
+        try {
+            setIsLoading(true);
+            setErrors({});
+
+            // Подготовка данных для обновления
+            const updateData: Partial<UserProfile> = {
+                first_name: formData.firstName,
+                last_name: formData.lastName,
+                city: formData.city
+            };
+
+            if (avatarFile) {
+                updateData.avatar = avatarFile;
+            }
+
+            // Вызов метода обновления профиля
+            const updatedProfile = await profileService.updateProfile(updateData);
+
+            // Обновление состояния после успешного сохранения
+            setUserData(updatedProfile);
+            setAvatarFile(null);
+            setIsEditing(false);
+            setIsLoading(false);
+
+        } catch (error: any) {
+            console.error('Ошибка при сохранении профиля:', error);
+
+            // Обработка ошибок API
+            const apiErrors: Record<string, string> = {};
+
+            if (error.data) {
+                // Маппинг ошибок API на поля формы
+                if (error.data.first_name) apiErrors.firstName = error.data.first_name[0];
+                if (error.data.last_name) apiErrors.lastName = error.data.last_name[0];
+                if (error.data.city) apiErrors.city = error.data.city[0];
+                if (error.data.avatar) apiErrors.avatar = error.data.avatar[0];
+            }
+
+            if (Object.keys(apiErrors).length === 0) {
+                apiErrors.general = 'Произошла ошибка при сохранении профиля';
+            }
+
+            setErrors(apiErrors);
+            setIsLoading(false);
+        }
+    };
+
+    // Обработчик для открытия проекта
     const handleOpenProject = (projectId: number) => {
-        console.log(`Открытие проекта ${projectId}`);
-        // navigate(`/projects/${projectId}`);
+        navigate(`/projects/${projectId}`);
     };
 
     // Переход на страницу всех проектов
     const navigateToAllProjects = () => {
-        console.log('Переход на страницу всех проектов');
-        // navigate('/projects');
+        navigate('/projects');
     };
 
-    // Функция для получения инициалов пользователя
-    const getUserInitials = () => {
-        if (userData.firstName && userData.lastName) {
-            return `${userData.firstName.charAt(0)}${userData.lastName.charAt(0)}`;
-        } else if (userData.firstName) {
-            return userData.firstName.charAt(0);
-        } else if (userData.lastName) {
-            return userData.lastName.charAt(0);
-        }
-        return "?";
+    // Создание нового проекта
+    const handleCreateProject = () => {
+        navigate('/create-project');
     };
 
-    // Открытие модального окна для изменения аватара
-    const handleOpenAvatarModal = () => {
-        setShowAvatarModal(true);
-    };
-
-    // Закрытие модального окна для изменения аватара
-    const handleCloseAvatarModal = () => {
-        setShowAvatarModal(false);
-        setTempAvatar(null);
-    };
-
-    // Обработка выбора файла аватара
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const fileUrl = URL.createObjectURL(file);
-            setTempAvatar(fileUrl);
-        }
-    };
-
-    // Сохранение нового аватара
-    const handleSaveAvatar = () => {
-        if (tempAvatar) {
-            setFormData(prev => ({
-                ...prev,
-                avatar: tempAvatar
-            }));
-
-            // Если мы не в режиме редактирования, сразу обновляем userData
-            if (!editMode) {
-                setUserData(prev => ({
-                    ...prev,
-                    avatar: tempAvatar
-                }));
-                setShowSavedMessage(true);
-                setTimeout(() => {
-                    setShowSavedMessage(false);
-                }, 3000);
-            }
-
-            setShowAvatarModal(false);
-        }
-    };
+    if (isLoading && !userData) {
+        return <div>Загрузка данных профиля...</div>;
+    }
 
     return (
         <div className="main-container">
             <Header />
             <div className="main-content">
-                {showSavedMessage && (
-                    <div className="save-message">
-                        Изменения успешно сохранены!
-                    </div>
-                )}
-
-                <div className="profile-section">
+                <div className="profile-container">
                     {/* Левая колонка - аватар и достижения */}
                     <div className="profile-left-column">
                         <div className="profile-avatar-container">
-                            <div className="avatar-status">в сети</div>
-
-                            {userData.avatar ? (
-                                <img src={userData.avatar} alt="Аватар пользователя" className="profile-avatar" />
-                            ) : (
-                                <div className="profile-default-avatar">
-                                    {getUserInitials()}
+                            <img
+                                src={avatarPreview || userData?.avatar || 'https://placekitten.com/200/200'}
+                                alt="Аватар пользователя"
+                                className="profile-avatar"
+                            />
+                            {isEditing && (
+                                <div className="avatar-upload">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleAvatarChange}
+                                        id="avatar-upload"
+                                    />
+                                    <label htmlFor="avatar-upload">Изменить аватар</label>
+                                    {errors.avatar && <ErrorField message={errors.avatar} />}
                                 </div>
                             )}
-
-                            <button onClick={handleOpenAvatarModal} className="change-avatar-button">
-                                Изменить фото
-                            </button>
                         </div>
                         <div className="profile-achievements">
                             <h2>Мои достижения</h2>
                             <div className="achievements-content">
-                                {userData.achievements.length > 0 ? (
+                                {achievements.length > 0 ? (
                                     <ul className="achievements-list">
-                                        {userData.achievements.map((achievement) => (
+                                        {achievements.map((achievement) => (
                                             <li key={achievement.id} className="achievement-item">
                                                 {achievement.icon} {achievement.title}
                                             </li>
@@ -293,102 +258,85 @@ const ProfilePage: React.FC = () => {
                         <div className="profile-info-container">
                             <div className="profile-info-header">
                                 <h2>Личная информация</h2>
-                                {!editMode ? (
-                                    <button onClick={handleEdit} className="edit-button">Изменить</button>
-                                ) : (
-                                    <div className="save-cancel-buttons">
-                                        <button onClick={handleCancel} className="cancel-button">Отмена</button>
-                                        <Button onClick={handleSave} disabled={isSaving}>
-                                            {isSaving ? 'Сохранение...' : 'Сохранить'}
+                                {isEditing ? (
+                                    <div className="edit-buttons">
+                                        <Button onClick={handleSave} disabled={isLoading}>
+                                            {isLoading ? 'Сохранение...' : 'Сохранить'}
+                                        </Button>
+                                        <Button onClick={handleCancel} disabled={isLoading}>
+                                            Отмена
                                         </Button>
                                     </div>
+                                ) : (
+                                    <button onClick={handleEdit} className="edit-button">Изменить</button>
                                 )}
                             </div>
-
+                            {errors.general && (
+                                <div className="error-message">
+                                    <ErrorField message={errors.general} />
+                                </div>
+                            )}
                             <div className="profile-info-content">
-                                {!editMode ? (
-                                    // Режим просмотра
+                                {isEditing ? (
+                                    // Форма редактирования
                                     <>
                                         <div className="profile-info-item">
-                                            <span className="info-label">Имя</span>
-                                            <span className="info-value">{userData.firstName}</span>
-                                        </div>
-                                        <div className="profile-info-item">
-                                            <span className="info-label">Фамилия</span>
-                                            <span className="info-value">{userData.lastName}</span>
-                                        </div>
-                                        <div className="profile-info-item">
-                                            <span className="info-label">Email</span>
-                                            <span className="info-value">{userData.email}</span>
-                                        </div>
-                                        <div className="profile-info-item">
-                                            <span className="info-label">Город</span>
-                                            <span className="info-value">{userData.city}</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    // Режим редактирования
-                                    <>
-                                        <div className="form-group">
-                                            <label htmlFor="firstName">Имя*</label>
+                                            <label className="info-label">Имя</label>
                                             <Input
-                                                id="firstName"
+                                                type="text"
                                                 name="firstName"
                                                 value={formData.firstName}
                                                 onChange={handleInputChange}
                                                 hasError={!!errors.firstName}
-                                                placeholder="Имя*"
                                             />
                                             {errors.firstName && <ErrorField message={errors.firstName} />}
-                                            <div className="required-label">Поле обязательное</div>
                                         </div>
-
-                                        <div className="form-group">
-                                            <label htmlFor="lastName">Фамилия*</label>
+                                        <div className="profile-info-item">
+                                            <label className="info-label">Фамилия</label>
                                             <Input
-                                                id="lastName"
+                                                type="text"
                                                 name="lastName"
                                                 value={formData.lastName}
                                                 onChange={handleInputChange}
                                                 hasError={!!errors.lastName}
-                                                placeholder="Фамилия*"
                                             />
                                             {errors.lastName && <ErrorField message={errors.lastName} />}
-                                            <div className="required-label">Поле обязательное</div>
                                         </div>
-
-                                        <div className="form-group">
-                                            <label htmlFor="email">Email*</label>
+                                        <div className="profile-info-item">
+                                            <label className="info-label">Email</label>
+                                            <span className="info-value">{formData.email}</span>
+                                            <p className="info-hint">Email нельзя изменить</p>
+                                        </div>
+                                        <div className="profile-info-item">
+                                            <label className="info-label">Город</label>
                                             <Input
-                                                id="email"
-                                                name="email"
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={handleInputChange}
-                                                hasError={!!errors.email}
-                                                placeholder="Email*"
-                                            />
-                                            {errors.email && <ErrorField message={errors.email} />}
-                                            <div className="required-label">Поле обязательное</div>
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label htmlFor="city">Город*</label>
-                                            <Select
-                                                id="city"
+                                                type="text"
                                                 name="city"
                                                 value={formData.city}
                                                 onChange={handleInputChange}
                                                 hasError={!!errors.city}
-                                                style={{ color: formData.city ? '#353536' : '#7C7C7C' }}
-                                            >
-                                                <option value="">Город*</option>
-                                                {cities.map(city => (
-                                                    <option key={city} value={city}>{city}</option>
-                                                ))}
-                                            </Select>
+                                            />
                                             {errors.city && <ErrorField message={errors.city} />}
-                                            <div className="required-label">Поле обязательное</div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    // Отображение информации
+                                    <>
+                                        <div className="profile-info-item">
+                                            <span className="info-label">Имя</span>
+                                            <span className="info-value">{userData?.first_name}</span>
+                                        </div>
+                                        <div className="profile-info-item">
+                                            <span className="info-label">Фамилия</span>
+                                            <span className="info-value">{userData?.last_name}</span>
+                                        </div>
+                                        <div className="profile-info-item">
+                                            <span className="info-label">Email</span>
+                                            <span className="info-value">{userData?.email}</span>
+                                        </div>
+                                        <div className="profile-info-item">
+                                            <span className="info-label">Город</span>
+                                            <span className="info-value">{userData?.city}</span>
                                         </div>
                                     </>
                                 )}
@@ -397,82 +345,38 @@ const ProfilePage: React.FC = () => {
                     </div>
                 </div>
 
-                {isSaving && <div className="save-loader">Сохранение изменений...</div>}
-
                 {/* Секция с проектами пользователя */}
                 <div className="profile-projects-section">
-                    <h2>Мои проекты</h2>
+                    <div className="projects-header">
+                        <h2>Мои проекты</h2>
+                        <Button onClick={handleCreateProject}>Создать проект</Button>
+                    </div>
                     <div className="projects-list">
-                        {userData.projects.map((project) => (
-                            <div
-                                key={project.id}
-                                className="project-item"
-                                onClick={() => handleOpenProject(project.id)}
-                            >
-                                <span className="project-emoji">{project.emoji}</span>
-                                <span className="project-title">{project.title}</span>
-                                {project.isPrivate && (
-                                    <span className="project-private-icon">🔒</span>
-                                )}
-                            </div>
-                        ))}
+                        {projects.length > 0 ? (
+                            projects.map((project) => (
+                                <div
+                                    key={project.id}
+                                    className="project-item"
+                                    onClick={() => handleOpenProject(project.id)}
+                                >
+                                    <span className="project-emoji">{project.emoji}</span>
+                                    <span className="project-title">{project.title}</span>
+                                    {project.isPrivate && (
+                                        <span className="project-private-icon">🔒</span>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <p>У вас пока нет проектов</p>
+                        )}
                     </div>
                     <div className="all-projects-button-container">
-                        <Button onClick={navigateToAllProjects}>
+                        <Button onClick={navigateToAllProjects} className="all-projects-button">
                             Все проекты
                         </Button>
                     </div>
                 </div>
             </div>
-
-            {/* Модальное окно для изменения аватара */}
-            {showAvatarModal && (
-                <div className="avatar-modal-overlay">
-                    <div className="avatar-modal">
-                        <div className="avatar-modal-header">
-                            <h3>Изменение фото профиля</h3>
-                            <button onClick={handleCloseAvatarModal} className="modal-close-button">×</button>
-                        </div>
-                        <div className="avatar-modal-content">
-                            <div className="avatar-preview">
-                                {tempAvatar ? (
-                                    <img src={tempAvatar} alt="Предпросмотр аватара" />
-                                ) : userData.avatar ? (
-                                    <img src={userData.avatar} alt="Текущий аватар" />
-                                ) : (
-                                    <div className="avatar-preview-default">
-                                        {getUserInitials()}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="avatar-upload-controls">
-                                <label className="upload-button" htmlFor="avatar-upload">
-                                    Выбрать файл
-                                </label>
-                                <input
-                                    type="file"
-                                    id="avatar-upload"
-                                    className="hidden-input"
-                                    accept="image/*"
-                                    onChange={handleFileChange}
-                                />
-                                <p className="upload-hint">Рекомендуемый размер: 200×200 пикселей</p>
-                            </div>
-                        </div>
-                        <div className="avatar-modal-footer">
-                            <button onClick={handleCloseAvatarModal} className="modal-cancel-button">Отмена</button>
-                            <button
-                                onClick={handleSaveAvatar}
-                                className="modal-save-button"
-                                disabled={!tempAvatar}
-                            >
-                                Сохранить
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <Footer />
         </div>
     );
