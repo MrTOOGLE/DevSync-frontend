@@ -29,7 +29,7 @@ interface UserData {
     lastName: string;
     email: string;
     city: string;
-    avatar: string;
+    avatar: string | null;
     achievements: Achievement[];
     projects: Project[];
 }
@@ -44,7 +44,7 @@ const ProfilePage: React.FC = () => {
         lastName: 'Лапшакова',
         email: 'avk65@tbank.ru',
         city: 'Томск',
-        avatar: 'https://placekitten.com/200/200', // Заглушка для аватара
+        avatar: null, // Изменено на null для тестирования стандартного аватара
         achievements: [],
         projects: [
             {
@@ -66,8 +66,12 @@ const ProfilePage: React.FC = () => {
     const [userData, setUserData] = useState<UserData>(initialUserData);
     const [editMode, setEditMode] = useState<boolean>(false);
     const [formData, setFormData] = useState<Omit<UserData, 'achievements' | 'projects'>>(
-        {firstName: '', lastName: '', email: '', city: '', avatar: ''}
+        {firstName: '', lastName: '', email: '', city: '', avatar: null}
     );
+
+    // Состояние для изменения аватара
+    const [showAvatarModal, setShowAvatarModal] = useState<boolean>(false);
+    const [tempAvatar, setTempAvatar] = useState<string | null>(null);
 
     // Состояние валидации
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -149,6 +153,7 @@ const ProfilePage: React.FC = () => {
                     lastName: formData.lastName,
                     email: formData.email,
                     city: formData.city,
+                    avatar: formData.avatar
                 }));
 
                 setIsSaving(false);
@@ -181,10 +186,60 @@ const ProfilePage: React.FC = () => {
         // navigate('/projects');
     };
 
-    // Функция для загрузки нового аватара
-    const handleAvatarUpload = () => {
-        console.log('Загрузка нового аватара');
-        // Здесь будет логика загрузки аватара
+    // Функция для получения инициалов пользователя
+    const getUserInitials = () => {
+        if (userData.firstName && userData.lastName) {
+            return `${userData.firstName.charAt(0)}${userData.lastName.charAt(0)}`;
+        } else if (userData.firstName) {
+            return userData.firstName.charAt(0);
+        } else if (userData.lastName) {
+            return userData.lastName.charAt(0);
+        }
+        return "?";
+    };
+
+    // Открытие модального окна для изменения аватара
+    const handleOpenAvatarModal = () => {
+        setShowAvatarModal(true);
+    };
+
+    // Закрытие модального окна для изменения аватара
+    const handleCloseAvatarModal = () => {
+        setShowAvatarModal(false);
+        setTempAvatar(null);
+    };
+
+    // Обработка выбора файла аватара
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const fileUrl = URL.createObjectURL(file);
+            setTempAvatar(fileUrl);
+        }
+    };
+
+    // Сохранение нового аватара
+    const handleSaveAvatar = () => {
+        if (tempAvatar) {
+            setFormData(prev => ({
+                ...prev,
+                avatar: tempAvatar
+            }));
+
+            // Если мы не в режиме редактирования, сразу обновляем userData
+            if (!editMode) {
+                setUserData(prev => ({
+                    ...prev,
+                    avatar: tempAvatar
+                }));
+                setShowSavedMessage(true);
+                setTimeout(() => {
+                    setShowSavedMessage(false);
+                }, 3000);
+            }
+
+            setShowAvatarModal(false);
+        }
     };
 
     return (
@@ -202,12 +257,18 @@ const ProfilePage: React.FC = () => {
                     <div className="profile-left-column">
                         <div className="profile-avatar-container">
                             <div className="avatar-status">в сети</div>
-                            <img src={userData.avatar} alt="Аватар пользователя" className="profile-avatar" />
-                            {editMode && (
-                                <button onClick={handleAvatarUpload} className="change-avatar-button">
-                                    Изменить фото
-                                </button>
+
+                            {userData.avatar ? (
+                                <img src={userData.avatar} alt="Аватар пользователя" className="profile-avatar" />
+                            ) : (
+                                <div className="profile-default-avatar">
+                                    {getUserInitials()}
+                                </div>
                             )}
+
+                            <button onClick={handleOpenAvatarModal} className="change-avatar-button">
+                                Изменить фото
+                            </button>
                         </div>
                         <div className="profile-achievements">
                             <h2>Мои достижения</h2>
@@ -363,6 +424,55 @@ const ProfilePage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Модальное окно для изменения аватара */}
+            {showAvatarModal && (
+                <div className="avatar-modal-overlay">
+                    <div className="avatar-modal">
+                        <div className="avatar-modal-header">
+                            <h3>Изменение фото профиля</h3>
+                            <button onClick={handleCloseAvatarModal} className="modal-close-button">×</button>
+                        </div>
+                        <div className="avatar-modal-content">
+                            <div className="avatar-preview">
+                                {tempAvatar ? (
+                                    <img src={tempAvatar} alt="Предпросмотр аватара" />
+                                ) : userData.avatar ? (
+                                    <img src={userData.avatar} alt="Текущий аватар" />
+                                ) : (
+                                    <div className="avatar-preview-default">
+                                        {getUserInitials()}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="avatar-upload-controls">
+                                <label className="upload-button" htmlFor="avatar-upload">
+                                    Выбрать файл
+                                </label>
+                                <input
+                                    type="file"
+                                    id="avatar-upload"
+                                    className="hidden-input"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                />
+                                <p className="upload-hint">Рекомендуемый размер: 200×200 пикселей</p>
+                            </div>
+                        </div>
+                        <div className="avatar-modal-footer">
+                            <button onClick={handleCloseAvatarModal} className="modal-cancel-button">Отмена</button>
+                            <button
+                                onClick={handleSaveAvatar}
+                                className="modal-save-button"
+                                disabled={!tempAvatar}
+                            >
+                                Сохранить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Footer />
         </div>
     );
