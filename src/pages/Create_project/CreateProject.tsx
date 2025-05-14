@@ -7,7 +7,8 @@ import { Button } from '../../components/common/Button/Button.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
 import { Header } from "../../components/common/Header/Header.tsx";
 import { Footer } from "../../components/common/Footer/Footer.tsx";
-import { projectService, ProjectData} from '../../hooks/CreateProjectService.tsx';
+import { projectService, ProjectData, Department } from '../../hooks/CreateProjectService.tsx';
+import notificationService from '../../hooks/NotificationService.tsx';
 
 // Типы для формы создания проекта
 interface CreateProjectFormData {
@@ -24,16 +25,6 @@ interface UserSearchResult {
     avatar?: string | null;
 }
 
-// Типы для отдела с выбранными участниками
-interface DepartmentWithSelectedMembers {
-    id?: number;
-    title: string;
-    description: string;
-    project?: number;
-    date_created?: string;
-    selectedMembers: UserSearchResult[];
-}
-
 // Типы для ошибок формы
 interface FormErrors {
     title?: string;
@@ -42,6 +33,9 @@ interface FormErrors {
     departments?: string;
     server?: string;
 }
+
+// Типы для обработки статуса создания проекта
+type CreateProjectStatus = 'idle' | 'creating' | 'success' | 'error';
 
 const CreateProjectPage: React.FC = () => {
     const navigate = useNavigate();
@@ -55,9 +49,13 @@ const CreateProjectPage: React.FC = () => {
 
     // Списки участников и отделов
     const [members, setMembers] = useState<UserSearchResult[]>([]);
-    const [departments, setDepartments] = useState<DepartmentWithSelectedMembers[]>([]);
+    const [departments, setDepartments] = useState<Department[]>([]);
     const [errors, setErrors] = useState<FormErrors>({});
     const [isLoading, setIsLoading] = useState(false);
+
+    // Статус создания проекта
+    const [createStatus, setCreateStatus] = useState<CreateProjectStatus>('idle');
+    const [createdProjectId, setCreatedProjectId] = useState<number | null>(null);
 
     // Поиск пользователей
     const [memberSearch, setMemberSearch] = useState('');
@@ -67,8 +65,24 @@ const CreateProjectPage: React.FC = () => {
     const [departmentTitle, setDepartmentTitle] = useState('');
     const [departmentDescription, setDepartmentDescription] = useState('');
 
-    // Состояние для модального окна добавления участников в отдел
-    const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null);
+    // Инициализация уведомлений
+    useEffect(() => {
+        // Подключаем WebSocket для уведомлений при монтировании компонента
+        notificationService.connectWebSocket({
+            onNotification: (notification) => {
+                console.log('Получено новое уведомление:', notification);
+                // В зависимости от уведомления можно выполнять различные действия
+                if (notification.message.includes('приглашение') && createdProjectId) {
+                    // Отображаем уведомление о приглашенных пользователях
+                }
+            }
+        });
+
+        // Отключаем WebSocket при размонтировании компонента
+        return () => {
+            notificationService.disconnectWebSocket();
+        };
+    }, [createdProjectId]);
 
     // Обработчик изменения полей формы
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -107,7 +121,7 @@ const CreateProjectPage: React.FC = () => {
         }
     }, [memberSearch]);
 
-    // Добавление участника в общий список
+    // Добавление участника в список
     const handleAddMember = (user: UserSearchResult) => {
         // Проверяем, не добавлен ли уже такой участник
         if (!members.find(m => m.id === user.id)) {
@@ -118,15 +132,9 @@ const CreateProjectPage: React.FC = () => {
         setSearchResults([]);
     };
 
-    // Удаление участника из общего списка
+    // Удаление участника из списка
     const handleRemoveMember = (userId: number) => {
         setMembers(members.filter(m => m.id !== userId));
-
-        // Также удаляем участника из всех отделов
-        setDepartments(departments.map(dept => ({
-            ...dept,
-            selectedMembers: dept.selectedMembers.filter(m => m.id !== userId)
-        })));
     };
 
     // Добавление отдела
@@ -134,8 +142,7 @@ const CreateProjectPage: React.FC = () => {
         if (departmentTitle.trim()) {
             setDepartments([...departments, {
                 title: departmentTitle,
-                description: departmentDescription,
-                selectedMembers: []
+                description: departmentDescription
             }]);
             setDepartmentTitle('');
             setDepartmentDescription('');
@@ -146,24 +153,6 @@ const CreateProjectPage: React.FC = () => {
     const handleRemoveDepartment = (index: number) => {
         const newDepartments = [...departments];
         newDepartments.splice(index, 1);
-        setDepartments(newDepartments);
-    };
-
-    // Добавление участника в отдел
-    const handleAddMemberToDepartment = (user: UserSearchResult, departmentIndex: number) => {
-        // Проверяем, не добавлен ли пользователь уже в отдел
-        if (!departments[departmentIndex].selectedMembers.find(m => m.id === user.id)) {
-            const newDepartments = [...departments];
-            newDepartments[departmentIndex].selectedMembers.push(user);
-            setDepartments(newDepartments);
-        }
-    };
-
-    // Удаление участника из отдела
-    const handleRemoveMemberFromDepartment = (userId: number, departmentIndex: number) => {
-        const newDepartments = [...departments];
-        newDepartments[departmentIndex].selectedMembers =
-            newDepartments[departmentIndex].selectedMembers.filter(m => m.id !== userId);
         setDepartments(newDepartments);
     };
 
@@ -185,6 +174,7 @@ const CreateProjectPage: React.FC = () => {
 
         try {
             setIsLoading(true);
+            setCreateStatus('creating');
 
             // Создаем проект
             const createdProject: ProjectData = await projectService.createProject({
@@ -193,59 +183,36 @@ const CreateProjectPage: React.FC = () => {
                 is_public: formData.is_public
             });
 
-            // После успешного создания проекта добавляем отделы
-            for (const department of departments) {
-                try {
-                    const createdDepartment = await projectService.createDepartment(createdProject.id!, {
-                        title: department.title,
-                        description: department.description
-                    });
+            // Сохраняем ID созданного проекта
+            setCreatedProjectId(createdProject.id!);
+            setCreateStatus('success');
 
-                    // Добавляем участников в отдел
-                    for (const member of department.selectedMembers) {
-                        try {
-                            // Сначала создаем приглашение, если пользователь еще не приглашен
-                            await projectService.createInvitation(createdProject.id!, member.id);
-
-                            // Затем добавляем в отдел
-                            if (createdDepartment.id) {
-                                await projectService.assignUserToDepartment(
-                                    createdProject.id!,
-                                    member.id,
-                                    createdDepartment.id
-                                );
-                            }
-                        } catch (error) {
-                            console.error(`Ошибка при добавлении участника ${member.id} в отдел:`, error);
-                            // Продолжаем, не останавливаясь при ошибке
-                        }
-                    }
-                } catch (error) {
-                    console.error(`Ошибка при создании отдела ${department.title}:`, error);
-                    // Продолжаем, не останавливаясь при ошибке
-                }
-            }
-
-            // Приглашаем участников, которые не в отделах
-            const membersInDepartments = new Set(
-                departments.flatMap(dept => dept.selectedMembers.map(m => m.id))
+            // После успешного создания проекта, добавляем отделы
+            const departmentPromises = departments.map(department =>
+                projectService.createDepartment(createdProject.id!, {
+                    title: department.title,
+                    description: department.description
+                })
             );
 
-            for (const member of members) {
-                if (!membersInDepartments.has(member.id)) {
-                    try {
-                        await projectService.createInvitation(createdProject.id!, member.id);
-                    } catch (error) {
-                        console.error(`Ошибка при приглашении участника ${member.id}:`, error);
-                        // Продолжаем, не останавливаясь при ошибке
-                    }
-                }
-            }
+            await Promise.all(departmentPromises);
 
-            // Перенаправляем на страницу проекта
-            navigate(`/projects/${createdProject.id}`);
+            // Приглашаем участников
+            const invitationPromises = members.map(member =>
+                projectService.createInvitation(createdProject.id!, member.id)
+            );
+
+            await Promise.all(invitationPromises);
+
+            // Задержка перед перенаправлением, чтобы пользователь увидел уведомление об успехе
+            setTimeout(() => {
+                // Перенаправляем пользователя на страницу проекта
+                navigate(`/projects/${createdProject.id}`);
+            }, 2000);
+
         } catch (error: any) {
             console.error('Ошибка при создании проекта:', error);
+            setCreateStatus('error');
 
             if (error.data) {
                 const newErrors: FormErrors = {};
@@ -267,10 +234,48 @@ const CreateProjectPage: React.FC = () => {
         }
     };
 
+    // Компонент уведомления о статусе создания проекта
+    const renderStatusNotification = () => {
+        switch (createStatus) {
+            case 'creating':
+                return (
+                    <div className={styles.statusNotification}>
+                        <div className={styles.statusCreating}>
+                            <div className={styles.spinner}></div>
+                            <p>Создание проекта...</p>
+                        </div>
+                    </div>
+                );
+            case 'success':
+                return (
+                    <div className={styles.statusNotification}>
+                        <div className={styles.statusSuccess}>
+                            <div className={styles.successIcon}>✓</div>
+                            <p>Проект успешно создан! Перенаправление...</p>
+                        </div>
+                    </div>
+                );
+            case 'error':
+                return (
+                    <div className={styles.statusNotification}>
+                        <div className={styles.statusError}>
+                            <div className={styles.errorIcon}>✗</div>
+                            <p>Не удалось создать проект. Пожалуйста, попробуйте снова.</p>
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="main-container">
             <Header />
             <div className="main-content">
+                {/* Уведомление о статусе создания проекта */}
+                {renderStatusNotification()}
+
                 <div className={styles.createProjectContainer}>
                     <h1>Добавление сведений о проекте</h1>
                     <p className={styles.subtitle}>
@@ -431,47 +436,6 @@ const CreateProjectPage: React.FC = () => {
                                             {department.description && (
                                                 <p className={styles.departmentDescription}>{department.description}</p>
                                             )}
-
-                                            {/* Секция для отображения участников отдела */}
-                                            {department.selectedMembers.length > 0 && (
-                                                <div className={styles.departmentMembers}>
-                                                    <h5>Участники отдела:</h5>
-                                                    <div className={styles.membersList}>
-                                                        {department.selectedMembers.map(member => (
-                                                            <div key={member.id} className={styles.memberItem}>
-                                                                <div className={styles.memberAvatar}>
-                                                                    {member.avatar ? (
-                                                                        <img src={member.avatar} alt={member.name} />
-                                                                    ) : (
-                                                                        <div className={styles.defaultAvatar}>
-                                                                            {member.name.charAt(0)}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                <div className={styles.memberInfo}>
-                                                                    <div className={styles.memberName}>{member.name}</div>
-                                                                    <div className={styles.memberEmail}>{member.email}</div>
-                                                                </div>
-                                                                <button
-                                                                    className={styles.removeButton}
-                                                                    onClick={() => handleRemoveMemberFromDepartment(member.id, index)}
-                                                                    aria-label="Удалить участника из отдела"
-                                                                >
-                                                                    ✕
-                                                                </button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Кнопка для добавления участников в отдел */}
-                                            <button
-                                                className={styles.addToDepartmentButton}
-                                                onClick={() => setSelectedDepartment(index)}
-                                            >
-                                                Добавить участников в отдел
-                                            </button>
                                         </div>
                                         <button
                                             className={styles.removeButton}
@@ -542,7 +506,7 @@ const CreateProjectPage: React.FC = () => {
                     <div className={styles.submitContainer}>
                         <Button
                             onClick={handleSubmit}
-                            disabled={isLoading}
+                            disabled={isLoading || createStatus === 'creating' || createStatus === 'success'}
                         >
                             {isLoading ? 'Создание...' : 'Создать проект'}
                         </Button>
@@ -550,69 +514,6 @@ const CreateProjectPage: React.FC = () => {
                 </div>
             </div>
             <Footer />
-
-            {/* Модальное окно для добавления участников в отдел */}
-            {selectedDepartment !== null && (
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalHeader}>
-                            <h3>Добавление участников в отдел "{departments[selectedDepartment].title}"</h3>
-                            <button
-                                className={styles.closeButton}
-                                onClick={() => setSelectedDepartment(null)}
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        <div className={styles.modalBody}>
-                            <div className={styles.availableMembers}>
-                                <h4>Доступные участники:</h4>
-                                {members.filter(member =>
-                                    !departments[selectedDepartment].selectedMembers.some(m => m.id === member.id)
-                                ).length > 0 ? (
-                                    members.filter(member =>
-                                        !departments[selectedDepartment].selectedMembers.some(m => m.id === member.id)
-                                    ).map(member => (
-                                        <div key={member.id} className={styles.memberItem}>
-                                            <div className={styles.memberAvatar}>
-                                                {member.avatar ? (
-                                                    <img src={member.avatar} alt={member.name} />
-                                                ) : (
-                                                    <div className={styles.defaultAvatar}>
-                                                        {member.name.charAt(0)}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className={styles.memberInfo}>
-                                                <div className={styles.memberName}>{member.name}</div>
-                                                <div className={styles.memberEmail}>{member.email}</div>
-                                            </div>
-                                            <button
-                                                className={styles.addButton}
-                                                onClick={() => handleAddMemberToDepartment(member, selectedDepartment)}
-                                                aria-label="Добавить участника в отдел"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className={styles.noAvailableMembers}>
-                                        {members.length === 0
-                                            ? "Сначала добавьте участников в проект"
-                                            : "Все участники уже добавлены в этот отдел"}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                        <div className={styles.modalFooter}>
-                            <Button onClick={() => setSelectedDepartment(null)}>
-                                Закрыть
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

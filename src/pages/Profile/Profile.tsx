@@ -9,6 +9,7 @@ import { Button } from "../../components/common/Button/Button.tsx";
 import { ErrorField } from "../../components/common/ErrorField/ErrorField.tsx";
 import "../../styles/styles.css";
 import "./Profile.css";
+import defaultAvatarImage from '../../photos/avatar.png';
 
 // Типы для данных достижений
 interface Achievement {
@@ -32,7 +33,7 @@ const ProfilePage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [userData, setUserData] = useState<UserProfile | null>(null);
-    const [achievements, setAchievements] = useState<Achievement[]>([]);
+    const [achievements] = useState<Achievement[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -218,7 +219,8 @@ const ProfilePage: React.FC = () => {
                     <div className="profile-left-column">
                         <div className="profile-avatar-container">
                             <img
-                                src={avatarPreview || userData?.avatar || 'https://placekitten.com/200/200'}
+                                //@ts-ignore
+                                src={avatarPreview || userData?.avatar || defaultAvatarImage}
                                 alt="Аватар пользователя"
                                 className="profile-avatar"
                             />

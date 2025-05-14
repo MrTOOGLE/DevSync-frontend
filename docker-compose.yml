@@ -6,4 +6,6 @@ services:
     container_name: frontend_container
     ports:
       - "3000:80"
+    volumes:
+      - ./dist:/usr/share/nginx/html
     restart: unless-stopped

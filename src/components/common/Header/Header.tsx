@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Header.module.css';
+import notificationStyles from '../../../styles/Notifications.module.css';
 import arrowBack from "../../../photos/pngwing.com.png";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../photos/logo.png";
 import bell from "../../../photos/bell.png";
-import { Notifications, Notification as NotificationType } from "../../../utils/Notifications.tsx";
 import { authService } from "../../../hooks/AuthService.tsx";
+import notificationService from "../../../hooks/NotificationService";
+import { NotificationsPanel } from "../../../utils/NotificationsPanel";
 
 interface HeaderProps {
     variant?: 'default' | 'back';
@@ -15,67 +17,62 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
     const isAuthenticated = authService.isAuthenticated();
+    const [notificationCount, setNotificationCount] = useState<number>(0);
 
-    // Заглушка для уведомлений с указанием, имеют ли они кнопки действий
-    const initialNotifications: NotificationType[] = [
-        {
-            id: 1,
-            type: 'achievement',
-            text: 'Вы получили значок "Самый продуктивный работник"',
-            date: '12.04.2025',
-            read: false,
-            icon: '🏆',
-            hasActions: false // Убираем кнопки у уведомлений о достижениях
-        },
-        {
-            id: 2,
-            type: 'task',
-            text: 'У Вас новая задача в проекте "Создание сайта для генерации кричка "Какой ты крипс сегодня?"',
-            date: '11.04.2025',
-            read: false,
-            hasActions: true // У задач оставляем кнопки действий
-        },
-        {
-            id: 3,
-            type: 'project',
-            text: 'Вас пригласили в проект "Создание сайта для генерации кричка "Какой ты крипс сегодня?"',
-            date: '15.04.2025',
-            read: false,
-            hasActions: true // У приглашений в проект оставляем кнопки действий
+    // Получение уведомлений при монтировании компонента
+    useEffect(() => {
+        if (isAuthenticated) {
+            // Получаем список уведомлений с сервера
+            fetchNotifications();
+
+            // Подключаемся к WebSocket для обновлений в реальном времени
+            notificationService.connectWebSocket({
+                onNotification: (notification) => {
+                    // Увеличиваем счетчик непрочитанных уведомлений
+                    if (!notification.is_read) {
+                        setNotificationCount(prevCount => prevCount + 1);
+                    }
+                },
+                onUpdate: (notification) => {
+                    // Если уведомление было отмечено как прочитанное, уменьшаем счетчик
+                    if (notification.is_read) {
+                        setNotificationCount(prevCount => Math.max(0, prevCount - 1));
+                    }
+                },
+                onDelete: () => {
+                    // При удалении уведомления обновляем список
+                    fetchNotifications();
+                }
+            });
+
+            // Отключаем WebSocket при размонтировании компонента
+            return () => {
+                notificationService.disconnectWebSocket();
+            };
         }
-    ];
+    }, [isAuthenticated]);
 
-    const [notificationsList, setNotificationsList] = useState<NotificationType[]>(initialNotifications);
+    // Загрузка уведомлений с сервера
+    const fetchNotifications = async () => {
+        try {
+            const notifications = await notificationService.getNotifications();
+            // Считаем количество непрочитанных уведомлений
+            const unreadCount = notifications.filter(notification => !notification.is_read).length;
+            setNotificationCount(unreadCount);
+        } catch (error) {
+            console.error('Ошибка при загрузке уведомлений:', error);
+        }
+    };
 
     // Показ/скрытие уведомлений
     const toggleNotifications = () => {
         setShowNotifications(!showNotifications);
-    };
 
-    // Обработчик принятия уведомления
-    const handleAcceptNotification = (id: number) => {
-        console.log(`Принято уведомление ${id}`);
-
-        // Удаляем уведомление из состояния
-        setNotificationsList(prev =>
-            prev.filter(notification => notification.id !== id)
-        );
-
-        // В реальном приложении здесь должен быть вызов API для сохранения статуса уведомления
-        // Например, axios.post('/api/notifications/accept', { id });
-    };
-
-    // Обработчик отклонения уведомления
-    const handleDeclineNotification = (id: number) => {
-        console.log(`Отклонено уведомление ${id}`);
-
-        // Удаляем уведомление из состояния
-        setNotificationsList(prev =>
-            prev.filter(notification => notification.id !== id)
-        );
-
-        // В реальном приложении здесь должен быть вызов API для сохранения статуса уведомления
-        // Например, axios.post('/api/notifications/decline', { id });
+        // Если закрываем панель уведомлений, считаем все уведомления прочитанными
+        if (showNotifications) {
+            notificationService.markAllAsRead();
+            setNotificationCount(0);
+        }
     };
 
     // Обработчик для кнопки 'назад'
@@ -118,13 +115,21 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
                         </div>
                         {isAuthenticated && (
                             <div className={styles.right}>
-                                <button
-                                    className={styles.bell}
-                                    onClick={toggleNotifications}
-                                >
-                                    <img src={bell} alt="Уведомления"/>
-                                </button>
-                                <button onClick={handleLogout}>Выйти</button>
+                                <div className={notificationStyles.bellContainer}>
+                                    <button
+                                        className={styles.bell}
+                                        onClick={toggleNotifications}
+                                    >
+                                        <img src={bell} alt="Уведомления"/>
+                                    </button>
+                                    {notificationCount > 0 && (
+                                        <span className={notificationStyles.unreadBadge}>
+                                            {notificationCount > 99 ? '99+' : notificationCount}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <button onClick={handleLogout} className={styles.logoutButton}>Выйти</button>
                                 <button
                                     className={styles.profile}
                                     onClick={() => navigate('/profile')}
@@ -132,11 +137,9 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
                                     Личный кабинет
                                 </button>
 
-                                <Notifications
-                                    notifications={notificationsList}
+                                {/* Панель уведомлений */}
+                                <NotificationsPanel
                                     visible={showNotifications}
-                                    onAccept={handleAcceptNotification}
-                                    onDecline={handleDeclineNotification}
                                     onClose={() => setShowNotifications(false)}
                                 />
                             </div>
