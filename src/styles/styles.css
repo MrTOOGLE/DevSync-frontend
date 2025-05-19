@@ -33,4 +33,5 @@ body {
 .main-content {
     padding: 80px 0;
     flex: 1;
+    width: 100%;
 }

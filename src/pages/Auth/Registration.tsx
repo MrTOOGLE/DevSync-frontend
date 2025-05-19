@@ -198,117 +198,121 @@ const Registration: React.FC = () => {
         <div className="main-container">
             <Header variant="back"/>
             <div className="main-content">
-                <div className={styles.formContainer}>
-                    <h1>Регистрация</h1>
-                    {errors.server && <div className="server-error"><ErrorField message={errors.server}/></div>}
-                    <form onSubmit={handleSubmit} noValidate={true}>
-                        <div>
-                            <Select
-                                name="city"
-                                className={styles.selectedCity}
-                                value={formData.city}
-                                onChange={handleInputChange}
-                                style={{color: cityColor}}
-                                hasError={!!errors.city}
-                            >
-                                <option value="">Город*</option>
-                                {cities.map(city => (
-                                    <option key={city} value={city}>{city}</option>
-                                ))}
-                            </Select>
-                            {errors.city && <ErrorField message={errors.city}/>}
-                        </div>
-
-                        <div>
-                            <Input
-                                type="text"
-                                name="lastName"
-                                placeholder="Фамилия*"
-                                value={formData.lastName}
-                                onChange={handleInputChange}
-                                hasError={!!errors.lastName}
-                            />
-                            {errors.lastName && <ErrorField message={errors.lastName}/>}
-                        </div>
-
-                        <div>
-                            <Input
-                                type="text"
-                                name="firstName"
-                                placeholder="Имя*"
-                                value={formData.firstName}
-                                onChange={handleInputChange}
-                                hasError={!!errors.firstName}
-                            />
-                            {errors.firstName && <ErrorField message={errors.firstName}/>}
-                        </div>
-
-                        <div>
-                            <Input
-                                type="email"
-                                name="email"
-                                placeholder="Электронная почта*"
-                                value={formData.email}
-                                onChange={handleInputChange}
-                                hasError={!!errors.email}
-                            />
-                            {errors.email && <ErrorField message={errors.email}/>}
-                        </div>
-
-                        <div>
-                            <Input
-                                type="password"
-                                name="password"
-                                placeholder="Пароль*"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                hasError={!!errors.password}
-                            />
-                            {errors.password && <ErrorField message={errors.password}/>}
-                        </div>
-
-                        <div>
-                            <Input
-                                type="password"
-                                name="confirmPassword"
-                                placeholder="Повторите пароль*"
-                                value={formData.confirmPassword}
-                                onChange={handleInputChange}
-                                hasError={!!errors.confirmPassword}
-                            />
-                            {errors.confirmPassword && <ErrorField message={errors.confirmPassword}/>}
-                        </div>
-
-                        <div className={styles.link}>
-                            <p>У вас уже есть аккаунт? <Link to="/login" className={styles.linkText}>Войти!</Link></p>
-                        </div>
-
-                        <div className={styles.check_terms}>
-                            <div className={`${styles.checkbox_wrapper} ${errors.agreeToTerms ? styles.checkbox_error : ''}`}>
-                                <label>
-                                    <input
-                                        className={styles.checkboxRegister}
-                                        type="checkbox"
-                                        name="agreeToTerms"
-                                        checked={formData.agreeToTerms}
-                                        onChange={handleCheckboxChange}
-                                    />
-                                    <span className={styles.checkmark}></span>
-                                    Я согласен с <a href="/terms">условиями передачи информации</a>
-                                </label>
-
-                                {errors.agreeToTerms && (
-                                    <div className="error-tooltip">
-                                        <ErrorField message={errors.agreeToTerms}/>
-                                    </div>
-                                )}
+                <div className={styles.container}>
+                    <div className={styles.formContainer}>
+                        <h1>Регистрация</h1>
+                        {errors.server && <div className="server-error"><ErrorField message={errors.server}/></div>}
+                        <form onSubmit={handleSubmit} noValidate={true}>
+                            <div>
+                                <Select
+                                    name="city"
+                                    className={styles.selectedCity}
+                                    value={formData.city}
+                                    onChange={handleInputChange}
+                                    style={{color: cityColor}}
+                                    hasError={!!errors.city}
+                                >
+                                    <option value="">Город*</option>
+                                    {cities.map(city => (
+                                        <option key={city} value={city}>{city}</option>
+                                    ))}
+                                </Select>
+                                {errors.city && <ErrorField message={errors.city}/>}
                             </div>
 
-                            <Button type="submit" disabled={isLoading}>
-                                {isLoading ? 'Регистрация...' : 'Завершить'}
-                            </Button>
-                        </div>
-                    </form>
+                            <div>
+                                <Input
+                                    type="text"
+                                    name="lastName"
+                                    placeholder="Фамилия*"
+                                    value={formData.lastName}
+                                    onChange={handleInputChange}
+                                    hasError={!!errors.lastName}
+                                />
+                                {errors.lastName && <ErrorField message={errors.lastName}/>}
+                            </div>
+
+                            <div>
+                                <Input
+                                    type="text"
+                                    name="firstName"
+                                    placeholder="Имя*"
+                                    value={formData.firstName}
+                                    onChange={handleInputChange}
+                                    hasError={!!errors.firstName}
+                                />
+                                {errors.firstName && <ErrorField message={errors.firstName}/>}
+                            </div>
+
+                            <div>
+                                <Input
+                                    type="email"
+                                    name="email"
+                                    placeholder="Электронная почта*"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    hasError={!!errors.email}
+                                />
+                                {errors.email && <ErrorField message={errors.email}/>}
+                            </div>
+
+                            <div>
+                                <Input
+                                    type="password"
+                                    name="password"
+                                    placeholder="Пароль*"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    hasError={!!errors.password}
+                                />
+                                {errors.password && <ErrorField message={errors.password}/>}
+                            </div>
+
+                            <div>
+                                <Input
+                                    type="password"
+                                    name="confirmPassword"
+                                    placeholder="Повторите пароль*"
+                                    value={formData.confirmPassword}
+                                    onChange={handleInputChange}
+                                    hasError={!!errors.confirmPassword}
+                                />
+                                {errors.confirmPassword && <ErrorField message={errors.confirmPassword}/>}
+                            </div>
+
+                            <div className={styles.link}>
+                                <p>У вас уже есть аккаунт? <Link to="/login" className={styles.linkText}>Войти!</Link>
+                                </p>
+                            </div>
+
+                            <div className={styles.check_terms}>
+                                <div
+                                    className={`${styles.checkbox_wrapper} ${errors.agreeToTerms ? styles.checkbox_error : ''}`}>
+                                    <label>
+                                        <input
+                                            className={styles.checkboxRegister}
+                                            type="checkbox"
+                                            name="agreeToTerms"
+                                            checked={formData.agreeToTerms}
+                                            onChange={handleCheckboxChange}
+                                        />
+                                        <span className={styles.checkmark}></span>
+                                        Я согласен с <a href="/terms">условиями передачи информации</a>
+                                    </label>
+
+                                    {errors.agreeToTerms && (
+                                        <div className="error-tooltip">
+                                            <ErrorField message={errors.agreeToTerms}/>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <Button type="submit" disabled={isLoading}>
+                                    {isLoading ? 'Регистрация...' : 'Завершить'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
             <Footer/>

@@ -100,43 +100,46 @@ const Authorization: React.FC = () => {
         <div className="main-container">
             <Header variant='back'/>
             <div className="main-content">
-                <div className={styles.formContainer}>
-                    <h1>Войти</h1>
-                    <form onSubmit={handleSubmit} noValidate={true}>
-                        <div className="form_group">
-                            <Input
-                                type="email"
-                                id="emailInput"
-                                name="email"
-                                placeholder="Электронная почта*"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                hasError={!!errors.server || !!errors.email}
-                                required
-                            />
-                            {errors.email && <ErrorField message={errors.email}/>}
-                        </div>
-                        <div className="form_group">
-                            <Input
-                                type="password"
-                                id="passwordInput"
-                                name="password"
-                                placeholder="Пароль*"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                hasError={!!errors.password || !!errors.server}
-                                required
-                            />
-                            {errors.password && <ErrorField message={errors.password}/>}
-                        </div>
-                        {errors.server && <ErrorField message={errors.server}/>}
-                        <p className={styles.link}>
-                            У вас еще нет аккаунта? <Link to="/register" className={styles.linkText}>Зарегистрироваться!</Link>
-                        </p>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? 'Подождите...' : 'Войти'}
-                        </Button>
-                    </form>
+                <div className={styles.container}>
+                    <div className={styles.formContainer}>
+                        <h1>Войти</h1>
+                        <form onSubmit={handleSubmit} noValidate={true}>
+                            <div className="form_group">
+                                <Input
+                                    type="email"
+                                    id="emailInput"
+                                    name="email"
+                                    placeholder="Электронная почта*"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    hasError={!!errors.server || !!errors.email}
+                                    required
+                                />
+                                {errors.email && <ErrorField message={errors.email}/>}
+                            </div>
+                            <div className="form_group">
+                                <Input
+                                    type="password"
+                                    id="passwordInput"
+                                    name="password"
+                                    placeholder="Пароль*"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    hasError={!!errors.password || !!errors.server}
+                                    required
+                                />
+                                {errors.password && <ErrorField message={errors.password}/>}
+                            </div>
+                            {errors.server && <ErrorField message={errors.server}/>}
+                            <p className={styles.link}>
+                                У вас еще нет аккаунта? <Link to="/register"
+                                                              className={styles.linkText}>Зарегистрироваться!</Link>
+                            </p>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? 'Подождите...' : 'Войти'}
+                            </Button>
+                        </form>
+                    </div>
                 </div>
             </div>
             <Footer/>

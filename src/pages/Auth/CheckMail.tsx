@@ -127,61 +127,63 @@ const EmailConfirmation: React.FC = () => {
         <div className="main-container">
             <Header variant="back"/>
             <div className="main-content">
-                <div className={styles.formContainer}>
-                    <h1>Подтверждение почты</h1>
-                    <div className={styles.text_email}>
-                        <p>
-                            На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
-                            {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения
-                            регистрации.
-                            Введите его в поле ниже:
-                        </p>
-                    </div>
-                    <div>
-                        <Input
-                            type="text"
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            placeholder="Код из письма*"
-                            className={styles.checkMailInput}
-                            disabled={isLoading}
-                            hasError={!!errors}
-                        />
-                    </div>
-                    {message && (
-                        <div className={styles.successMessage}>
-                            <p>{message}</p>
+                <div className={styles.container}>
+                    <div className={styles.formContainer}>
+                        <h1>Подтверждение почты</h1>
+                        <div className={styles.text_email}>
+                            <p>
+                                На адрес электронной почты <strong>{email}</strong>, указанный при регистрации,
+                                {codeSent ? ' был отправлен' : ' будет отправлен'} код, необходимый для завершения
+                                регистрации.
+                                Введите его в поле ниже:
+                            </p>
                         </div>
-                    )}
-                    {errors && (
-                        <div className="error-messages">
-                            {errors.email?.map((err: string, i: number) => (
-                                <p key={`email-${i}`} className="error-message">{err}</p>
-                            ))}
-                            {errors.code?.map((err: string, i: number) => (
-                                <p key={`code-${i}`} className="error-message">{err}</p>
-                            ))}
-                            {errors.non_field_errors?.map((err: string, i: number) => (
-                                <p key={`nfe-${i}`} className="error-message">{err}</p>
-                            ))}
-                            {errors.detail && (
-                                <p className="error-message">{errors.detail}</p>
-                            )}
+                        <div>
+                            <Input
+                                type="text"
+                                value={code}
+                                onChange={(e) => setCode(e.target.value)}
+                                placeholder="Код из письма*"
+                                className={styles.checkMailInput}
+                                disabled={isLoading}
+                                hasError={!!errors}
+                            />
                         </div>
-                    )}
-                    <div className={styles.resendCode}>
-                        <button
-                            onClick={handleResendCode}
-                            className={styles.linkButton}
-                            disabled={!canResend || isLoading}
-                        >
-                            {canResend ? 'Отправить код повторно' : `Отправить код повторно (${timer} сек.)`}
-                        </button>
-                    </div>
-                    <div className={styles.buttonContainer}>
-                        <Button onClick={handleSubmit} disabled={isLoading}>
-                            {isLoading ? 'Проверка...' : 'Завершить'}
-                        </Button>
+                        {message && (
+                            <div className={styles.successMessage}>
+                                <p>{message}</p>
+                            </div>
+                        )}
+                        {errors && (
+                            <div className="error-messages">
+                                {errors.email?.map((err: string, i: number) => (
+                                    <p key={`email-${i}`} className="error-message">{err}</p>
+                                ))}
+                                {errors.code?.map((err: string, i: number) => (
+                                    <p key={`code-${i}`} className="error-message">{err}</p>
+                                ))}
+                                {errors.non_field_errors?.map((err: string, i: number) => (
+                                    <p key={`nfe-${i}`} className="error-message">{err}</p>
+                                ))}
+                                {errors.detail && (
+                                    <p className="error-message">{errors.detail}</p>
+                                )}
+                            </div>
+                        )}
+                        <div className={styles.resendCode}>
+                            <button
+                                onClick={handleResendCode}
+                                className={styles.linkButton}
+                                disabled={!canResend || isLoading}
+                            >
+                                {canResend ? 'Отправить код повторно' : `Отправить код повторно (${timer} сек.)`}
+                            </button>
+                        </div>
+                        <div className={styles.buttonContainer}>
+                            <Button onClick={handleSubmit} disabled={isLoading}>
+                                {isLoading ? 'Проверка...' : 'Завершить'}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

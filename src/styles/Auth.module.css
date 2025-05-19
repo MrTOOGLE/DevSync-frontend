@@ -1,3 +1,10 @@
+.container {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
 .formContainer {
     background-color: #FFFFFF;
     border-radius: 69px;

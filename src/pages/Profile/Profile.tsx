@@ -8,7 +8,7 @@ import { Input } from "../../components/common/Input/Input.tsx";
 import { Button } from "../../components/common/Button/Button.tsx";
 import { ErrorField } from "../../components/common/ErrorField/ErrorField.tsx";
 import "../../styles/styles.css";
-import "./Profile.css";
+import styles from '../../styles/Profile.module.css';
 import defaultAvatarImage from '../../photos/avatar.png';
 
 // Типы для данных достижений
@@ -207,25 +207,24 @@ const ProfilePage: React.FC = () => {
     };
 
     if (isLoading && !userData) {
-        return <div>Загрузка данных профиля...</div>;
+        return <div className={styles.loading}>Загрузка данных профиля...</div>;
     }
 
     return (
         <div className="main-container">
             <Header />
             <div className="main-content">
-                <div className="profile-container">
-                    {/* Левая колонка - аватар и достижения */}
-                    <div className="profile-left-column">
-                        <div className="profile-avatar-container">
+                <div className={styles.profileContainer}>
+                    <div className={styles.profileLeftColumn}>
+                        <div className={styles.profileAvatarContainer}>
                             <img
                                 //@ts-ignore
                                 src={avatarPreview || userData?.avatar || defaultAvatarImage}
                                 alt="Аватар пользователя"
-                                className="profile-avatar"
+                                className={styles.profileAvatar}
                             />
                             {isEditing && (
-                                <div className="avatar-upload">
+                                <div className={styles.avatarUpload}>
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -237,13 +236,13 @@ const ProfilePage: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="profile-achievements">
+                        <div className={styles.profileAchievements}>
                             <h2>Мои достижения</h2>
-                            <div className="achievements-content">
+                            <div className={styles.achievementsContent}>
                                 {achievements.length > 0 ? (
-                                    <ul className="achievements-list">
+                                    <ul className={styles.achievementsList}>
                                         {achievements.map((achievement) => (
-                                            <li key={achievement.id} className="achievement-item">
+                                            <li key={achievement.id} className={styles.achievementItem}>
                                                 {achievement.icon} {achievement.title}
                                             </li>
                                         ))}
@@ -256,34 +255,34 @@ const ProfilePage: React.FC = () => {
                     </div>
 
                     {/* Правая колонка - личная информация */}
-                    <div className="profile-right-column">
-                        <div className="profile-info-container">
-                            <div className="profile-info-header">
+                    <div className={styles.profileRightColumn}>
+                        <div className={styles.profileInfoContainer}>
+                            <div className={styles.profileInfoHeader}>
                                 <h2>Личная информация</h2>
                                 {isEditing ? (
-                                    <div className="edit-buttons">
-                                        <Button onClick={handleSave} disabled={isLoading}>
+                                    <div className={styles.editButtons}>
+                                        <Button onClick={handleSave} disabled={isLoading} className={styles.editButton}>
                                             {isLoading ? 'Сохранение...' : 'Сохранить'}
                                         </Button>
-                                        <Button onClick={handleCancel} disabled={isLoading}>
+                                        <Button onClick={handleCancel} disabled={isLoading} className={styles.editButton}>
                                             Отмена
                                         </Button>
                                     </div>
                                 ) : (
-                                    <button onClick={handleEdit} className="edit-button">Изменить</button>
+                                    <Button onClick={handleEdit} className={styles.editButton}>Изменить</Button>
                                 )}
                             </div>
                             {errors.general && (
-                                <div className="error-message">
+                                <div className={styles.errorMessage}>
                                     <ErrorField message={errors.general} />
                                 </div>
                             )}
-                            <div className="profile-info-content">
+                            <div className={styles.profileInfoContent}>
                                 {isEditing ? (
                                     // Форма редактирования
                                     <>
-                                        <div className="profile-info-item">
-                                            <label className="info-label">Имя</label>
+                                        <div className={styles.profileInfoItem}>
+                                            <label className={styles.infoLabel}>Имя</label>
                                             <Input
                                                 type="text"
                                                 name="firstName"
@@ -293,8 +292,8 @@ const ProfilePage: React.FC = () => {
                                             />
                                             {errors.firstName && <ErrorField message={errors.firstName} />}
                                         </div>
-                                        <div className="profile-info-item">
-                                            <label className="info-label">Фамилия</label>
+                                        <div className={styles.profileInfoItem}>
+                                            <label className={styles.infoLabel}>Фамилия</label>
                                             <Input
                                                 type="text"
                                                 name="lastName"
@@ -304,13 +303,13 @@ const ProfilePage: React.FC = () => {
                                             />
                                             {errors.lastName && <ErrorField message={errors.lastName} />}
                                         </div>
-                                        <div className="profile-info-item">
-                                            <label className="info-label">Email</label>
-                                            <span className="info-value">{formData.email}</span>
-                                            <p className="info-hint">Email нельзя изменить</p>
+                                        <div className={styles.profileInfoItem}>
+                                            <label className={styles.infoLabel}>Email</label>
+                                            <span className={styles.infoValue}>{formData.email}</span>
+                                            <p className={styles.infoHint}>Email нельзя изменить</p>
                                         </div>
-                                        <div className="profile-info-item">
-                                            <label className="info-label">Город</label>
+                                        <div className={styles.profileInfoItem}>
+                                            <label className={styles.infoLabel}>Город</label>
                                             <Input
                                                 type="text"
                                                 name="city"
@@ -324,21 +323,21 @@ const ProfilePage: React.FC = () => {
                                 ) : (
                                     // Отображение информации
                                     <>
-                                        <div className="profile-info-item">
-                                            <span className="info-label">Имя</span>
-                                            <span className="info-value">{userData?.first_name}</span>
+                                        <div className={styles.profileInfoItem}>
+                                            <span className={styles.infoLabel}>Имя</span>
+                                            <span className={styles.infoValue}>{userData?.first_name}</span>
                                         </div>
-                                        <div className="profile-info-item">
-                                            <span className="info-label">Фамилия</span>
-                                            <span className="info-value">{userData?.last_name}</span>
+                                        <div className={styles.profileInfoItem}>
+                                            <span className={styles.infoLabel}>Фамилия</span>
+                                            <span className={styles.infoValue}>{userData?.last_name}</span>
                                         </div>
-                                        <div className="profile-info-item">
-                                            <span className="info-label">Email</span>
-                                            <span className="info-value">{userData?.email}</span>
+                                        <div className={styles.profileInfoItem}>
+                                            <span className={styles.infoLabel}>Email</span>
+                                            <span className={styles.infoValue}>{userData?.email}</span>
                                         </div>
-                                        <div className="profile-info-item">
-                                            <span className="info-label">Город</span>
-                                            <span className="info-value">{userData?.city}</span>
+                                        <div className={styles.profileInfoItem}>
+                                            <span className={styles.infoLabel}>Город</span>
+                                            <span className={styles.infoValue}>{userData?.city}</span>
                                         </div>
                                     </>
                                 )}
@@ -348,23 +347,23 @@ const ProfilePage: React.FC = () => {
                 </div>
 
                 {/* Секция с проектами пользователя */}
-                <div className="profile-projects-section">
-                    <div className="projects-header">
+                <div className={styles.profileProjectsSection}>
+                    <div className={styles.projectsHeader}>
                         <h2>Мои проекты</h2>
                         <Button onClick={handleCreateProject}>Создать проект</Button>
                     </div>
-                    <div className="projects-list">
+                    <div className={styles.projectsList}>
                         {projects.length > 0 ? (
                             projects.map((project) => (
                                 <div
                                     key={project.id}
-                                    className="project-item"
+                                    className={styles.projectItem}
                                     onClick={() => handleOpenProject(project.id)}
                                 >
-                                    <span className="project-emoji">{project.emoji}</span>
-                                    <span className="project-title">{project.title}</span>
+                                    <span className={styles.projectEmoji}>{project.emoji}</span>
+                                    <span className={styles.projectTitle}>{project.title}</span>
                                     {project.isPrivate && (
-                                        <span className="project-private-icon">🔒</span>
+                                        <span className={styles.projectPrivateIcon}>🔒</span>
                                     )}
                                 </div>
                             ))
@@ -372,8 +371,8 @@ const ProfilePage: React.FC = () => {
                             <p>У вас пока нет проектов</p>
                         )}
                     </div>
-                    <div className="all-projects-button-container">
-                        <Button onClick={navigateToAllProjects} className="all-projects-button">
+                    <div className={styles.allProjectsButtonContainer}>
+                        <Button onClick={navigateToAllProjects} className={styles.allProjectsButton}>
                             Все проекты
                         </Button>
                     </div>
