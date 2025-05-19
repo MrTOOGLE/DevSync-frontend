@@ -145,10 +145,11 @@ const EmailConfirmation: React.FC = () => {
                             placeholder="Код из письма*"
                             className={styles.checkMailInput}
                             disabled={isLoading}
+                            hasError={!!errors}
                         />
                     </div>
                     {message && (
-                        <div className="success-message">
+                        <div className={styles.successMessage}>
                             <p>{message}</p>
                         </div>
                     )}
@@ -168,23 +169,23 @@ const EmailConfirmation: React.FC = () => {
                             )}
                         </div>
                     )}
-                    <div className="button-container">
-                        <Button onClick={handleSubmit} disabled={isLoading}>
-                            {isLoading ? 'Проверка...' : 'Завершить'}
-                        </Button>
-                    </div>
-                    <div className="resend-code">
+                    <div className={styles.resendCode}>
                         <button
                             onClick={handleResendCode}
-                            className="link-button"
+                            className={styles.linkButton}
                             disabled={!canResend || isLoading}
                         >
                             {canResend ? 'Отправить код повторно' : `Отправить код повторно (${timer} сек.)`}
                         </button>
                     </div>
+                    <div className={styles.buttonContainer}>
+                        <Button onClick={handleSubmit} disabled={isLoading}>
+                            {isLoading ? 'Проверка...' : 'Завершить'}
+                        </Button>
+                    </div>
                 </div>
-                <Footer/>
             </div>
+            <Footer/>
         </div>
     );
 };

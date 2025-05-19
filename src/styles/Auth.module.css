@@ -133,6 +133,10 @@
     z-index: 5;
 }
 
+.text_email{
+    text-align: center;
+}
+
 .text_email p {
     width: 621px;
     height: 81px;
@@ -149,6 +153,31 @@
     margin: 18px 0 0 0;
 }
 
+.successMessage {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 27px;
+    letter-spacing: 0;
+    color: #353536;
+    margin-top: 10px;
+}
+
+.resendCode {
+    margin-top: 12px;
+}
+
+.linkButton {
+    background: none;
+    border: none;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-weight: 400;
+    font-size: 21px;
+    line-height: 100%;
+    letter-spacing: 0;
+    cursor: pointer;
+}
+
 .buttonContainer {
     width: 100%;
     display: flex;
@@ -156,5 +185,5 @@
 }
 
 .buttonContainer Button {
-    margin: 18px 64px 39px 0;
+    margin: 18px 69px 30px 0;
 }
