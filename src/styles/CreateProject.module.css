@@ -1,40 +1,45 @@
 .createProjectContainer {
-    max-width: 900px;
-    margin: 40px auto;
-    background-color: #FFFFFF;
+    margin: 37px 0 0 0;
     border-radius: 25px;
-    padding: 40px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 0 113px 0 124px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.createProjectContainer h1 {
+.sectionContainer h1 {
     font-family: 'NT Somic', sans-serif;
-    font-size: 36px;
+    font-size: 40px;
     font-weight: 400;
     color: #353536;
-    margin-bottom: 24px;
 }
 
 .subtitle {
     font-family: 'Helvetica Neue', sans-serif;
-    font-size: 18px;
+    font-size: 24px;
     font-weight: 400;
     line-height: 140%;
     color: #353536;
-    margin-bottom: 16px;
+    margin-top: 22px;
 }
 
 .required {
     font-family: 'Helvetica Neue', sans-serif;
-    font-size: 14px;
+    font-size: 21px;
     font-weight: 400;
     color: #7C7C7C;
-    margin-bottom: 32px;
+    margin-top: 26px;
 }
 
 .formGroup {
-    margin-bottom: 20px;
     position: relative;
+    margin: 27px 0 0 0;
+    width: 1240px;
+}
+
+.formGroup Input {
+    width: 1240px;
 }
 
 .textarea {
@@ -59,43 +64,39 @@
     color: #7C7C7C;
 }
 
+.yellowLine {
+    margin: 40px 0 0 0;
+    border: none;
+    height: 1px;
+    background-color: #FFDD2D;
+    width: 100%;
+}
+
 .sectionContainer {
-    margin-top: 40px;
-    padding: 30px;
+    margin-top: 24px;
     background-color: #F6F7F8;
-    border-radius: 20px;
 }
 
 .sectionContainer h2 {
     font-family: 'NT Somic', sans-serif;
-    font-size: 24px;
+    font-size: 40px;
     font-weight: 400;
     color: #353536;
-    margin-bottom: 16px;
-}
-
-.sectionContainer h3 {
-    font-family: 'Helvetica Neue', sans-serif;
-    font-size: 18px;
-    font-weight: 500;
-    color: #353536;
-    margin-top: 20px;
-    margin-bottom: 12px;
 }
 
 .sectionContainer p {
     font-family: 'Helvetica Neue', sans-serif;
-    font-size: 16px;
+    font-size: 24px;
     font-weight: 400;
     line-height: 140%;
     color: #353536;
-    margin-bottom: 20px;
+    margin: 28px 0 0 0;
 }
 
 /* Поиск участников */
 .searchContainer {
     position: relative;
-    margin-bottom: 20px;
+    margin: 18px 0 0 0;
 }
 
 .searchInputWrapper {
@@ -111,12 +112,12 @@
 }
 
 .searchInput {
-    width: 100%;
+    width: 1211px;
     height: 55px;
     border: none;
     outline: none;
     border-radius: 14px;
-    background-color: #FFFFFF;
+    background-color: #F6F7F8;
     font-family: "Helvetica Neue", sans-serif;
     font-size: 21px;
     font-weight: 400;
@@ -258,17 +259,9 @@
 }
 
 /* Отделы */
-.departmentForm {
-    margin-bottom: 30px;
-    background-color: #FFFFFF;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
 .addDepartmentButton {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     margin-top: 20px;
 }
 

@@ -277,25 +277,27 @@ const CreateProjectPage: React.FC = () => {
                 {renderStatusNotification()}
 
                 <div className={styles.createProjectContainer}>
-                    <h1>Добавление сведений о проекте</h1>
-                    <p className={styles.subtitle}>
-                        Объедините усилия команды для достижения общих целей! Здесь вы можете создать новый групповой проект, определить его цели и пригласить участников для совместной работы.
-                    </p>
-                    <p className={styles.required}>Обязательные поля помечены звездочкой *</p>
+                    <div className={styles.sectionContainer}>
+                        <h1>Добавление сведений о проекте</h1>
+                        <p className={styles.subtitle}>
+                            Объедините усилия команды для достижения общих целей! Здесь вы можете создать новый
+                            групповой проект, определить его цели и пригласить участников для совместной работы.
+                        </p>
+                        <p className={styles.required}>Обязательные поля помечены звездочкой *</p>
 
-                    {/* Основная информация о проекте */}
-                    <div className={styles.formGroup}>
-                        <Input
-                            name="title"
-                            placeholder="Название проекта*"
-                            value={formData.title}
-                            onChange={handleInputChange}
-                            hasError={!!errors.title}
-                        />
-                        {errors.title && <ErrorField message={errors.title} />}
-                    </div>
+                        {/* Основная информация о проекте */}
+                        <div className={styles.formGroup}>
+                            <Input
+                                name="title"
+                                placeholder="Название проекта*"
+                                value={formData.title}
+                                onChange={handleInputChange}
+                                hasError={!!errors.title}
+                            />
+                            {errors.title && <ErrorField message={errors.title} />}
+                        </div>
 
-                    <div className={styles.formGroup}>
+                        <div className={styles.formGroup}>
                         <textarea
                             name="description"
                             placeholder="Описание проекта (необязательно, но желательно)"
@@ -303,6 +305,8 @@ const CreateProjectPage: React.FC = () => {
                             onChange={handleInputChange}
                             className={styles.textarea}
                         />
+                        </div>
+                        <hr className={styles.yellowLine}/>
                     </div>
 
                     {/* Блок добавления участников */}
@@ -313,7 +317,7 @@ const CreateProjectPage: React.FC = () => {
                         <div className={styles.searchContainer}>
                             <div className={styles.searchInputWrapper}>
                                 <span className={styles.searchIcon}>🔍</span>
-                                <input
+                                <Input
                                     type="text"
                                     placeholder="Поиск"
                                     value={memberSearch}
@@ -384,6 +388,7 @@ const CreateProjectPage: React.FC = () => {
                                 ))}
                             </div>
                         )}
+                        <hr className={styles.yellowLine}/>
                     </div>
 
                     {/* Блок добавления отделов */}
@@ -448,6 +453,7 @@ const CreateProjectPage: React.FC = () => {
                                 ))}
                             </div>
                         )}
+                        <hr className={styles.yellowLine}/>
                     </div>
 
                     {/* Настройки приватности */}

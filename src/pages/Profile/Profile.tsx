@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Header } from "../../components/common/Header/Header.tsx";
-import { Footer } from "../../components/common/Footer/Footer.tsx";
-import { profileService, UserProfile } from "../../hooks/ProfileService.tsx";
-import { projectService } from "../../hooks/CreateProjectService.tsx";
-import { Input } from "../../components/common/Input/Input.tsx";
-import { Button } from "../../components/common/Button/Button.tsx";
-import { ErrorField } from "../../components/common/ErrorField/ErrorField.tsx";
+import React, {useState, useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {Header} from "../../components/common/Header/Header.tsx";
+import {Footer} from "../../components/common/Footer/Footer.tsx";
+import {profileService, UserProfile} from "../../hooks/ProfileService.tsx";
+import {projectService} from "../../hooks/CreateProjectService.tsx";
+import {Input} from "../../components/common/Input/Input.tsx";
+import {Button} from "../../components/common/Button/Button.tsx";
+import {ErrorField} from "../../components/common/ErrorField/ErrorField.tsx";
 import "../../styles/styles.css";
 import styles from '../../styles/Profile.module.css';
 import defaultAvatarImage from '../../photos/avatar.png';
@@ -101,7 +101,7 @@ const ProfilePage: React.FC = () => {
 
     // Обработчик изменения полей формы
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -212,7 +212,7 @@ const ProfilePage: React.FC = () => {
 
     return (
         <div className="main-container">
-            <Header />
+            <Header/>
             <div className="main-content">
                 <div className={styles.profileContainer}>
                     <div className={styles.profileLeftColumn}>
@@ -232,7 +232,7 @@ const ProfilePage: React.FC = () => {
                                         id="avatar-upload"
                                     />
                                     <label htmlFor="avatar-upload">Изменить аватар</label>
-                                    {errors.avatar && <ErrorField message={errors.avatar} />}
+                                    {errors.avatar && <ErrorField message={errors.avatar}/>}
                                 </div>
                             )}
                         </div>
@@ -264,7 +264,8 @@ const ProfilePage: React.FC = () => {
                                         <Button onClick={handleSave} disabled={isLoading} className={styles.editButton}>
                                             {isLoading ? 'Сохранение...' : 'Сохранить'}
                                         </Button>
-                                        <Button onClick={handleCancel} disabled={isLoading} className={styles.editButton}>
+                                        <Button onClick={handleCancel} disabled={isLoading}
+                                                className={styles.editButton}>
                                             Отмена
                                         </Button>
                                     </div>
@@ -274,7 +275,7 @@ const ProfilePage: React.FC = () => {
                             </div>
                             {errors.general && (
                                 <div className={styles.errorMessage}>
-                                    <ErrorField message={errors.general} />
+                                    <ErrorField message={errors.general}/>
                                 </div>
                             )}
                             <div className={styles.profileInfoContent}>
@@ -290,7 +291,7 @@ const ProfilePage: React.FC = () => {
                                                 onChange={handleInputChange}
                                                 hasError={!!errors.firstName}
                                             />
-                                            {errors.firstName && <ErrorField message={errors.firstName} />}
+                                            {errors.firstName && <ErrorField message={errors.firstName}/>}
                                         </div>
                                         <div className={styles.profileInfoItem}>
                                             <label className={styles.infoLabel}>Фамилия</label>
@@ -301,7 +302,7 @@ const ProfilePage: React.FC = () => {
                                                 onChange={handleInputChange}
                                                 hasError={!!errors.lastName}
                                             />
-                                            {errors.lastName && <ErrorField message={errors.lastName} />}
+                                            {errors.lastName && <ErrorField message={errors.lastName}/>}
                                         </div>
                                         <div className={styles.profileInfoItem}>
                                             <label className={styles.infoLabel}>Email</label>
@@ -317,7 +318,7 @@ const ProfilePage: React.FC = () => {
                                                 onChange={handleInputChange}
                                                 hasError={!!errors.city}
                                             />
-                                            {errors.city && <ErrorField message={errors.city} />}
+                                            {errors.city && <ErrorField message={errors.city}/>}
                                         </div>
                                     </>
                                 ) : (
@@ -348,37 +349,38 @@ const ProfilePage: React.FC = () => {
 
                 {/* Секция с проектами пользователя */}
                 <div className={styles.profileProjectsSection}>
-                    <div className={styles.projectsHeader}>
-                        <h2>Мои проекты</h2>
-                        <Button onClick={handleCreateProject}>Создать проект</Button>
-                    </div>
-                    <div className={styles.projectsList}>
-                        {projects.length > 0 ? (
-                            projects.map((project) => (
-                                <div
-                                    key={project.id}
-                                    className={styles.projectItem}
-                                    onClick={() => handleOpenProject(project.id)}
-                                >
-                                    <span className={styles.projectEmoji}>{project.emoji}</span>
-                                    <span className={styles.projectTitle}>{project.title}</span>
-                                    {project.isPrivate && (
-                                        <span className={styles.projectPrivateIcon}>🔒</span>
-                                    )}
-                                </div>
-                            ))
-                        ) : (
-                            <p>У вас пока нет проектов</p>
-                        )}
-                    </div>
-                    <div className={styles.allProjectsButtonContainer}>
-                        <Button onClick={navigateToAllProjects} className={styles.allProjectsButton}>
-                            Все проекты
-                        </Button>
+                    <div className={styles.profileProjectsContainer}>
+                        <div className={styles.projectsHeader}>
+                            <h2>Мои проекты</h2>
+                        </div>
+                        <div className={styles.projectsList}>
+                            {projects.length > 0 ? (
+                                projects.map((project) => (
+                                    <div
+                                        key={project.id}
+                                        className={styles.projectItem}
+                                        onClick={() => handleOpenProject(project.id)}
+                                    >
+                                        <span className={styles.projectEmoji}>{project.emoji}</span>
+                                        <span className={styles.projectTitle}>{project.title}</span>
+                                        {project.isPrivate && (
+                                            <span className={styles.projectPrivateIcon}>🔒</span>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <p>У вас пока нет проектов</p>
+                            )}
+                        </div>
+                        <div className={styles.allProjectsButtonContainer}>
+                            <Button onClick={navigateToAllProjects}>
+                                Все проекты
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <Footer />
+            <Footer/>
         </div>
     );
 };
