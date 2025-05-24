@@ -8,7 +8,10 @@ const API_CONFIG = {
             LOGOUT_URL: "api/v1/auth/token/logout/",
             SEND_CODE_URL: "api/v1/users/send-code/",
             CONFIRM_EMAIL_URL: "api/v1/users/confirm-email/",
-            ME_URL: "api/v1/users/me/",
+        },
+        USERS: {
+            BASE_URL: "api/v1/users/",
+            ME_URL: "me/",
         },
         PROJECTS: {
             BASE_URL_PROJECTS: "api/v1/projects/",
@@ -39,16 +42,15 @@ const API_CONFIG = {
             INVITATION_DETAIL: (invitationId: number) => `${invitationId}/`,
         },
         NOTIFICATIONS: {
-            BASE_URL_NOTIFICATIONS: "api/v1/notifications/",
+            BASE_URL: "api/v1/notifications/",
             NOTIFICATION_DETAIL: (notificationId: number) => `${notificationId}/`,
-            WS_NOTIFICATIONS: "ws/notifications/",
         },
         MY_INVITATIONS: {
             BASE_URL: "api/v1/invitations/",
             INVITATION_DETAIL: (invitationId: number) => `${invitationId}/`,
             ACCEPT_INVITATION: (invitationId: number) => `${invitationId}/accept/`,
             REJECT_INVITATION: (invitationId: number) => `${invitationId}/reject/`,
-        },
+        }
     },
 
     get FULL_URL() {
@@ -59,15 +61,18 @@ const API_CONFIG = {
                 LOGOUT_URL: this.BASE_URL + this.ENDPOINTS.AUTH.LOGOUT_URL,
                 SEND_CODE_URL: this.BASE_URL + this.ENDPOINTS.AUTH.SEND_CODE_URL,
                 CONFIRM_EMAIL_URL: this.BASE_URL + this.ENDPOINTS.AUTH.CONFIRM_EMAIL_URL,
-                ME_URL: this.BASE_URL + this.ENDPOINTS.AUTH.ME_URL,
+            },
+            USERS: {
+                BASE_URL: this.BASE_URL + this.ENDPOINTS.USERS.BASE_URL,
+                ME_URL: this.BASE_URL + this.ENDPOINTS.USERS.BASE_URL + this.ENDPOINTS.USERS.ME_URL,
             },
             PROJECTS: {
                 BASE_URL: this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS,
-                PROJECT_DETAIL: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.PROJECT_DETAIL(projectId),
-                PUBLIC_PROJECTS: this.BASE_URL + this.ENDPOINTS.PROJECTS.PUBLIC_PROJECTS,
-                LEAVE_PROJECT: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.LEAVE_PROJECT(projectId),
-                JOIN_PROJECT: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.JOIN_PROJECT(projectId),
-                PROJECT_OWNER: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.PROJECT_OWNER(projectId),
+                PROJECT_DETAIL: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.PROJECT_DETAIL(projectId),
+                PUBLIC_PROJECTS: this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.PUBLIC_PROJECTS,
+                LEAVE_PROJECT: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.LEAVE_PROJECT(projectId),
+                JOIN_PROJECT: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.JOIN_PROJECT(projectId),
+                PROJECT_OWNER: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.PROJECT_OWNER(projectId),
             },
             MEMBERS: {
                 BASE_URL: (projectId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId),
@@ -90,16 +95,15 @@ const API_CONFIG = {
                 INVITATION_DETAIL: (projectId: number, invitationId: number) => this.BASE_URL + this.ENDPOINTS.INVITATIONS.BASE_URL_INVITATIONS(projectId) + this.ENDPOINTS.INVITATIONS.INVITATION_DETAIL(invitationId),
             },
             NOTIFICATIONS: {
-                BASE_URL: this.BASE_URL + this.ENDPOINTS.NOTIFICATIONS.BASE_URL_NOTIFICATIONS,
-                NOTIFICATION_DETAIL: (notificationId: number) => this.BASE_URL + this.ENDPOINTS.NOTIFICATIONS.BASE_URL_NOTIFICATIONS + this.ENDPOINTS.NOTIFICATIONS.NOTIFICATION_DETAIL(notificationId),
-                WS_URL: this.BASE_URL.replace('http', 'ws') + this.ENDPOINTS.NOTIFICATIONS.WS_NOTIFICATIONS,
+                BASE_URL: this.BASE_URL + this.ENDPOINTS.NOTIFICATIONS.BASE_URL,
+                NOTIFICATION_DETAIL: (notificationId: number) => this.BASE_URL + this.ENDPOINTS.NOTIFICATIONS.BASE_URL + this.ENDPOINTS.NOTIFICATIONS.NOTIFICATION_DETAIL(notificationId),
             },
             MY_INVITATIONS: {
                 BASE_URL: this.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.BASE_URL,
                 INVITATION_DETAIL: (invitationId: number) => this.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.INVITATION_DETAIL(invitationId),
                 ACCEPT_INVITATION: (invitationId: number) => this.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.ACCEPT_INVITATION(invitationId),
                 REJECT_INVITATION: (invitationId: number) => this.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.REJECT_INVITATION(invitationId),
-            },
+            }
         }
     }
 }

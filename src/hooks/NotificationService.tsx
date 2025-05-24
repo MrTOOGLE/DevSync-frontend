@@ -1,52 +1,82 @@
 import API_CONFIG from '../utils/Urls.ts';
 import { authService } from './AuthService.tsx';
 
-// Типы для уведомлений
+// Типы для уведомлений (обновленные согласно API)
+export type NotificationType = 'achievement' | 'task' | 'project' | 'system';
+
+// Интерфейс для действий в уведомлении
+export interface NotificationAction {
+    text: string;
+    type: 'request' | 'anchor';
+    style: 'primary' | 'secondary' | 'danger';
+    payload: {
+        url: string;
+        method?: 'POST';
+    };
+}
+
+// Интерфейс для уведомления (согласно API)
 export interface Notification {
     id: number;
     title: string;
     message: string;
     created_at: string;
     is_read: boolean;
-    actions_data: Action[];
+    actions_data: NotificationAction[];
     footnote: string | null;
 }
 
-// Типы для действий уведомлений
-export interface Action {
-    text: string;
-    type: 'request' | 'anchor';
-    style: 'primary' | 'secondary' | 'danger';
-    payload: {
-        url: string;
-        method?: 'POST' | 'GET' | 'PUT' | 'DELETE';
-    };
+// Интерфейс для ответа API
+export interface NotificationsResponse {
+    notifications: Notification[];
 }
 
-// Типы для сообщений WebSocket
-export type WebSocketMessage = {
-    type: string;
+// Интерфейс для приглашения
+export interface MyInvitation {
+    id: number;
+    project: {
+        id: number;
+        title: string;
+        description: string;
+        is_public: boolean;
+        owner: {
+            id: number;
+            email: string;
+            first_name: string;
+            last_name: string;
+            avatar: string | null;
+        };
+    };
+    user: {
+        id: number;
+        email: string;
+        first_name: string;
+        last_name: string;
+        city: string;
+        avatar: string | null;
+    };
+    invited_by: number;
+    date_created: string;
+}
+
+// Интерфейс для ответа API приглашений
+export interface MyInvitationsResponse {
+    invitations: MyInvitation[];
+}
+
+// Интерфейс для ошибок API
+export interface ApiError {
+    status?: number;
     data?: any;
-    notification_id?: number;
-};
+    message: string;
+}
 
-// Типы для обработчиков событий WebSocket
-export type WebSocketEventHandlers = {
-    onNotification?: (notification: Notification) => void;
-    onUpdate?: (notification: Notification) => void;
-    onDelete?: (notificationId: number) => void;
-    onError?: (message: string) => void;
-};
-
-class NotificationService {
-    private socket: WebSocket | null = null;
-    private eventHandlers: WebSocketEventHandlers = {};
-    private reconnectAttempts: number = 0;
-    private maxReconnectAttempts: number = 5;
-    private reconnectTimeout: number = 3000; // 3 секунды
-
-    // Получение списка всех уведомлений
-    async getNotifications(): Promise<Notification[]> {
+/**
+ * Сервис для работы с уведомлениями
+ */
+export const notificationsService = {
+    // Получение списка уведомлений
+    getNotifications: async (): Promise<Notification[]> => {
         try {
             const response = await fetch(API_CONFIG.FULL_URL.NOTIFICATIONS.BASE_URL, {
                 method: 'GET',
@@ -57,19 +87,22 @@ class NotificationService {
             });
 
             if (!response.ok) {
-                throw new Error(`Ошибка получения уведомлений: ${response.status}`);
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения уведомлений'
+                };
             }
 
-            const data = await response.json();
+            const data: NotificationsResponse = await response.json();
             return data.notifications || [];
         } catch (error) {
             console.error('Ошибка при получении уведомлений:', error);
             throw error;
         }
-    }
+    },
 
-    // Получение конкретного уведомления
-    async getNotification(notificationId: number): Promise<Notification> {
+    // Получение информации о конкретном уведомлении
+    getNotification: async (notificationId: number): Promise<Notification> => {
         try {
             const response = await fetch(API_CONFIG.FULL_URL.NOTIFICATIONS.NOTIFICATION_DETAIL(notificationId), {
                 method: 'GET',
@@ -80,187 +113,172 @@ class NotificationService {
             });
 
             if (!response.ok) {
-                throw new Error(`Ошибка получения уведомления: ${response.status}`);
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения уведомления'
+                };
             }
 
             return await response.json();
         } catch (error) {
-            console.error(`Ошибка при получении уведомления ${notificationId}:`, error);
+            console.error('Ошибка при получении уведомления:', error);
             throw error;
         }
-    }
+    },
 
-    // Подключение к WebSocket для получения уведомлений в реальном времени
-    connectWebSocket(eventHandlers?: WebSocketEventHandlers): void {
-        if (eventHandlers) {
-            this.eventHandlers = eventHandlers;
-        }
-
-        const token = authService.getToken();
-        if (!token) {
-            console.error('Невозможно подключиться к WebSocket: отсутствует токен авторизации');
-            return;
-        }
-
-        // Закрываем существующее соединение, если оно открыто
-        if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
-            this.socket.close();
-        }
-
-        // Используем URL из конфигурации
-        const wsUrl = `${API_CONFIG.FULL_URL.NOTIFICATIONS.WS_URL}?token=${token}`;
-
-        this.socket = new WebSocket(wsUrl);
-
-        this.socket.onopen = () => {
-            console.log('WebSocket соединение установлено');
-            this.reconnectAttempts = 0; // Сбрасываем счетчик попыток при успешном подключении
-        };
-
-        this.socket.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-                this.handleWebSocketMessage(message);
-            } catch (error) {
-                console.error('Ошибка при обработке сообщения WebSocket:', error);
-            }
-        };
-
-        this.socket.onclose = (event) => {
-            console.log(`WebSocket соединение закрыто: ${event.code} ${event.reason}`);
-            this.handleReconnect();
-        };
-
-        this.socket.onerror = (error) => {
-            console.error('Ошибка WebSocket:', error);
-            // Ошибка обычно приводит к закрытию соединения, поэтому не вызываем handleReconnect здесь
-        };
-    }
-
-    // Обработка автоматического переподключения
-    private handleReconnect(): void {
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectAttempts++;
-            console.log(`Попытка переподключения ${this.reconnectAttempts}/${this.maxReconnectAttempts} через ${this.reconnectTimeout / 1000} сек.`);
-
-            setTimeout(() => {
-                this.connectWebSocket();
-            }, this.reconnectTimeout);
-
-            // Увеличиваем таймаут для следующей попытки (экспоненциальная задержка)
-            this.reconnectTimeout = Math.min(this.reconnectTimeout * 1.5, 30000); // Максимум 30 секунд
-        } else {
-            console.error('Превышено максимальное количество попыток переподключения к WebSocket');
-        }
-    }
-
-    // Обработка сообщений от WebSocket
-    private handleWebSocketMessage(message: any): void {
-        if (!message || !message.type) {
-            console.error('Получено некорректное сообщение WebSocket:', message);
-            return;
-        }
-
-        switch (message.type) {
-            case 'notification':
-                this.handleNotificationMessage(message.data);
-                break;
-            case 'error':
-                if (this.eventHandlers.onError) {
-                    this.eventHandlers.onError(message.data?.message || 'Неизвестная ошибка');
-                }
-                console.error('Ошибка WebSocket:', message.data?.message);
-                break;
-            default:
-                console.log('Неизвестный тип сообщения WebSocket:', message.type);
-        }
-    }
-
-    // Обработка сообщений уведомлений
-    private handleNotificationMessage(data: any): void {
-        if (!data || !data.type) {
-            console.error('Получено некорректное сообщение уведомления:', data);
-            return;
-        }
-
-        switch (data.type) {
-            case 'NEW':
-                if (this.eventHandlers.onNotification && data.data) {
-                    this.eventHandlers.onNotification(data.data);
-                }
-                break;
-            case 'UPDATE':
-                if (this.eventHandlers.onUpdate && data.data) {
-                    this.eventHandlers.onUpdate(data.data);
-                }
-                break;
-            case 'DELETE':
-                if (this.eventHandlers.onDelete && data.id) {
-                    this.eventHandlers.onDelete(data.id);
-                }
-                break;
-            default:
-                console.log('Неизвестный тип сообщения уведомления:', data.type);
-        }
-    }
-
-    // Отправка сообщения в WebSocket
-    sendWebSocketMessage(message: WebSocketMessage): void {
-        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-            console.error('WebSocket не подключен, невозможно отправить сообщение');
-            return;
-        }
-
+    // Получение моих приглашений в проекты
+    getMyInvitations: async (): Promise<MyInvitation[]> => {
         try {
-            this.socket.send(JSON.stringify(message));
+            const response = await fetch(API_CONFIG.FULL_URL.MY_INVITATIONS.BASE_URL, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения приглашений'
+                };
+            }
+
+            const data: MyInvitationsResponse = await response.json();
+            return data.invitations || [];
         } catch (error) {
-            console.error('Ошибка при отправке сообщения WebSocket:', error);
+            console.error('Ошибка при получении приглашений:', error);
+            throw error;
+        }
+    },
+
+    // Принять приглашение
+    acceptInvitation: async (invitationId: number): Promise<{ success: boolean }> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.MY_INVITATIONS.ACCEPT_INVITATION(invitationId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка принятия приглашения'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при принятии приглашения:', error);
+            throw error;
+        }
+    },
+
+    // Отклонить приглашение
+    rejectInvitation: async (invitationId: number): Promise<{ success: boolean }> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.MY_INVITATIONS.REJECT_INVITATION(invitationId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка отклонения приглашения'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при отклонении приглашения:', error);
+            throw error;
+        }
+    },
+
+    // Выполнение действия из уведомления
+    executeNotificationAction: async (action: NotificationAction): Promise<any> => {
+        try {
+            const method = action.payload.method || 'GET';
+            const response = await fetch(action.payload.url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка выполнения действия'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при выполнении действия уведомления:', error);
+            throw error;
+        }
+    },
+
+    // Преобразование приглашений в уведомления для совместимости с текущим UI
+    convertInvitationsToNotifications: (invitations: MyInvitation[]): Notification[] => {
+        return invitations.map(invitation => ({
+            id: invitation.id,
+            title: 'Приглашение в проект',
+            message: `Вас пригласили в проект "${invitation.project.title}"`,
+            created_at: invitation.date_created,
+            is_read: false,
+            actions_data: [
+                {
+                    text: 'Принять',
+                    type: 'request' as const,
+                    style: 'primary' as const,
+                    payload: {
+                        url: API_CONFIG.FULL_URL.MY_INVITATIONS.ACCEPT_INVITATION(invitation.id),
+                        method: 'POST'
+                    }
+                },
+                {
+                    text: 'Отклонить',
+                    type: 'request' as const,
+                    style: 'secondary' as const,
+                    payload: {
+                        url: API_CONFIG.FULL_URL.MY_INVITATIONS.REJECT_INVITATION(invitation.id),
+                        method: 'POST'
+                    }
+                }
+            ],
+            footnote: `От ${invitation.project.owner.first_name} ${invitation.project.owner.last_name}`
+        }));
+    },
+
+    // Получение всех уведомлений (системные + приглашения)
+    getAllNotifications: async (): Promise<Notification[]> => {
+        try {
+            const [notifications, invitations] = await Promise.all([
+                notificationsService.getNotifications(),
+                notificationsService.getMyInvitations()
+            ]);
+
+            const invitationNotifications = notificationsService.convertInvitationsToNotifications(invitations);
+
+            // Объединяем и сортируем по дате
+            const allNotifications = [...notifications, ...invitationNotifications];
+            allNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+            return allNotifications;
+        } catch (error) {
+            console.error('Ошибка при получении всех уведомлений:', error);
+            // Возвращаем пустой массив в случае ошибки
+            return [];
         }
     }
-
-    // Пометить уведомление как прочитанное
-    markAsRead(notificationId: number): void {
-        this.sendWebSocketMessage({
-            type: 'mark_as_read',
-            notification_id: notificationId
-        });
-    }
-
-    // Пометить все уведомления как прочитанные
-    markAllAsRead(): void {
-        this.sendWebSocketMessage({
-            type: 'mark_all_read'
-        });
-    }
-
-    // Скрыть уведомление
-    markAsHidden(notificationId: number): void {
-        this.sendWebSocketMessage({
-            type: 'mark_as_hidden',
-            notification_id: notificationId
-        });
-    }
-
-    // Скрыть все уведомления
-    markAllAsHidden(): void {
-        this.sendWebSocketMessage({
-            type: 'mark_all_hidden'
-        });
-    }
-
-    // Закрыть WebSocket соединение
-    disconnectWebSocket(): void {
-        if (this.socket) {
-            this.socket.close();
-            this.socket = null;
-        }
-    }
-
-    // Получить заголовки авторизации
-    getAuthHeaders(): HeadersInit {
-        return authService.getAuthHeaders();
-    }
-}
-
-export const notificationService = new NotificationService();
-export default notificationService;
+};

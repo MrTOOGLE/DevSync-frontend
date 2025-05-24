@@ -22,8 +22,6 @@
     background-color: transparent;
     border: none;
     cursor: pointer;
-    display: flex;
-    align-items: center;
 }
 
 .backIcon {
@@ -54,7 +52,6 @@
     width: 122px;
     height: 58px;
     object-fit: contain;
-    cursor: pointer;
 }
 
 .nav {
@@ -72,11 +69,6 @@
     letter-spacing: 0;
     color: #313132;
     cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.link:hover {
-    color: #126DF7;
 }
 
 .right {
@@ -100,24 +92,23 @@
     object-fit: contain;
 }
 
-.logoutButton {
-    background: none;
-    border: none;
-    font-family: "Helvetica Neue", sans-serif;
-    font-size: 18px;
-    font-weight: 400;
-    line-height: 100%;
-    letter-spacing: 0;
-    color: #7C7C7C;
-    cursor: pointer;
-    padding: 8px 15px;
-    border-radius: 8px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.logoutButton:hover {
-    background-color: #F6F7F8;
-    color: #353536;
+.notificationBadge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #FF4444;
+    color: #FFFFFF;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    min-width: 20px;
+    padding: 0 2px;
 }
 
 .profile {
@@ -133,9 +124,4 @@
     letter-spacing: 0;
     border: none;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.profile:hover {
-    background-color: #E9EAEB;
 }

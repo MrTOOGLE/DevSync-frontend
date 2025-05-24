@@ -1,26 +1,28 @@
+/* Контейнер профиля */
 .profileContainer {
     display: flex;
-    gap: 30px;
-    padding: 55px 122px 118px 123px;
+    gap: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
 }
 
-/* Left column styles */
+/* Левая колонка */
 .profileLeftColumn {
-    flex: 1;
-    max-width: 300px;
+    min-width: 300px;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 40px;
 }
 
 .profileAvatarContainer {
-    background-color: #FFFFFF;
-    border-radius: 20px;
-    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .profileAvatar {
@@ -28,305 +30,284 @@
     height: 200px;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    border: 4px solid #FFDD2D;
 }
 
 .avatarUpload {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 100%;
+    text-align: center;
 }
 
-.avatarUpload input[type="file"] {
-    display: none;
-}
-
-.avatarUpload label {
-    display: inline-block;
-    padding: 8px 16px;
+.avatarUploadButton {
     background-color: #FFDD2D;
     color: #353536;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: "Helvetica Neue", sans-serif;
+    border: none;
+    border-radius: 11px;
+    padding: 10px 20px;
+    font-family: 'Helvetica Neue', sans-serif;
     font-size: 14px;
+    cursor: pointer;
     transition: background-color 0.2s;
 }
 
-.avatarUpload label:hover {
+.avatarUploadButton:hover {
     background-color: #FFC641;
 }
 
 .profileAchievements {
     background-color: #FFFFFF;
     border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .profileAchievements h2 {
     font-family: 'NT Somic', sans-serif;
     font-size: 24px;
     font-weight: 400;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #FFDD2D;
     color: #353536;
+    margin-bottom: 20px;
 }
 
-.achievementsContent {
-    min-height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.achievementsContent p {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
     color: #7C7C7C;
-    font-family: "Helvetica Neue", sans-serif;
+    text-align: center;
+    margin: 20px 0;
 }
 
 .achievementsList {
-    list-style-type: none;
+    list-style: none;
     padding: 0;
-    width: 100%;
+    margin: 0;
 }
 
 .achievementItem {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
-    padding: 10px;
+    padding: 12px 16px;
     background-color: #F6F7F8;
-    border-radius: 10px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    color: #353536;
 }
 
-/* Right column styles */
+/* Правая колонка */
 .profileRightColumn {
-    flex: 2;
+    flex: 1;
 }
 
 .profileInfoContainer {
     background-color: #FFFFFF;
     border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .profileInfoHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #F6F7F8;
+    margin-bottom: 30px;
 }
 
 .profileInfoHeader h2 {
     font-family: 'NT Somic', sans-serif;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 400;
     color: #353536;
     margin: 0;
 }
 
 .editButton {
-    background-color: transparent;
+    background-color: #FFDD2D;
+    color: #353536;
     border: none;
-    color: #7C7C7C;
-    font-family: "Helvetica Neue", sans-serif;
+    border-radius: 11px;
+    padding: 10px 20px;
+    font-family: 'Helvetica Neue', sans-serif;
     font-size: 16px;
-    font-weight: 400;
-    line-height: 100%;
-    letter-spacing: 0;
     cursor: pointer;
-    padding: 5px 10px;
-    transition: color 0.2s;
+    transition: background-color 0.2s;
 }
 
-.editButton:hover {
-    color: #0056b3;
+.editButton:hover:not(:disabled) {
+    background-color: #FFC641;
 }
 
-.editButtons {
-    display: flex;
-    gap: 15px;
-    align-items: center;
+.editButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .profileInfoContent {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
 }
 
 .profileInfoItem {
     display: flex;
     flex-direction: column;
-    margin-bottom: 15px;
-}
-
-.profileInfoItem Input {
-    width: 858px;
-    padding: 0 19px;
+    gap: 8px;
 }
 
 .infoLabel {
-    font-family: "Helvetica Neue", sans-serif;
-    font-size: 16px;
-    font-weight: 400;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
     color: #7C7C7C;
-    margin-bottom: 5px;
-    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .infoValue {
-    font-family: "Helvetica Neue", sans-serif;
-    font-size: 21px;
-    font-weight: 400;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
     color: #353536;
+    padding: 12px 0;
+    border-bottom: 1px solid #F6F7F8;
 }
 
-.infoHint {
-    font-family: "Helvetica Neue", sans-serif;
-    font-size: 12px;
-    color: #7C7C7C;
-    margin-top: 5px;
+.editActions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end;
 }
 
-.errorMessage {
-    margin: 10px 0;
-    padding: 10px;
-    background-color: #FEE0E0;
-    border-radius: 8px;
-}
-
-/* Projects section styles */
+/* Секция проектов */
 .profileProjectsSection {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
+    max-width: 1200px;
+    margin: 40px auto 0;
+    padding: 0 20px;
 }
 
-.profileProjectsContainer {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-}
-
-.projectsHeader {
+.profileProjectsSection h2 {
     font-family: 'NT Somic', sans-serif;
-    font-size: 50px;
+    font-size: 28px;
     font-weight: 400;
     color: #353536;
-    letter-spacing: 0;
-    line-height: 100%;
-    margin: 0;
+    margin-bottom: 30px;
+    text-align: center;
 }
 
 .projectsList {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 20px;
-    background-color: #FFFFFF;
-    margin: 42px 0 0 0;
-    align-items: center;
-    border-radius: 14px;
-    padding: 20px 24px;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    width: 1192px;
-    font-family: 'Helvetica Neue', sans-serif;
-    font-weight: 400;
-    font-size: 21px;
-    line-height: 100%;
-    letter-spacing: 0;
-
+    margin-bottom: 40px;
 }
 
 .projectItem {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    padding: 20px;
     cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .projectItem:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .projectEmoji {
-    font-size: 24px;
-    margin-right: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background-color: #F6F7F8;
-    border-radius: 50%;
+    font-size: 32px;
+    margin-right: 16px;
+    flex-shrink: 0;
 }
 
 .projectTitle {
-    flex: 1;
-    font-family: "Helvetica Neue", sans-serif;
-    font-size: 18px;
-    font-weight: 400;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
     color: #353536;
+    flex: 1;
+    line-height: 1.4;
 }
 
 .projectPrivateIcon {
     font-size: 18px;
-    color: #7C7C7C;
-    margin-left: 10px;
+    margin-left: 12px;
+    opacity: 0.7;
 }
 
 .allProjectsButtonContainer {
-    display: flex;
-    justify-content: center;
-    margin-top: 42px;
+    text-align: center;
 }
 
-/* Loading states */
-.loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 200px;
-    font-family: "Helvetica Neue", sans-serif;
+.allProjectsButton {
+    background-color: #F6F7F8;
+    color: #353536;
+    border: 2px solid #FFDD2D;
+    border-radius: 11px;
+    padding: 12px 30px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.allProjectsButton:hover {
+    background-color: #FFDD2D;
     color: #353536;
 }
 
-/* Animation keyframes */
-@keyframes fadeInOut {
-    0% { opacity: 0; transform: translate(-50%, -20px); }
-    10% { opacity: 1; transform: translate(-50%, 0); }
-    90% { opacity: 1; transform: translate(-50%, 0); }
-    100% { opacity: 0; transform: translate(-50%, -20px); }
-}
-
-@keyframes loadingBar {
-    0% { width: 0; }
-    50% { width: 100%; }
-    100% { width: 0; }
-}
-
-/* Responsive adjustments */
+/* Адаптивность */
 @media (max-width: 768px) {
     .profileContainer {
         flex-direction: column;
-        gap: 20px;
+        gap: 30px;
+        padding: 20px 15px;
     }
 
     .profileLeftColumn {
-        max-width: 100%;
+        min-width: auto;
     }
 
-    .profileAvatarContainer {
-        width: 100%;
-        box-sizing: border-box;
+    .profileInfoHeader {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
     }
 
     .projectsList {
         grid-template-columns: 1fr;
     }
+
+    .profileAvatar {
+        width: 150px;
+        height: 150px;
+    }
+}
+
+/* Стили для загрузки */
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+}
+
+.loadingContainer h2 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 24px;
+    color: #353536;
+    margin-bottom: 20px;
+}
+
+.loadingSpinner {
+    color: #7C7C7C;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
 }

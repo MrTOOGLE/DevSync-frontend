@@ -3,14 +3,12 @@
     top: 70px;
     right: 30px;
     width: 400px;
-    max-height: 600px;
+    max-height: 500px;
     overflow-y: auto;
     background-color: #FFFFFF;
     border-radius: 14px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 1000;
-    display: flex;
-    flex-direction: column;
 }
 
 .notificationsHeader {
@@ -19,10 +17,6 @@
     align-items: center;
     padding: 15px 20px;
     border-bottom: 1px solid #F6F7F8;
-    position: sticky;
-    top: 0;
-    background-color: #FFFFFF;
-    z-index: 2;
 }
 
 .notificationsHeader h3 {
@@ -47,26 +41,19 @@
     color: #7C7C7C;
 }
 
-.notificationsLoading, .notificationsError {
-    padding: 20px;
-    text-align: center;
-}
-
-.notificationsError {
-    color: #FF2727;
+.loadingSpinner {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    color: #7C7C7C;
 }
 
 .notificationsList {
-    flex: 1;
-    overflow-y: auto;
+    padding: 0;
 }
 
 .notificationItem {
     padding: 15px 20px;
     border-bottom: 1px solid #F6F7F8;
-    position: relative;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
 }
 
 .notificationItem:last-child {
@@ -75,19 +62,17 @@
 
 .unread {
     background-color: rgba(255, 221, 45, 0.05);
+    border-left: 4px solid #FFDD2D;
 }
 
 .read {
     background-color: #FFFFFF;
 }
 
-.notificationItem:hover {
-    background-color: #F9F9F9;
-}
-
 .notificationHeader {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 10px;
 }
 
@@ -96,11 +81,14 @@
     font-size: 16px;
     font-weight: 500;
     color: #353536;
+    flex: 1;
 }
 
 .notificationDate {
     font-size: 12px;
     color: #7C7C7C;
+    white-space: nowrap;
+    margin-left: 10px;
 }
 
 .notificationContent {
@@ -109,132 +97,88 @@
 
 .notificationContent p {
     margin: 0;
+    font-family: 'Helvetica Neue', sans-serif;
     font-size: 14px;
     color: #353536;
+    line-height: 1.4;
+}
+
+.footnote {
+    margin-top: 8px !important;
+    font-size: 12px !important;
+    color: #7C7C7C !important;
+    font-style: italic;
 }
 
 .notificationActions {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
+    justify-content: flex-end;
 }
 
 .notificationAction {
     border: none;
-    border-radius: 11px;
-    padding: 8px 15px;
+    border-radius: 8px;
+    padding: 6px 12px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
     font-family: 'Helvetica Neue', sans-serif;
+    font-weight: 400;
     transition: background-color 0.2s ease;
 }
 
-.actionStyleprimary {
+.action_primary {
     background-color: #FFDD2D;
     color: #353536;
 }
 
-.actionStyleprimary:hover {
+.action_primary:hover {
     background-color: #FFC641;
 }
 
-.actionStylesecondary {
+.action_secondary {
     background-color: #F6F7F8;
     color: #353536;
 }
 
-.actionStylesecondary:hover {
-    background-color: #E9EAEB;
+.action_secondary:hover {
+    background-color: #E0E0E0;
 }
 
-.actionStyledanger {
-    background-color: #FEE0E0;
-    color: #FF2727;
+.action_danger {
+    background-color: #FF4444;
+    color: #FFFFFF;
 }
 
-.actionStyledanger:hover {
-    background-color: #FFD0D0;
+.action_danger:hover {
+    background-color: #CC0000;
 }
 
-.notificationFootnote {
-    margin-top: 10px;
-    font-size: 12px;
-    color: #7C7C7C;
-    font-style: italic;
-}
-
-.notificationClose {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: none;
+/* Сохраняем старые стили для обратной совместимости */
+.notificationAccept {
+    background-color: #FFDD2D;
     border: none;
-    font-size: 14px;
-    color: #7C7C7C;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.notificationItem:hover .notificationClose {
-    opacity: 1;
-}
-
-.notificationsFooter {
-    display: flex;
-    justify-content: space-between;
-    padding: 15px 20px;
-    border-top: 1px solid #F6F7F8;
-    background-color: #FFFFFF;
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-}
-
-.markAllReadButton, .clearAllButton {
-    background: none;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    padding: 5px 10px;
     border-radius: 8px;
-}
-
-.markAllReadButton {
-    color: #126DF7;
-}
-
-.markAllReadButton:hover {
-    background-color: rgba(18, 109, 247, 0.05);
-}
-
-.clearAllButton {
-    color: #FF2727;
-}
-
-.clearAllButton:hover {
-    background-color: rgba(255, 39, 39, 0.05);
-}
-
-/* Стили для индикатора непрочитанных уведомлений */
-.bellContainer {
-    position: relative;
-}
-
-.unreadBadge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background-color: #FF2727;
-    color: white;
+    padding: 6px 12px;
+    cursor: pointer;
     font-size: 12px;
-    font-weight: bold;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 5px;
-    box-sizing: border-box;
+    font-family: 'Helvetica Neue', sans-serif;
+}
+
+.notificationAccept:hover {
+    background-color: #FFC641;
+}
+
+.notificationDecline {
+    background-color: #F6F7F8;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Helvetica Neue', sans-serif;
+}
+
+.notificationDecline:hover {
+    background-color: #E0E0E0;
 }

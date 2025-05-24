@@ -1,45 +1,40 @@
 .createProjectContainer {
-    margin: 37px 0 0 0;
+    max-width: 900px;
+    margin: 40px auto;
+    background-color: #FFFFFF;
     border-radius: 25px;
-    padding: 0 113px 0 124px;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    box-sizing: border-box;
+    padding: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.sectionContainer h1 {
+.createProjectContainer h1 {
     font-family: 'NT Somic', sans-serif;
-    font-size: 40px;
+    font-size: 36px;
     font-weight: 400;
     color: #353536;
+    margin-bottom: 24px;
 }
 
 .subtitle {
     font-family: 'Helvetica Neue', sans-serif;
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 400;
     line-height: 140%;
     color: #353536;
-    margin-top: 22px;
+    margin-bottom: 16px;
 }
 
 .required {
     font-family: 'Helvetica Neue', sans-serif;
-    font-size: 21px;
+    font-size: 14px;
     font-weight: 400;
     color: #7C7C7C;
-    margin-top: 26px;
+    margin-bottom: 32px;
 }
 
 .formGroup {
+    margin-bottom: 20px;
     position: relative;
-    margin: 27px 0 0 0;
-    width: 1240px;
-}
-
-.formGroup Input {
-    width: 1240px;
 }
 
 .textarea {
@@ -64,39 +59,43 @@
     color: #7C7C7C;
 }
 
-.yellowLine {
-    margin: 40px 0 0 0;
-    border: none;
-    height: 1px;
-    background-color: #FFDD2D;
-    width: 100%;
-}
-
 .sectionContainer {
-    margin-top: 24px;
+    margin-top: 40px;
+    padding: 30px;
     background-color: #F6F7F8;
+    border-radius: 20px;
 }
 
 .sectionContainer h2 {
     font-family: 'NT Somic', sans-serif;
-    font-size: 40px;
+    font-size: 24px;
     font-weight: 400;
     color: #353536;
+    margin-bottom: 16px;
+}
+
+.sectionContainer h3 {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #353536;
+    margin-top: 20px;
+    margin-bottom: 12px;
 }
 
 .sectionContainer p {
     font-family: 'Helvetica Neue', sans-serif;
-    font-size: 24px;
+    font-size: 16px;
     font-weight: 400;
     line-height: 140%;
     color: #353536;
-    margin: 28px 0 0 0;
+    margin-bottom: 20px;
 }
 
 /* Поиск участников */
 .searchContainer {
     position: relative;
-    margin: 18px 0 0 0;
+    margin-bottom: 20px;
 }
 
 .searchInputWrapper {
@@ -112,12 +111,12 @@
 }
 
 .searchInput {
-    width: 1211px;
+    width: 100%;
     height: 55px;
     border: none;
     outline: none;
     border-radius: 14px;
-    background-color: #F6F7F8;
+    background-color: #FFFFFF;
     font-family: "Helvetica Neue", sans-serif;
     font-size: 21px;
     font-weight: 400;
@@ -259,9 +258,17 @@
 }
 
 /* Отделы */
+.departmentForm {
+    margin-bottom: 30px;
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
 .addDepartmentButton {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     margin-top: 20px;
 }
 
@@ -284,12 +291,54 @@
     flex: 1;
 }
 
+.departmentHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
 .departmentTitle {
     font-family: 'Helvetica Neue', sans-serif;
     font-size: 18px;
     font-weight: 500;
     color: #353536;
-    margin: 0 0 8px 0;
+    margin: 0;
+}
+
+.addMemberButton {
+    background-color: #FFDD2D;
+    color: #353536;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-left: 15px;
+}
+
+.addMemberButton:hover {
+    background-color: #FFC641;
+    transform: scale(1.1);
+}
+
+.departmentContent h5 {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #353536;
+    margin: 20px 0 12px 0;
+}
+
+.departmentContent .membersList {
+    margin-top: 15px;
+    padding-left: 20px;
 }
 
 .departmentDescription {
@@ -298,6 +347,92 @@
     color: #7C7C7C;
     margin: 0;
     line-height: 1.4;
+}
+
+/* Модальное окно */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #F6F7F8;
+}
+
+.modalHeader h3 {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: #353536;
+    margin: 0;
+}
+
+.modalClose {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #7C7C7C;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.modalClose:hover {
+    background-color: #F6F7F8;
+}
+
+.modalContent {
+    padding: 20px 25px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.selectableMemberItem {
+    display: flex;
+    align-items: center;
+    background-color: #F6F7F8;
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.selectableMemberItem:hover {
+    background-color: #FFDD2D;
+    transform: translateX(5px);
+}
+
+.noMembers {
+    text-align: center;
+    color: #7C7C7C;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    padding: 20px;
+    font-style: italic;
 }
 
 /* Настройки приватности */
@@ -396,227 +531,4 @@
     min-width: 200px;
     padding: 0 30px;
     font-size: 18px;
-}
-
-/* Стили для участников отдела */
-.departmentMembers {
-    margin-top: 15px;
-    background-color: rgba(246, 247, 248, 0.5);
-    border-radius: 10px;
-    padding: 12px;
-}
-
-.departmentMembers h5 {
-    font-family: 'Helvetica Neue', sans-serif;
-    font-size: 16px;
-    font-weight: 500;
-    margin: 0 0 10px 0;
-    color: #353536;
-}
-
-.addToDepartmentButton {
-    background-color: #F6F7F8;
-    border: none;
-    border-radius: 10px;
-    padding: 8px 15px;
-    margin-top: 15px;
-    font-family: 'Helvetica Neue', sans-serif;
-    font-size: 14px;
-    color: #353536;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.addToDepartmentButton:hover {
-    background-color: #EAEBED;
-}
-
-/* Стили для модального окна */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modalContent {
-    width: 80%;
-    max-width: 700px;
-    background-color: #FFFFFF;
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-}
-
-.modalHeader {
-    padding: 20px;
-    border-bottom: 1px solid #F6F7F8;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modalHeader h3 {
-    margin: 0;
-    font-family: 'Helvetica Neue', sans-serif;
-    font-size: 24px;
-    font-weight: 400;
-    color: #353536;
-}
-
-.closeButton {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #7C7C7C;
-    cursor: pointer;
-}
-
-.modalBody {
-    padding: 20px;
-    overflow-y: auto;
-    max-height: 60vh;
-}
-
-.availableMembers {
-    margin-top: 15px;
-}
-
-.availableMembers h4 {
-    font-family: 'Helvetica Neue', sans-serif;
-    font-size: 18px;
-    font-weight: 500;
-    margin: 0 0 15px 0;
-    color: #353536;
-}
-
-.addButton {
-    background-color: #FFDD2D;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    color: #353536;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.addButton:hover {
-    background-color: #FFC641;
-}
-
-.noAvailableMembers {
-    text-align: center;
-    color: #7C7C7C;
-    padding: 20px;
-}
-
-.modalFooter {
-    padding: 15px 20px;
-    border-top: 1px solid #F6F7F8;
-    display: flex;
-    justify-content: flex-end;
-}
-
-/* Уведомление о статусе создания проекта */
-.statusNotification {
-    position: fixed;
-    top: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    width: auto;
-    min-width: 400px;
-    max-width: 600px;
-    padding: 15px 20px;
-    border-radius: 14px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    font-family: 'Helvetica Neue', sans-serif;
-    animation: fadeInDown 0.5s ease-out forwards;
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -20px);
-    }
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-}
-
-.statusCreating, .statusSuccess, .statusError {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.statusCreating {
-    background-color: #FFFFFF;
-    color: #353536;
-}
-
-.statusSuccess {
-    background-color: #EAFFEF;
-    color: #00A336;
-}
-
-.statusError {
-    background-color: #FEE0E0;
-    color: #FF2727;
-}
-
-.statusCreating p, .statusSuccess p, .statusError p {
-    margin: 0 0 0 15px;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.spinner {
-    width: 24px;
-    height: 24px;
-    border: 3px solid #FFDD2D;
-    border-radius: 50%;
-    border-top-color: transparent;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.successIcon, .errorIcon {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.successIcon {
-    background-color: #00A336;
-    color: white;
-}
-
-.errorIcon {
-    background-color: #FF2727;
-    color: white;
 }
