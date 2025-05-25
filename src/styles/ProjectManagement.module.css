@@ -1,0 +1,324 @@
+/* Общие стили для страниц управления проектом */
+.projectContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.loadingContainer, .errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+}
+
+.loadingContainer h2, .errorContainer h2 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 24px;
+    color: #353536;
+    margin-bottom: 20px;
+}
+
+/* Заголовок проекта */
+.projectHeader {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #F6F7F8;
+}
+
+.projectTitle h1 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: #353536;
+    margin: 0 0 10px 0;
+}
+
+.projectMeta {
+    display: flex;
+    gap: 20px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    color: #7C7C7C;
+}
+
+.projectOwner, .projectStatus {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Навигация по табам */
+.tabNavigation {
+    display: flex;
+    gap: 0;
+    margin-bottom: 30px;
+    background-color: #F6F7F8;
+    border-radius: 14px;
+    padding: 4px;
+}
+
+.tabButton {
+    flex: 1;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #7C7C7C;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+    color: #353536;
+    background-color: rgba(255, 221, 45, 0.1);
+}
+
+.tabActive {
+    background-color: #FFDD2D !important;
+    color: #353536 !important;
+    font-weight: 500;
+}
+
+.tabContent {
+    min-height: 500px;
+}
+
+/* Секции */
+.section {
+    margin-bottom: 40px;
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sectionTitle {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+    color: #353536;
+    margin: 0 0 20px 0;
+}
+
+.sectionDescription {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    color: #7C7C7C;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* Кнопки */
+.primaryButton {
+    background-color: #FFDD2D;
+    color: #353536;
+    border: none;
+    border-radius: 11px;
+    padding: 12px 24px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.primaryButton:hover:not(:disabled) {
+    background-color: #FFC641;
+}
+
+.primaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.secondaryButton {
+    background-color: #F6F7F8;
+    color: #353536;
+    border: 2px solid #E0E0E0;
+    border-radius: 11px;
+    padding: 10px 22px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondaryButton:hover:not(:disabled) {
+    background-color: #E0E0E0;
+    border-color: #D0D0D0;
+}
+
+.secondaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.iconButton {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.iconButton:hover {
+    background-color: #F6F7F8;
+}
+
+.deleteButton {
+    color: #FF4444;
+}
+
+.deleteButton:hover {
+    background-color: #FEE0E0;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Формы */
+.formGroup {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.textarea {
+    width: 100%;
+    height: 120px;
+    border: none;
+    outline: none;
+    border-radius: 14px;
+    background-color: #F6F7F8;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 140%;
+    color: #353536;
+    padding: 16px 22px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    resize: vertical;
+}
+
+.textarea::placeholder {
+    color: #7C7C7C;
+}
+
+/* Списки элементов */
+.itemsList {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.itemCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #F6F7F8;
+    border-radius: 14px;
+    padding: 20px;
+    transition: all 0.2s ease;
+}
+
+.itemCard:hover {
+    background-color: #EEEFF0;
+}
+
+.itemInfo {
+    flex: 1;
+}
+
+.itemTitle {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #353536;
+    margin-bottom: 5px;
+}
+
+.itemDescription {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    color: #7C7C7C;
+    line-height: 1.4;
+}
+
+.itemActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Пустые состояния */
+.emptyState {
+    text-align: center;
+    padding: 60px 20px;
+    color: #7C7C7C;
+}
+
+.emptyIcon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.emptyState h3 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 20px;
+    color: #353536;
+    margin: 0 0 10px 0;
+}
+
+.emptyState p {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    color: #7C7C7C;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .projectContainer {
+        padding: 20px 15px;
+    }
+
+    .tabNavigation {
+        flex-direction: column;
+    }
+
+    .tabButton {
+        text-align: center;
+    }
+
+    .projectMeta {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .actionButtons {
+        flex-direction: column;
+    }
+
+    .itemCard {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .itemActions {
+        align-self: flex-end;
+    }
+}

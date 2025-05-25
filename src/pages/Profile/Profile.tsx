@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import {useNavigate} from 'react-router-dom';
 import { Header } from "../../components/common/Header/Header.tsx";
 import { Footer } from "../../components/common/Footer/Footer.tsx";
 import { ErrorField } from "../../components/common/ErrorField/ErrorField.tsx";
@@ -42,6 +43,7 @@ interface EditState {
 
 const ProfilePage: React.FC = () => {
     // Основные данные
+    const navigate = useNavigate();
     const [user, setUser] = useState<User | null>(null);
     const [projects, setProjects] = useState<UIProject[]>([]);
     const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -247,8 +249,7 @@ const ProfilePage: React.FC = () => {
 
     // Переход к проекту
     const handleOpenProject = (projectId: number) => {
-        console.log(`Открытие проекта ${projectId}`);
-        // navigate(`/projects/${projectId}`);
+        navigate(`/projects/${projectId}`);
     };
 
     // Переход на страницу всех проектов

@@ -1,36 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import styles from '../../../styles/ProjectManagement.module.css';
+import styles from '../../styles/ProjectManagement.module.css';
 import { Input } from '../../components/common/Input/Input.tsx';
 import { Select } from '../../components/common/Select/Select.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
-
-// Типы для задач
-interface Task {
-    id: number;
-    title: string;
-    description: string;
-    status: 'new' | 'in_progress' | 'completed' | 'on_hold';
-    priority: 'low' | 'medium' | 'high';
-    assignee?: {
-        id: number;
-        first_name: string;
-        last_name: string;
-        email: string;
-        avatar: string | null;
-    };
-    deadline?: string;
-    created_at: string;
-    updated_at: string;
-}
-
-interface TaskCreateData {
-    title: string;
-    description: string;
-    status: string;
-    priority: string;
-    assignee?: number;
-    deadline?: string;
-}
+import {
+    tasksService,
+    Task,
+    TaskCreateData
+} from '../../hooks/TaskService.tsx';
 
 interface ProjectTasksProps {
     projectId: number;
@@ -66,68 +43,13 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
     const loadTasks = async () => {
         try {
             setLoading(true);
+            setErrors(prev => ({ ...prev, tasks: '' }));
 
-            // Моковые данные для демонстрации
-            const mockTasks: Task[] = [
-                {
-                    id: 1,
-                    title: 'Разработать макет главной страницы',
-                    description: 'Создать дизайн-макет главной страницы с учетом фирменного стиля',
-                    status: 'in_progress',
-                    priority: 'high',
-                    assignee: {
-                        id: 1,
-                        first_name: 'Александра',
-                        last_name: 'Ланшакова',
-                        email: 'avk465@tbank.ru',
-                        avatar: null
-                    },
-                    deadline: '2025-06-10',
-                    created_at: '2025-05-20T10:00:00Z',
-                    updated_at: '2025-05-22T14:30:00Z'
-                },
-                {
-                    id: 2,
-                    title: 'Настроить CI/CD pipeline',
-                    description: 'Настроить автоматическую сборку и развертывание приложения',
-                    status: 'new',
-                    priority: 'medium',
-                    deadline: '2025-06-15',
-                    created_at: '2025-05-21T09:00:00Z',
-                    updated_at: '2025-05-21T09:00:00Z'
-                },
-                {
-                    id: 3,
-                    title: 'Провести код-ревью',
-                    description: 'Проверить качество кода модуля авторизации',
-                    status: 'completed',
-                    priority: 'low',
-                    assignee: {
-                        id: 2,
-                        first_name: 'Владислав',
-                        last_name: 'Дживаваспрингович',
-                        email: 'vlad@tbank.ru',
-                        avatar: null
-                    },
-                    created_at: '2025-05-18T16:00:00Z',
-                    updated_at: '2025-05-19T11:20:00Z'
-                },
-                {
-                    id: 4,
-                    title: 'Разработать макет главной страницы',
-                    description: 'Создать дизайн-макет главной страницы с учетом возможностей...',
-                    status: 'new',
-                    priority: 'high',
-                    deadline: '10.03.2025 - 10.04.2025',
-                    created_at: '2025-05-20T10:00:00Z',
-                    updated_at: '2025-05-22T14:30:00Z'
-                }
-            ];
-
-            setTasks(mockTasks);
+            const tasksData = await tasksService.getProjectTasks(projectId);
+            setTasks(tasksData);
         } catch (error: any) {
             console.error('Ошибка загрузки задач:', error);
-            setErrors(prev => ({ ...prev, tasks: 'Ошибка загрузки задач' }));
+            setErrors(prev => ({ ...prev, tasks: error.message || 'Ошибка загрузки задач' }));
         } finally {
             setLoading(false);
         }
@@ -142,21 +64,10 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
         try {
             setCreating(true);
-            setErrors({});
+            setErrors(prev => ({ ...prev, taskCreate: '', taskTitle: '' }));
 
-            // Здесь должен быть запрос к API
-            const mockNewTask: Task = {
-                id: Date.now(),
-                title: newTask.title,
-                description: newTask.description,
-                status: newTask.status as Task['status'],
-                priority: newTask.priority as Task['priority'],
-                deadline: newTask.deadline || undefined,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            };
-
-            setTasks(prev => [mockNewTask, ...prev]);
+            const createdTask = await tasksService.createTask(projectId, newTask);
+            setTasks(prev => [createdTask, ...prev]);
 
             // Сброс формы
             setNewTask({
@@ -170,7 +81,8 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
         } catch (error: any) {
             console.error('Ошибка создания задачи:', error);
-            setErrors({ taskCreate: 'Ошибка при создании задачи' });
+            const errorMessage = error.data?.title?.[0] || error.data?.detail || error.message || 'Ошибка при создании задачи';
+            setErrors(prev => ({ ...prev, taskCreate: errorMessage }));
         } finally {
             setCreating(false);
         }
@@ -179,7 +91,9 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
     // Обновление статуса задачи
     const handleUpdateTaskStatus = async (taskId: number, newStatus: Task['status']) => {
         try {
-            // Здесь должен быть запрос к API
+            setErrors(prev => ({ ...prev, updateTask: '' }));
+            await tasksService.updateTask(projectId, taskId, { status: newStatus });
+
             setTasks(prev => prev.map(task =>
                 task.id === taskId
                     ? { ...task, status: newStatus, updated_at: new Date().toISOString() }
@@ -187,22 +101,28 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
             ));
         } catch (error: any) {
             console.error('Ошибка обновления задачи:', error);
-            alert('Ошибка при обновлении задачи');
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при обновлении задачи';
+            setErrors(prev => ({ ...prev, updateTask: errorMessage }));
         }
     };
 
     // Удаление задачи
     const handleDeleteTask = async (taskId: number) => {
-        if (!confirm('Вы уверены, что хотите удалить эту задачу?')) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        if (!confirm(`Вы уверены, что хотите удалить задачу "${task.title}"?`)) {
             return;
         }
 
         try {
-            // Здесь должен быть запрос к API
+            setErrors(prev => ({ ...prev, deleteTask: '' }));
+            await tasksService.deleteTask(projectId, taskId);
             setTasks(prev => prev.filter(task => task.id !== taskId));
         } catch (error: any) {
             console.error('Ошибка удаления задачи:', error);
-            alert('Ошибка при удалении задачи');
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении задачи';
+            setErrors(prev => ({ ...prev, deleteTask: errorMessage }));
         }
     };
 
@@ -236,6 +156,16 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
         }
     };
 
+    // Получение названия приоритета
+    const getPriorityName = (priority: Task['priority']): string => {
+        switch (priority) {
+            case 'low': return 'Низкий';
+            case 'medium': return 'Средний';
+            case 'high': return 'Высокий';
+            default: return priority;
+        }
+    };
+
     // Получение цвета приоритета
     const getPriorityColor = (priority: Task['priority']): string => {
         switch (priority) {
@@ -247,7 +177,11 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
     };
 
     if (loading) {
-        return <div>Загрузка задач...</div>;
+        return (
+            <div className={styles.section}>
+                <p>Загрузка задач...</p>
+            </div>
+        );
     }
 
     return (
@@ -259,7 +193,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                     className={styles.primaryButton}
                     onClick={() => setShowCreateTask(true)}
                 >
-                    Создать
+                    Создать задачу
                 </button>
             </div>
 
@@ -273,50 +207,23 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                 borderRadius: '14px'
             }}>
                 <Input
-                    placeholder="🔍 Поиск"
+                    placeholder="🔍 Поиск задач"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{ flex: 1 }}
                 />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '14px', color: '#7C7C7C' }}>Фильтры</span>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <span
-                            style={{
-                                padding: '5px 12px',
-                                backgroundColor: '#FFDD2D',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: '500'
-                            }}
-                        >
-                            Отдел разработки
-                        </span>
-                        <span
-                            style={{
-                                padding: '5px 12px',
-                                backgroundColor: '#E0E0E0',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                color: '#7C7C7C'
-                            }}
-                        >
-                            Отдел дизайна
-                        </span>
-                        <span
-                            style={{
-                                padding: '5px 12px',
-                                backgroundColor: '#E0E0E0',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                color: '#7C7C7C'
-                            }}
-                        >
-                            Отдел аналитики
-                        </span>
-                    </div>
-                </div>
+                <Select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{ minWidth: '150px' }}
+                >
+                    <option value="all">Все статусы</option>
+                    <option value="new">Новые</option>
+                    <option value="in_progress">В работе</option>
+                    <option value="completed">Завершенные</option>
+                    <option value="on_hold">На паузе</option>
+                </Select>
             </div>
 
             {/* Форма создания задачи */}
@@ -356,46 +263,24 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                                 Дедлайн
                             </label>
                             <Input
-                                type="text"
+                                type="date"
                                 value={newTask.deadline}
                                 onChange={(e) => setNewTask(prev => ({ ...prev, deadline: e.target.value }))}
-                                placeholder="дата начала - дата окончания"
                             />
                         </div>
 
                         <div style={{ flex: 1 }}>
                             <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
-                                Отдел
+                                Приоритет
                             </label>
-                            <Select>
-                                <option value="">Отдел разработки</option>
-                                <option value="design">Отдел дизайна</option>
-                                <option value="analytics">Отдел аналитики</option>
+                            <Select
+                                value={newTask.priority}
+                                onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
+                            >
+                                <option value="low">Низкий</option>
+                                <option value="medium">Средний</option>
+                                <option value="high">Высокий</option>
                             </Select>
-                        </div>
-
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
-                                Исполнитель
-                            </label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div style={{
-                                    width: '30px',
-                                    height: '30px',
-                                    borderRadius: '50%',
-                                    backgroundColor: '#FFDD2D',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '14px',
-                                    fontWeight: '500'
-                                }}>
-                                    А
-                                </div>
-                                <span style={{ fontSize: '14px', color: '#353536' }}>
-                                    Александра Ланшакова
-                                </span>
-                            </div>
                         </div>
                     </div>
 
@@ -413,7 +298,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                                     priority: 'medium',
                                     deadline: ''
                                 });
-                                setErrors({});
+                                setErrors(prev => ({ ...prev, taskTitle: '', taskCreate: '' }));
                             }}
                             disabled={creating}
                         >
@@ -430,101 +315,127 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                 </div>
             )}
 
-            {/* Таблица задач */}
+            {/* Список задач */}
             {filteredTasks.length > 0 ? (
-                <div style={{
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: '14px',
-                    overflow: 'hidden',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                }}>
-                    {/* Заголовок таблицы */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '2fr 1fr 1fr 1fr auto',
-                        gap: '20px',
-                        padding: '20px',
-                        backgroundColor: '#F6F7F8',
-                        fontFamily: 'Helvetica Neue',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        color: '#353536'
-                    }}>
-                        <div>Название</div>
-                        <div>Дедлайн</div>
-                        <div>Отдел</div>
-                        <div>Исполнитель</div>
-                        <div></div>
-                    </div>
-
-                    {/* Строки таблицы */}
-                    {filteredTasks.map((task, index) => (
+                <div className={styles.itemsList}>
+                    {filteredTasks.map((task) => (
                         <div key={task.id} style={{
-                            display: 'grid',
-                            gridTemplateColumns: '2fr 1fr 1fr 1fr auto',
-                            gap: '20px',
+                            backgroundColor: '#FFFFFF',
+                            borderRadius: '14px',
                             padding: '20px',
-                            borderTop: index > 0 ? '1px solid #F6F7F8' : 'none',
-                            alignItems: 'center'
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            marginBottom: '15px'
                         }}>
-                            <div>
-                                <div style={{ fontSize: '16px', fontWeight: '500', color: '#353536', marginBottom: '5px' }}>
-                                    {task.title}
-                                </div>
-                                <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
-                                    {task.description}
-                                </div>
-                            </div>
-
-                            <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
-                                {task.deadline || '—'}
-                            </div>
-
-                            <div>
-                                <span style={{
-                                    padding: '4px 8px',
-                                    backgroundColor: '#FFDD2D',
-                                    borderRadius: '8px',
-                                    fontSize: '12px',
-                                    fontWeight: '500'
-                                }}>
-                                    Отдел разработки
-                                </span>
-                            </div>
-
-                            <div>
-                                {task.assignee ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div style={{
-                                            width: '24px',
-                                            height: '24px',
-                                            borderRadius: '50%',
-                                            backgroundColor: '#FFDD2D',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '12px',
-                                            fontWeight: '500'
+                            {/* Заголовок задачи */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <h3 style={{
+                                        fontSize: '18px',
+                                        fontWeight: '500',
+                                        color: '#353536',
+                                        margin: '0 0 5px 0'
+                                    }}>
+                                        {task.title}
+                                    </h3>
+                                    {task.description && (
+                                        <p style={{
+                                            fontSize: '14px',
+                                            color: '#7C7C7C',
+                                            margin: '0 0 10px 0',
+                                            lineHeight: '1.4'
                                         }}>
-                                            {task.assignee.first_name.charAt(0)}
-                                        </div>
-                                        <span style={{ fontSize: '14px', color: '#353536' }}>
-                                            {task.assignee.first_name} {task.assignee.last_name}
-                                        </span>
-                                    </div>
-                                ) : (
-                                    <span style={{ fontSize: '14px', color: '#7C7C7C' }}>—</span>
-                                )}
+                                            {task.description}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    {/* Статус */}
+                                    <span style={{
+                                        backgroundColor: getStatusColor(task.status),
+                                        color: 'white',
+                                        padding: '4px 8px',
+                                        borderRadius: '12px',
+                                        fontSize: '12px',
+                                        fontWeight: '500'
+                                    }}>
+                                        {getStatusName(task.status)}
+                                    </span>
+
+                                    {/* Приоритет */}
+                                    <span style={{
+                                        backgroundColor: getPriorityColor(task.priority),
+                                        color: 'white',
+                                        padding: '4px 8px',
+                                        borderRadius: '12px',
+                                        fontSize: '12px',
+                                        fontWeight: '500'
+                                    }}>
+                                        {getPriorityName(task.priority)}
+                                    </span>
+
+                                    {/* Кнопка удаления */}
+                                    <button
+                                        className={`${styles.iconButton} ${styles.deleteButton}`}
+                                        onClick={() => handleDeleteTask(task.id)}
+                                        title="Удалить задачу"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
                             </div>
 
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <button
-                                    className={`${styles.iconButton} ${styles.deleteButton}`}
-                                    onClick={() => handleDeleteTask(task.id)}
-                                    title="Удалить задачу"
-                                >
-                                    🗑️
-                                </button>
+                            {/* Мета информация */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '20px', fontSize: '14px', color: '#7C7C7C' }}>
+                                    {task.deadline && (
+                                        <span>📅 {new Date(task.deadline).toLocaleDateString('ru-RU')}</span>
+                                    )}
+                                    {task.assignee && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <span>👤</span>
+                                            <span>{task.assignee.first_name} {task.assignee.last_name}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Кнопки смены статуса */}
+                                {task.status !== 'completed' && (
+                                    <div style={{ display: 'flex', gap: '5px' }}>
+                                        {task.status === 'new' && (
+                                            <button
+                                                onClick={() => handleUpdateTaskStatus(task.id, 'in_progress')}
+                                                style={{
+                                                    backgroundColor: '#126DF7',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '6px',
+                                                    padding: '4px 8px',
+                                                    fontSize: '12px',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Взять в работу
+                                            </button>
+                                        )}
+                                        {task.status === 'in_progress' && (
+                                            <button
+                                                onClick={() => handleUpdateTaskStatus(task.id, 'completed')}
+                                                style={{
+                                                    backgroundColor: '#28A745',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '6px',
+                                                    padding: '4px 8px',
+                                                    fontSize: '12px',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Завершить
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -544,7 +455,10 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                 </div>
             )}
 
+            {/* Отображение ошибок */}
             {errors.tasks && <ErrorField message={errors.tasks} />}
+            {errors.updateTask && <ErrorField message={errors.updateTask} />}
+            {errors.deleteTask && <ErrorField message={errors.deleteTask} />}
         </div>
     );
 };

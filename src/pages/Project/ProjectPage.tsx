@@ -16,7 +16,7 @@ import ProjectVoting from './ProjectVoiting.tsx';
 // Типы для табов
 type TabType = 'info' | 'members' | 'tasks' | 'voting';
 
-const ProjectManagementPage: React.FC = () => {
+const ProjectPage: React.FC = () => {
     const { projectId } = useParams<{ projectId: string }>();
     const navigate = useNavigate();
 
@@ -166,4 +166,4 @@ const ProjectManagementPage: React.FC = () => {
     );
 };
 
-export default ProjectManagementPage;
+export default ProjectPage;

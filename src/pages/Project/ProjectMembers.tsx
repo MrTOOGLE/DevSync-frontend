@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styles from '../../../styles/ProjectManagement.module.css';
+import styles from '../../styles/ProjectManagement.module.css';
 import { Input } from '../../components/common/Input/Input.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
 import {
@@ -68,11 +68,12 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     const loadMembers = async () => {
         try {
             setLoading(true);
+            setErrors(prev => ({ ...prev, members: '' }));
             const membersData = await projectService.getProjectMembers(projectId);
             setMembers(membersData);
         } catch (error: any) {
             console.error('Ошибка загрузки участников:', error);
-            setErrors(prev => ({ ...prev, members: 'Ошибка загрузки участников' }));
+            setErrors(prev => ({ ...prev, members: error.message || 'Ошибка загрузки участников' }));
         } finally {
             setLoading(false);
         }
@@ -81,40 +82,47 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     // Загрузка отделов
     const loadDepartments = async () => {
         try {
+            setErrors(prev => ({ ...prev, departments: '' }));
             const departmentsData = await projectService.getProjectDepartments(projectId);
             setDepartments(departmentsData);
         } catch (error: any) {
             console.error('Ошибка загрузки отделов:', error);
-            setErrors(prev => ({ ...prev, departments: 'Ошибка загрузки отделов' }));
+            setErrors(prev => ({ ...prev, departments: error.message || 'Ошибка загрузки отделов' }));
         }
     };
 
     // Приглашение участника
     const handleInviteMember = async (user: UserSearchResult) => {
         try {
+            setErrors(prev => ({ ...prev, invite: '' }));
             await projectService.createInvitation(projectId, user.id);
             setMemberSearch('');
             setSearchResults([]);
-            // Показываем уведомление об отправленном приглашении
             alert(`Приглашение отправлено пользователю ${user.first_name} ${user.last_name}`);
         } catch (error: any) {
             console.error('Ошибка отправки приглашения:', error);
-            alert('Ошибка при отправке приглашения');
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при отправке приглашения';
+            setErrors(prev => ({ ...prev, invite: errorMessage }));
         }
     };
 
     // Удаление участника
     const handleRemoveMember = async (userId: number) => {
-        if (!confirm('Вы уверены, что хотите удалить этого участника из проекта?')) {
+        const member = members.find(m => m.user.id === userId);
+        if (!member) return;
+
+        if (!confirm(`Вы уверены, что хотите удалить участника ${member.user.first_name} ${member.user.last_name} из проекта?`)) {
             return;
         }
 
         try {
+            setErrors(prev => ({ ...prev, removeMember: '' }));
             await projectService.removeProjectMember(projectId, userId);
             await loadMembers(); // Перезагружаем список
         } catch (error: any) {
             console.error('Ошибка удаления участника:', error);
-            alert('Ошибка при удалении участника');
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении участника';
+            setErrors(prev => ({ ...prev, removeMember: errorMessage }));
         }
     };
 
@@ -127,7 +135,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
         try {
             setAddingDepartment(true);
-            setErrors({});
+            setErrors(prev => ({ ...prev, departmentCreate: '', departmentTitle: '' }));
 
             await projectService.createDepartment(projectId, {
                 title: newDepartmentTitle.trim(),
@@ -141,7 +149,8 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
             await loadDepartments();
         } catch (error: any) {
             console.error('Ошибка создания отдела:', error);
-            setErrors({ departmentCreate: 'Ошибка при создании отдела' });
+            const errorMessage = error.data?.title?.[0] || error.data?.detail || error.message || 'Ошибка при создании отдела';
+            setErrors(prev => ({ ...prev, departmentCreate: errorMessage }));
         } finally {
             setAddingDepartment(false);
         }
@@ -149,21 +158,30 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
     // Удаление отдела
     const handleDeleteDepartment = async (departmentId: number) => {
-        if (!confirm('Вы уверены, что хотите удалить этот отдел?')) {
+        const department = departments.find(d => d.id === departmentId);
+        if (!department) return;
+
+        if (!confirm(`Вы уверены, что хотите удалить отдел "${department.title}"?`)) {
             return;
         }
 
         try {
+            setErrors(prev => ({ ...prev, deleteDepartment: '' }));
             await projectService.deleteDepartment(projectId, departmentId);
             await loadDepartments(); // Перезагружаем список
         } catch (error: any) {
             console.error('Ошибка удаления отдела:', error);
-            alert('Ошибка при удалении отдела');
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении отдела';
+            setErrors(prev => ({ ...prev, deleteDepartment: errorMessage }));
         }
     };
 
     if (loading) {
-        return <div>Загрузка...</div>;
+        return (
+            <div className={styles.section}>
+                <p>Загрузка...</p>
+            </div>
+        );
     }
 
     return (
@@ -176,7 +194,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                         className={styles.primaryButton}
                         onClick={() => setShowAddDepartment(true)}
                     >
-                        + Добавить отдел
+                        Добавить отдел
                     </button>
                 </div>
 
@@ -216,7 +234,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                     setShowAddDepartment(false);
                                     setNewDepartmentTitle('');
                                     setNewDepartmentDescription('');
-                                    setErrors({});
+                                    setErrors(prev => ({ ...prev, departmentTitle: '', departmentCreate: '' }));
                                 }}
                                 disabled={addingDepartment}
                             >
@@ -272,6 +290,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                 )}
 
                 {errors.departments && <ErrorField message={errors.departments} />}
+                {errors.deleteDepartment && <ErrorField message={errors.deleteDepartment} />}
             </div>
 
             {/* Участники */}
@@ -357,6 +376,8 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                     )}
                 </div>
 
+                {errors.invite && <ErrorField message={errors.invite} />}
+
                 {/* Список участников */}
                 {members.length > 0 ? (
                     <div className={styles.itemsList}>
@@ -410,6 +431,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                 )}
 
                 {errors.members && <ErrorField message={errors.members} />}
+                {errors.removeMember && <ErrorField message={errors.removeMember} />}
             </div>
         </div>
     );

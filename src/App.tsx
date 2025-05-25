@@ -10,6 +10,7 @@ import WelcomePage from "./pages/Main/WelcomePage.tsx";
 import ProfilePage from "./pages/Profile/Profile.tsx";
 import CreateProject from "./pages/Create_project/CreateProject.tsx";
 import { authService } from './hooks/AuthService.tsx';
+import ProjectPage from "./pages/Project/ProjectPage.tsx";
 
 // Компонент для проверки авторизации и перенаправления
 const AuthRedirect: React.FC = () => {
@@ -49,6 +50,7 @@ const App: React.FC = () => {
                 <Route element={<ProtectedRoute />}>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path={"/create-project"} element={<CreateProject />} />
+                    <Route path="/projects/:projectId" element={<ProjectPage />} />
                 </Route>
 
                 {/* Обработка несуществующих путей */}

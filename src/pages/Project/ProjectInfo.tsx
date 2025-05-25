@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from '../../../styles/ProjectManagement.module.css';
+import styles from '../../styles/ProjectManagement.module.css';
 import { Input } from '../../components/common/Input/Input.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
 import { projectService, ProjectData } from '../../hooks/CreateProjectService.tsx';

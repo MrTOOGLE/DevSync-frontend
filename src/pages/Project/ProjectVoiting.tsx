@@ -1,35 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import styles from '../../../styles/ProjectManagement.module.css';
+import styles from '../../styles/ProjectManagement.module.css';
 import { Input } from '../../components/common/Input/Input.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
-
-// Типы для предложений и голосований
-interface Suggestion {
-    id: number;
-    title: string;
-    description: string;
-    status: 'new' | 'under_review' | 'approved' | 'rejected';
-    author: {
-        id: number;
-        first_name: string;
-        last_name: string;
-        email: string;
-        avatar: string | null;
-    };
-    votes_for: number;
-    votes_against: number;
-    user_vote?: 'for' | 'against' | null;
-    created_at: string;
-    deadline?: string;
-    allow_multiple_votes: boolean;
-}
-
-interface SuggestionCreateData {
-    title: string;
-    description: string;
-    deadline?: string;
-    allow_multiple_votes: boolean;
-}
+import {
+    suggestionsService,
+    Suggestion,
+    SuggestionCreateData
+} from '../../hooks/VoitingService.tsx';
 
 interface ProjectVotingProps {
     projectId: number;
@@ -64,70 +41,13 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     const loadSuggestions = async () => {
         try {
             setLoading(true);
+            setErrors(prev => ({ ...prev, suggestions: '' }));
 
-            // Моковые данные для демонстрации
-            const mockSuggestions: Suggestion[] = [
-                {
-                    id: 15524,
-                    title: 'Установка кофемашины на 3 этаже офиса',
-                    description: 'Всех очень интересует момент, где же нам пить кофе всем вместе, если наша любимая кофейня закрылась. Мы придумали решение - поставить кофемашину прямо в офисе на 3 этаже в правом крыле. От нас требуется лишь показать, что это нам действительно нужно: голосуй "за", если хочешь и "против", если не хочешь. От нас будет нужно купить кофе и вкусняшки!',
-                    status: 'new',
-                    author: {
-                        id: 1,
-                        first_name: 'Александра',
-                        last_name: 'Ланшакова',
-                        email: 'avk465@tbank.ru',
-                        avatar: null
-                    },
-                    votes_for: 122,
-                    votes_against: 2,
-                    user_vote: null,
-                    created_at: '2025-02-15T13:23:00Z',
-                    deadline: '2025-03-10T19:00:00Z',
-                    allow_multiple_votes: false
-                },
-                {
-                    id: 15525,
-                    title: 'Добавление геймификации енотика-полоскуна в игру',
-                    description: 'Предлагаю добавить нового персонажа - енотика-полоскуна для разнообразия игрового процесса',
-                    status: 'under_review',
-                    author: {
-                        id: 2,
-                        first_name: 'Никита',
-                        last_name: 'Пупкин',
-                        email: 'nikita@tbank.ru',
-                        avatar: null
-                    },
-                    votes_for: 45,
-                    votes_against: 12,
-                    user_vote: 'for',
-                    created_at: '2025-02-10T13:45:00Z',
-                    allow_multiple_votes: true
-                },
-                {
-                    id: 15526,
-                    title: 'Переход с Python на Java',
-                    description: 'Предлагаю перевести весь backend на Java для улучшения производительности',
-                    status: 'rejected',
-                    author: {
-                        id: 3,
-                        first_name: 'Владислав',
-                        last_name: 'Дживаваспрингович',
-                        email: 'vlad@tbank.ru',
-                        avatar: null
-                    },
-                    votes_for: 8,
-                    votes_against: 156,
-                    user_vote: 'against',
-                    created_at: '2025-01-11T16:45:00Z',
-                    allow_multiple_votes: false
-                }
-            ];
-
-            setSuggestions(mockSuggestions);
+            const suggestionsData = await suggestionsService.getProjectSuggestions(projectId);
+            setSuggestions(suggestionsData);
         } catch (error: any) {
             console.error('Ошибка загрузки предложений:', error);
-            setErrors(prev => ({ ...prev, suggestions: 'Ошибка загрузки предложений' }));
+            setErrors(prev => ({ ...prev, suggestions: error.message || 'Ошибка загрузки предложений' }));
         } finally {
             setLoading(false);
         }
@@ -147,30 +67,15 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
 
         try {
             setCreating(true);
-            setErrors({});
+            setErrors(prev => ({
+                ...prev,
+                suggestionCreate: '',
+                suggestionTitle: '',
+                suggestionDescription: ''
+            }));
 
-            // Здесь должен быть запрос к API
-            const mockNewSuggestion: Suggestion = {
-                id: Date.now(),
-                title: newSuggestion.title,
-                description: newSuggestion.description,
-                status: 'new',
-                author: {
-                    id: 1, // Текущий пользователь
-                    first_name: 'Текущий',
-                    last_name: 'Пользователь',
-                    email: 'user@tbank.ru',
-                    avatar: null
-                },
-                votes_for: 0,
-                votes_against: 0,
-                user_vote: null,
-                created_at: new Date().toISOString(),
-                deadline: newSuggestion.deadline || undefined,
-                allow_multiple_votes: newSuggestion.allow_multiple_votes
-            };
-
-            setSuggestions(prev => [mockNewSuggestion, ...prev]);
+            const createdSuggestion = await suggestionsService.createSuggestion(projectId, newSuggestion);
+            setSuggestions(prev => [createdSuggestion, ...prev]);
 
             // Сброс формы
             setNewSuggestion({
@@ -183,7 +88,8 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
 
         } catch (error: any) {
             console.error('Ошибка создания предложения:', error);
-            setErrors({ suggestionCreate: 'Ошибка при создании предложения' });
+            const errorMessage = error.data?.title?.[0] || error.data?.detail || error.message || 'Ошибка при создании предложения';
+            setErrors(prev => ({ ...prev, suggestionCreate: errorMessage }));
         } finally {
             setCreating(false);
         }
@@ -192,7 +98,11 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     // Голосование
     const handleVote = async (suggestionId: number, voteType: 'for' | 'against') => {
         try {
-            // Здесь должен быть запрос к API
+            setErrors(prev => ({ ...prev, vote: '' }));
+
+            await suggestionsService.voteForSuggestion(projectId, suggestionId, { vote_type: voteType });
+
+            // Обновляем локальное состояние
             setSuggestions(prev => prev.map(suggestion => {
                 if (suggestion.id === suggestionId) {
                     let updatedSuggestion = { ...suggestion };
@@ -218,7 +128,28 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             }));
         } catch (error: any) {
             console.error('Ошибка голосования:', error);
-            alert('Ошибка при голосовании');
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при голосовании';
+            setErrors(prev => ({ ...prev, vote: errorMessage }));
+        }
+    };
+
+    // Удаление предложения
+    const handleDeleteSuggestion = async (suggestionId: number) => {
+        const suggestion = suggestions.find(s => s.id === suggestionId);
+        if (!suggestion) return;
+
+        if (!confirm(`Вы уверены, что хотите удалить предложение "${suggestion.title}"?`)) {
+            return;
+        }
+
+        try {
+            setErrors(prev => ({ ...prev, deleteSuggestion: '' }));
+            await suggestionsService.deleteSuggestion(projectId, suggestionId);
+            setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
+        } catch (error: any) {
+            console.error('Ошибка удаления предложения:', error);
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении предложения';
+            setErrors(prev => ({ ...prev, deleteSuggestion: errorMessage }));
         }
     };
 
@@ -265,7 +196,11 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     };
 
     if (loading) {
-        return <div>Загрузка предложений...</div>;
+        return (
+            <div className={styles.section}>
+                <p>Загрузка предложений...</p>
+            </div>
+        );
     }
 
     return (
@@ -277,7 +212,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                     className={styles.primaryButton}
                     onClick={() => setShowCreateSuggestion(true)}
                 >
-                    Создать
+                    Создать предложение
                 </button>
             </div>
 
@@ -288,63 +223,45 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 marginBottom: '20px',
                 padding: '20px',
                 backgroundColor: '#F6F7F8',
-                borderRadius: '14px'
+                borderRadius: '14px',
+                alignItems: 'center'
             }}>
                 <Input
-                    placeholder="🔍 Поиск"
+                    placeholder="🔍 Поиск предложений"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{ flex: 1 }}
                 />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '14px', color: '#7C7C7C' }}>Фильтры</span>
-                    <button style={{
-                        backgroundColor: '#E0E0E0',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '5px 10px',
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                    }}>
-                        ✕
-                    </button>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px' }}>
-                    <span
-                        style={{
-                            padding: '5px 12px',
-                            backgroundColor: '#FFDD2D',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            fontWeight: '500'
-                        }}
-                    >
-                        Отдел разработки
-                    </span>
-                    <span
-                        style={{
-                            padding: '5px 12px',
-                            backgroundColor: '#E0E0E0',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            color: '#7C7C7C'
-                        }}
-                    >
-                        Отдел дизайна
-                    </span>
-                    <span
-                        style={{
-                            padding: '5px 12px',
-                            backgroundColor: '#E0E0E0',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            color: '#7C7C7C'
-                        }}
-                    >
-                        Отдел аналитики
-                    </span>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '14px', color: '#7C7C7C', whiteSpace: 'nowrap' }}>Статус:</span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {[
+                            { value: 'all', label: 'Все' },
+                            { value: 'new', label: 'Новые' },
+                            { value: 'under_review', label: 'На рассмотрении' },
+                            { value: 'approved', label: 'Принятые' },
+                            { value: 'rejected', label: 'Отклоненные' }
+                        ].map(filter => (
+                            <button
+                                key={filter.value}
+                                onClick={() => setStatusFilter(filter.value)}
+                                style={{
+                                    padding: '5px 12px',
+                                    backgroundColor: statusFilter === filter.value ? '#FFDD2D' : '#E0E0E0',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    fontSize: '12px',
+                                    fontWeight: statusFilter === filter.value ? '500' : '400',
+                                    color: statusFilter === filter.value ? '#353536' : '#7C7C7C',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >
+                                {filter.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -357,7 +274,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                     marginBottom: '20px'
                 }}>
                     <h3 style={{ marginBottom: '20px', fontSize: '20px', color: '#353536' }}>
-                        Предложение
+                        Новое предложение
                     </h3>
 
                     <div className={styles.formGroup}>
@@ -376,83 +293,37 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                             placeholder="Описание предложения*"
                             value={newSuggestion.description}
                             onChange={(e) => setNewSuggestion(prev => ({ ...prev, description: e.target.value }))}
-                            style={{ height: '100px' }}
+                            style={{ height: '120px' }}
                         />
                         {errors.suggestionDescription && <ErrorField message={errors.suggestionDescription} />}
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
+                        <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
+                            Дедлайн (необязательно)
+                        </label>
                         <Input
                             type="datetime-local"
                             value={newSuggestion.deadline}
                             onChange={(e) => setNewSuggestion(prev => ({ ...prev, deadline: e.target.value }))}
-                            placeholder="Дата и время окончания"
                         />
-                    </div>
-
-                    <div style={{ marginBottom: '20px' }}>
-                        <h4 style={{ fontSize: '16px', color: '#353536', marginBottom: '15px' }}>
-                            Варианты ответов
-                        </h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <button style={{
-                                    backgroundColor: '#FEE0E0',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    padding: '8px 12px',
-                                    fontSize: '14px',
-                                    color: '#FF2727'
-                                }}>
-                                    ✕
-                                </button>
-                                <Input placeholder="Ответ" style={{ flex: 1 }} />
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <button style={{
-                                    backgroundColor: '#FEE0E0',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    padding: '8px 12px',
-                                    fontSize: '14px',
-                                    color: '#FF2727'
-                                }}>
-                                    ✕
-                                </button>
-                                <Input placeholder="Ответ" style={{ flex: 1 }} />
-                            </div>
-                        </div>
-                        <div style={{ textAlign: 'center', margin: '15px 0', color: '#7C7C7C', fontSize: '14px' }}>
-                            Можно добавить ещё 8 ответов
-                        </div>
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
                         <h4 style={{ fontSize: '16px', color: '#353536', marginBottom: '15px' }}>
                             Настройки
                         </h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={newSuggestion.allow_multiple_votes}
-                                    onChange={(e) => setNewSuggestion(prev => ({ ...prev, allow_multiple_votes: e.target.checked }))}
-                                />
-                                <span style={{ fontFamily: 'Helvetica Neue', fontSize: '16px', color: '#353536' }}>
-                                    Анонимное голосование
-                                </span>
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                                <input
-                                    type="checkbox"
-                                    checked={newSuggestion.allow_multiple_votes}
-                                    onChange={(e) => setNewSuggestion(prev => ({ ...prev, allow_multiple_votes: e.target.checked }))}
-                                />
-                                <span style={{ fontFamily: 'Helvetica Neue', fontSize: '16px', color: '#353536' }}>
-                                    Выбор нескольких вариантов ответа
-                                </span>
-                            </label>
-                        </div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={newSuggestion.allow_multiple_votes}
+                                onChange={(e) => setNewSuggestion(prev => ({ ...prev, allow_multiple_votes: e.target.checked }))}
+                                style={{ width: '16px', height: '16px' }}
+                            />
+                            <span style={{ fontFamily: 'Helvetica Neue', fontSize: '16px', color: '#353536' }}>
+                                Разрешить множественный выбор вариантов ответа
+                            </span>
+                        </label>
                     </div>
 
                     {errors.suggestionCreate && <ErrorField message={errors.suggestionCreate} />}
@@ -468,7 +339,12 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                     deadline: '',
                                     allow_multiple_votes: false
                                 });
-                                setErrors({});
+                                setErrors(prev => ({
+                                    ...prev,
+                                    suggestionTitle: '',
+                                    suggestionDescription: '',
+                                    suggestionCreate: ''
+                                }));
                             }}
                             disabled={creating}
                         >
@@ -517,16 +393,26 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                             {formatDate(suggestion.created_at)} • {suggestion.author.first_name} {suggestion.author.last_name}
                                         </div>
                                     </div>
-                                    <span style={{
-                                        backgroundColor: getStatusColor(suggestion.status),
-                                        color: suggestion.status === 'new' ? '#353536' : 'white',
-                                        fontSize: '14px',
-                                        padding: '6px 12px',
-                                        borderRadius: '12px',
-                                        fontWeight: '500'
-                                    }}>
-                                        {getStatusName(suggestion.status)}
-                                    </span>
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                        <span style={{
+                                            backgroundColor: getStatusColor(suggestion.status),
+                                            color: suggestion.status === 'new' ? '#353536' : 'white',
+                                            fontSize: '14px',
+                                            padding: '6px 12px',
+                                            borderRadius: '12px',
+                                            fontWeight: '500'
+                                        }}>
+                                            {getStatusName(suggestion.status)}
+                                        </span>
+
+                                        <button
+                                            className={`${styles.iconButton} ${styles.deleteButton}`}
+                                            onClick={() => handleDeleteSuggestion(suggestion.id)}
+                                            title="Удалить предложение"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Описание */}
@@ -546,20 +432,20 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                         color: '#7C7C7C',
                                         marginBottom: '15px'
                                     }}>
-                                        Открыто до: {formatDate(suggestion.deadline)}
+                                        📅 Открыто до: {formatDate(suggestion.deadline)}
                                     </div>
                                 )}
 
                                 {/* Результаты голосования */}
                                 <div style={{ marginBottom: '15px' }}>
                                     <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '10px' }}>
-                                        Голосование
+                                        Результаты голосования
                                     </div>
 
                                     {/* Голоса "За" */}
                                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                                        <span style={{ fontSize: '20px', marginRight: '10px' }}>⭕</span>
-                                        <span style={{ fontSize: '16px', marginRight: '10px' }}>За</span>
+                                        <span style={{ fontSize: '20px', marginRight: '10px' }}>👍</span>
+                                        <span style={{ fontSize: '16px', marginRight: '10px', minWidth: '60px' }}>За</span>
                                         <div style={{
                                             flex: 1,
                                             height: '8px',
@@ -571,19 +457,19 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                             <div style={{
                                                 width: `${forPercentage}%`,
                                                 height: '100%',
-                                                backgroundColor: '#FFDD2D',
+                                                backgroundColor: '#28A745',
                                                 borderRadius: '4px'
                                             }} />
                                         </div>
-                                        <span style={{ fontSize: '16px', fontWeight: '500' }}>
-                                            {forPercentage}%
+                                        <span style={{ fontSize: '16px', fontWeight: '500', minWidth: '80px' }}>
+                                            {suggestion.votes_for} ({forPercentage}%)
                                         </span>
                                     </div>
 
                                     {/* Голоса "Против" */}
                                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                                        <span style={{ fontSize: '20px', marginRight: '10px' }}>🚫</span>
-                                        <span style={{ fontSize: '16px', marginRight: '10px' }}>Против</span>
+                                        <span style={{ fontSize: '20px', marginRight: '10px' }}>👎</span>
+                                        <span style={{ fontSize: '16px', marginRight: '10px', minWidth: '60px' }}>Против</span>
                                         <div style={{
                                             flex: 1,
                                             height: '8px',
@@ -599,13 +485,16 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                                 borderRadius: '4px'
                                             }} />
                                         </div>
-                                        <span style={{ fontSize: '16px', fontWeight: '500' }}>
-                                            {againstPercentage}%
+                                        <span style={{ fontSize: '16px', fontWeight: '500', minWidth: '80px' }}>
+                                            {suggestion.votes_against} ({againstPercentage}%)
                                         </span>
                                     </div>
 
                                     <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
-                                        Результаты голосования ({totalVotes} голосов)
+                                        Всего голосов: {totalVotes}
+                                        {suggestion.comments_count && suggestion.comments_count > 0 && (
+                                            <> • Комментариев: {suggestion.comments_count}</>
+                                        )}
                                     </div>
                                 </div>
 
@@ -615,9 +504,9 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                         <button
                                             onClick={() => handleVote(suggestion.id, 'for')}
                                             style={{
-                                                backgroundColor: suggestion.user_vote === 'for' ? '#FFDD2D' : '#F6F7F8',
-                                                color: '#353536',
-                                                border: suggestion.user_vote === 'for' ? '2px solid #FFDD2D' : '2px solid transparent',
+                                                backgroundColor: suggestion.user_vote === 'for' ? '#28A745' : '#F6F7F8',
+                                                color: suggestion.user_vote === 'for' ? 'white' : '#353536',
+                                                border: suggestion.user_vote === 'for' ? '2px solid #28A745' : '2px solid transparent',
                                                 borderRadius: '11px',
                                                 padding: '10px 20px',
                                                 cursor: 'pointer',
@@ -627,7 +516,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                                 transition: 'all 0.2s ease'
                                             }}
                                         >
-                                            👍 За ({suggestion.votes_for})
+                                            👍 За
                                         </button>
                                         <button
                                             onClick={() => handleVote(suggestion.id, 'against')}
@@ -644,7 +533,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                                 transition: 'all 0.2s ease'
                                             }}
                                         >
-                                            👎 Против ({suggestion.votes_against})
+                                            👎 Против
                                         </button>
                                     </div>
                                 ) : (
@@ -675,7 +564,10 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 </div>
             )}
 
+            {/* Отображение ошибок */}
             {errors.suggestions && <ErrorField message={errors.suggestions} />}
+            {errors.vote && <ErrorField message={errors.vote} />}
+            {errors.deleteSuggestion && <ErrorField message={errors.deleteSuggestion} />}
         </div>
     );
 };
