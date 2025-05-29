@@ -8,6 +8,7 @@ import {
     Department,
     UserSearchResult
 } from '../../hooks/CreateProjectService.tsx';
+import { userService } from '../../hooks/UserService.tsx';
 
 interface ProjectMembersProps {
     projectId: number;
@@ -19,6 +20,12 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     const [departments, setDepartments] = useState<Department[]>([]);
     const [loading, setLoading] = useState(true);
     const [errors, setErrors] = useState<{[key: string]: string}>({});
+
+    // Состояния для отделов
+    const [expandedDepartments, setExpandedDepartments] = useState<Set<number>>(new Set());
+    const [editingDepartment, setEditingDepartment] = useState<number | null>(null);
+    const [editDepartmentTitle, setEditDepartmentTitle] = useState('');
+    const [editDepartmentDescription, setEditDepartmentDescription] = useState('');
 
     // Состояния для добавления участников
     const [memberSearch, setMemberSearch] = useState('');
@@ -37,18 +44,15 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         loadDepartments();
     }, [projectId]);
 
-    // Поиск пользователей
+    // Поиск пользователей (теперь ищем отовсюду, а не только участников проекта)
     useEffect(() => {
         const searchUsers = async () => {
             if (memberSearch.length > 2) {
                 setIsSearching(true);
                 try {
                     const response = await projectService.searchUsers(memberSearch, 1, 10);
-                    // Фильтруем уже добавленных участников
-                    const filteredResults = response.users.filter(user =>
-                        !members.find(member => member.user.id === user.id)
-                    );
-                    setSearchResults(filteredResults);
+                    // Убираем фильтрацию - ищем всех пользователей
+                    setSearchResults(response.users);
                 } catch (error) {
                     console.error('Ошибка поиска пользователей:', error);
                     setSearchResults([]);
@@ -62,7 +66,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
         const debounceTimer = setTimeout(searchUsers, 300);
         return () => clearTimeout(debounceTimer);
-    }, [memberSearch, members]);
+    }, [memberSearch]);
 
     // Загрузка участников
     const loadMembers = async () => {
@@ -79,16 +83,74 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Загрузка отделов
+    // Загрузка отделов с участниками
     const loadDepartments = async () => {
         try {
             setErrors(prev => ({ ...prev, departments: '' }));
-            const departmentsData = await projectService.getProjectDepartments(projectId);
-            setDepartments(departmentsData);
+            // Загружаем отделы с параметром members=true для получения участников
+            const url = new URL(projectService.getProjectDepartments.toString());
+            const response = await fetch(`${url}?members=true`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Добавляем заголовки авторизации если нужно
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setDepartments(data.departments || []);
+            } else {
+                // Fallback на обычную загрузку без участников
+                const departmentsData = await projectService.getProjectDepartments(projectId);
+                setDepartments(departmentsData);
+            }
         } catch (error: any) {
             console.error('Ошибка загрузки отделов:', error);
             setErrors(prev => ({ ...prev, departments: error.message || 'Ошибка загрузки отделов' }));
         }
+    };
+
+    // Переключение раскрытия отдела
+    const toggleDepartment = (departmentId: number) => {
+        const newExpanded = new Set(expandedDepartments);
+        if (newExpanded.has(departmentId)) {
+            newExpanded.delete(departmentId);
+        } else {
+            newExpanded.add(departmentId);
+        }
+        setExpandedDepartments(newExpanded);
+    };
+
+    // Начать редактирование отдела
+    const startEditDepartment = (department: Department) => {
+        setEditingDepartment(department.id!);
+        setEditDepartmentTitle(department.title);
+        setEditDepartmentDescription(department.description);
+    };
+
+    // Сохранить изменения отдела
+    const saveEditDepartment = async (departmentId: number) => {
+        try {
+            setErrors(prev => ({ ...prev, editDepartment: '' }));
+            await projectService.updateDepartment(projectId, departmentId, {
+                title: editDepartmentTitle,
+                description: editDepartmentDescription
+            });
+
+            setEditingDepartment(null);
+            await loadDepartments();
+        } catch (error: any) {
+            console.error('Ошибка обновления отдела:', error);
+            setErrors(prev => ({ ...prev, editDepartment: error.message || 'Ошибка обновления отдела' }));
+        }
+    };
+
+    // Отменить редактирование отдела
+    const cancelEditDepartment = () => {
+        setEditingDepartment(null);
+        setEditDepartmentTitle('');
+        setEditDepartmentDescription('');
     };
 
     // Приглашение участника
@@ -118,7 +180,8 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         try {
             setErrors(prev => ({ ...prev, removeMember: '' }));
             await projectService.removeProjectMember(projectId, userId);
-            await loadMembers(); // Перезагружаем список
+            await loadMembers();
+            await loadDepartments(); // Обновляем отделы тоже
         } catch (error: any) {
             console.error('Ошибка удаления участника:', error);
             const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении участника';
@@ -142,7 +205,6 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                 description: newDepartmentDescription.trim()
             });
 
-            // Сбрасываем форму и перезагружаем отделы
             setNewDepartmentTitle('');
             setNewDepartmentDescription('');
             setShowAddDepartment(false);
@@ -168,7 +230,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         try {
             setErrors(prev => ({ ...prev, deleteDepartment: '' }));
             await projectService.deleteDepartment(projectId, departmentId);
-            await loadDepartments(); // Перезагружаем список
+            await loadDepartments();
         } catch (error: any) {
             console.error('Ошибка удаления отдела:', error);
             const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении отдела';
@@ -194,18 +256,40 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                         className={styles.primaryButton}
                         onClick={() => setShowAddDepartment(true)}
                     >
-                        Добавить отдел
+                        + Добавить отдел
                     </button>
                 </div>
 
                 {/* Форма создания отдела */}
                 {showAddDepartment && (
                     <div style={{
-                        backgroundColor: '#F6F7F8',
+                        backgroundColor: '#FFFFFF',
                         padding: '20px',
                         borderRadius: '14px',
-                        marginBottom: '20px'
+                        marginBottom: '20px',
+                        border: '1px solid #E0E0E0'
                     }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                            <h3 style={{ fontSize: '18px', color: '#353536', margin: 0 }}>Добавление отдела</h3>
+                            <button
+                                onClick={() => {
+                                    setShowAddDepartment(false);
+                                    setNewDepartmentTitle('');
+                                    setNewDepartmentDescription('');
+                                    setErrors(prev => ({ ...prev, departmentTitle: '', departmentCreate: '' }));
+                                }}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '20px',
+                                    color: '#7C7C7C',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
                         <div className={styles.formGroup}>
                             <Input
                                 placeholder="Название отдела*"
@@ -227,19 +311,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
                         {errors.departmentCreate && <ErrorField message={errors.departmentCreate} />}
 
-                        <div className={styles.actionButtons}>
-                            <button
-                                className={styles.secondaryButton}
-                                onClick={() => {
-                                    setShowAddDepartment(false);
-                                    setNewDepartmentTitle('');
-                                    setNewDepartmentDescription('');
-                                    setErrors(prev => ({ ...prev, departmentTitle: '', departmentCreate: '' }));
-                                }}
-                                disabled={addingDepartment}
-                            >
-                                Отменить
-                            </button>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                             <button
                                 className={styles.primaryButton}
                                 onClick={handleCreateDepartment}
@@ -253,31 +325,172 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
                 {/* Список отделов */}
                 {departments.length > 0 ? (
-                    <div className={styles.itemsList}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {departments.map(department => (
-                            <div key={department.id} className={styles.itemCard}>
-                                <div className={styles.itemInfo}>
-                                    <div className={styles.itemTitle}>{department.title}</div>
-                                    {department.description && (
-                                        <div className={styles.itemDescription}>
-                                            {department.description}
+                            <div key={department.id} style={{
+                                backgroundColor: '#F6F7F8',
+                                borderRadius: '14px',
+                                overflow: 'hidden'
+                            }}>
+                                {/* Заголовок отдела */}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '20px',
+                                        cursor: 'pointer'
+                                    }}
+                                    onClick={() => toggleDepartment(department.id!)}
+                                >
+                                    <div>
+                                        <div style={{ fontSize: '18px', fontWeight: '500', color: '#353536' }}>
+                                            {department.title} ({department.members?.length || 0})
                                         </div>
-                                    )}
-                                    {department.members && department.members.length > 0 && (
-                                        <div style={{ marginTop: '10px', fontSize: '14px', color: '#7C7C7C' }}>
-                                            Участников: {department.members.length}
+                                        {department.description && (
+                                            <div style={{ fontSize: '14px', color: '#7C7C7C', marginTop: '4px' }}>
+                                                {department.description}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                startEditDepartment(department);
+                                            }}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                fontSize: '16px',
+                                                cursor: 'pointer',
+                                                padding: '5px'
+                                            }}
+                                            title="Редактировать отдел"
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteDepartment(department.id!);
+                                            }}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                fontSize: '16px',
+                                                color: '#FF4444',
+                                                cursor: 'pointer',
+                                                padding: '5px'
+                                            }}
+                                            title="Удалить отдел"
+                                        >
+                                            🗑️
+                                        </button>
+                                        <span style={{
+                                            transform: expandedDepartments.has(department.id!) ? 'rotate(180deg)' : 'rotate(0deg)',
+                                            transition: 'transform 0.2s ease',
+                                            fontSize: '14px'
+                                        }}>
+                                            ▼
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Форма редактирования отдела */}
+                                {editingDepartment === department.id && (
+                                    <div style={{
+                                        padding: '20px',
+                                        backgroundColor: '#FFFFFF',
+                                        borderTop: '1px solid #E0E0E0'
+                                    }}>
+                                        <div className={styles.formGroup}>
+                                            <Input
+                                                placeholder="Название отдела*"
+                                                value={editDepartmentTitle}
+                                                onChange={(e) => setEditDepartmentTitle(e.target.value)}
+                                            />
                                         </div>
-                                    )}
-                                </div>
-                                <div className={styles.itemActions}>
-                                    <button
-                                        className={`${styles.iconButton} ${styles.deleteButton}`}
-                                        onClick={() => handleDeleteDepartment(department.id!)}
-                                        title="Удалить отдел"
-                                    >
-                                        🗑️
-                                    </button>
-                                </div>
+                                        <div className={styles.formGroup}>
+                                            <textarea
+                                                className={styles.textarea}
+                                                placeholder="Описание отдела"
+                                                value={editDepartmentDescription}
+                                                onChange={(e) => setEditDepartmentDescription(e.target.value)}
+                                            />
+                                        </div>
+                                        {errors.editDepartment && <ErrorField message={errors.editDepartment} />}
+                                        <div className={styles.actionButtons}>
+                                            <button
+                                                className={styles.secondaryButton}
+                                                onClick={cancelEditDepartment}
+                                            >
+                                                Отменить
+                                            </button>
+                                            <button
+                                                className={styles.primaryButton}
+                                                onClick={() => saveEditDepartment(department.id!)}
+                                            >
+                                                Сохранить
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Раскрытое содержимое отдела */}
+                                {expandedDepartments.has(department.id!) && editingDepartment !== department.id && (
+                                    <div style={{
+                                        padding: '20px',
+                                        backgroundColor: '#FFFFFF',
+                                        borderTop: '1px solid #E0E0E0'
+                                    }}>
+                                        {department.members && department.members.length > 0 ? (
+                                            <div>
+                                                <h4 style={{ fontSize: '16px', color: '#353536', marginBottom: '15px' }}>
+                                                    Участники отдела:
+                                                </h4>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                    {department.members.map(member => (
+                                                        <div key={member.user.id} style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            padding: '10px',
+                                                            backgroundColor: '#F6F7F8',
+                                                            borderRadius: '8px'
+                                                        }}>
+                                                            <div style={{
+                                                                width: '40px',
+                                                                height: '40px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: '#FFDD2D',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                marginRight: '12px',
+                                                                fontSize: '16px',
+                                                                fontWeight: '500'
+                                                            }}>
+                                                                {member.user.first_name.charAt(0)}
+                                                            </div>
+                                                            <div style={{ flex: 1 }}>
+                                                                <div style={{ fontSize: '16px', fontWeight: '500', color: '#353536' }}>
+                                                                    {member.user.first_name} {member.user.last_name}
+                                                                </div>
+                                                                <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
+                                                                    {member.user.email}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p style={{ color: '#7C7C7C', textAlign: 'center', margin: '20px 0' }}>
+                                                В отделе пока нет участников
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -293,7 +506,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                 {errors.deleteDepartment && <ErrorField message={errors.deleteDepartment} />}
             </div>
 
-            {/* Участники */}
+            {/* Все участники */}
             <div className={styles.section}>
                 <h2 className={styles.sectionTitle}>Все участники ({members.length})</h2>
 

@@ -17,17 +17,18 @@ const API_CONFIG = {
             BASE_URL_PROJECTS: "api/v1/projects/",
             PROJECT_DETAIL: (projectId: number) => `${projectId}/`,
             PUBLIC_PROJECTS: "public/",
-            LEAVE_PROJECT: (projectId: number) => `${projectId}/leave/`,
-            JOIN_PROJECT: (projectId: number) => `${projectId}/join/`,
+            LEAVE_PROJECT: (projectId: number) => `${projectId}/me/`,
             PROJECT_OWNER: (projectId: number) => `${projectId}/owner/`,
         },
         MEMBERS: {
             BASE_URL_MEMBERS: (projectId: number) => `api/v1/projects/${projectId}/members/`,
             MEMBER_DETAIL: (userId: number) => `${userId}/`,
             MEMBER_ROLES: (userId: number) => `${userId}/roles/`,
-            ASSIGN_ROLE: (userId: number, roleId: number) => `${userId}/roles/${roleId}/`,
+            ASSIGN_ROLE: (userId: number) => `${userId}/roles/`,
+            REMOVE_ROLE: (userId: number, roleId: number) => `${userId}/roles/${roleId}/`,
             MEMBER_DEPARTMENTS: (userId: number) => `${userId}/departments/`,
-            ASSIGN_DEPARTMENT: (userId: number, departmentId: number) => `${userId}/departments/${departmentId}/`,
+            ASSIGN_DEPARTMENT: (userId: number) => `${userId}/departments/`,
+            REMOVE_DEPARTMENT: (userId: number, departmentId: number) => `${userId}/departments/${departmentId}/`,
         },
         DEPARTMENTS: {
             BASE_URL_DEPARTMENTS: (projectId: number) => `api/v1/projects/${projectId}/departments/`,
@@ -44,6 +45,7 @@ const API_CONFIG = {
         NOTIFICATIONS: {
             BASE_URL: "api/v1/notifications/",
             NOTIFICATION_DETAIL: (notificationId: number) => `${notificationId}/`,
+            WEBSOCKET_URL: "ws/notifications/",
         },
         MY_INVITATIONS: {
             BASE_URL: "api/v1/invitations/",
@@ -71,16 +73,17 @@ const API_CONFIG = {
                 PROJECT_DETAIL: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.PROJECT_DETAIL(projectId),
                 PUBLIC_PROJECTS: this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.PUBLIC_PROJECTS,
                 LEAVE_PROJECT: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.LEAVE_PROJECT(projectId),
-                JOIN_PROJECT: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.JOIN_PROJECT(projectId),
                 PROJECT_OWNER: (projectId: number) => this.BASE_URL + this.ENDPOINTS.PROJECTS.BASE_URL_PROJECTS + this.ENDPOINTS.PROJECTS.PROJECT_OWNER(projectId),
             },
             MEMBERS: {
                 BASE_URL: (projectId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId),
                 MEMBER_DETAIL: (projectId: number, userId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.MEMBER_DETAIL(userId),
                 MEMBER_ROLES: (projectId: number, userId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.MEMBER_ROLES(userId),
-                ASSIGN_ROLE: (projectId: number, userId: number, roleId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.ASSIGN_ROLE(userId, roleId),
+                ASSIGN_ROLE: (projectId: number, userId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.ASSIGN_ROLE(userId),
+                REMOVE_ROLE: (projectId: number, userId: number, roleId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.REMOVE_ROLE(userId, roleId),
                 MEMBER_DEPARTMENTS: (projectId: number, userId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.MEMBER_DEPARTMENTS(userId),
-                ASSIGN_DEPARTMENT: (projectId: number, userId: number, departmentId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.ASSIGN_DEPARTMENT(userId, departmentId),
+                ASSIGN_DEPARTMENT: (projectId: number, userId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.ASSIGN_DEPARTMENT(userId),
+                REMOVE_DEPARTMENT: (projectId: number, userId: number, departmentId: number) => this.BASE_URL + this.ENDPOINTS.MEMBERS.BASE_URL_MEMBERS(projectId) + this.ENDPOINTS.MEMBERS.REMOVE_DEPARTMENT(userId, departmentId),
             },
             DEPARTMENTS: {
                 BASE_URL: (projectId: number) => this.BASE_URL + this.ENDPOINTS.DEPARTMENTS.BASE_URL_DEPARTMENTS(projectId),
@@ -97,6 +100,7 @@ const API_CONFIG = {
             NOTIFICATIONS: {
                 BASE_URL: this.BASE_URL + this.ENDPOINTS.NOTIFICATIONS.BASE_URL,
                 NOTIFICATION_DETAIL: (notificationId: number) => this.BASE_URL + this.ENDPOINTS.NOTIFICATIONS.BASE_URL + this.ENDPOINTS.NOTIFICATIONS.NOTIFICATION_DETAIL(notificationId),
+                WEBSOCKET_URL: (token: string) => `ws://localhost:80/${this.ENDPOINTS.NOTIFICATIONS.WEBSOCKET_URL}?token=${token}`,
             },
             MY_INVITATIONS: {
                 BASE_URL: this.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.BASE_URL,
