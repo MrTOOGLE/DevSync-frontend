@@ -8,6 +8,7 @@ import {
     Department,
     UserSearchResult
 } from '../../hooks/CreateProjectService.tsx';
+// @ts-ignore
 import { userService } from '../../hooks/UserService.tsx';
 
 interface ProjectMembersProps {

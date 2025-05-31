@@ -296,11 +296,11 @@ export const projectService = {
         }
     },
 
-    // Выход из проекта
+    // Выход из проекта (согласно документации DELETE /api/v1/projects/{id}/me/)
     leaveProject: async (projectId: number): Promise<{ success: boolean }> => {
         try {
             const response = await fetch(API_CONFIG.FULL_URL.PROJECTS.LEAVE_PROJECT(projectId), {
-                method: 'POST',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     ...authService.getAuthHeaders()
@@ -321,11 +321,18 @@ export const projectService = {
         }
     },
 
-    // Присоединение к проекту
-    joinProject: async (projectId: number): Promise<{ success: boolean }> => {
+    // Получение владельца проекта
+    getProjectOwner: async (projectId: number): Promise<{
+        id: number;
+        email: string;
+        first_name: string;
+        last_name: string;
+        city: string;
+        avatar: string | null;
+    }> => {
         try {
-            const response = await fetch(API_CONFIG.FULL_URL.PROJECTS.JOIN_PROJECT(projectId), {
-                method: 'POST',
+            const response = await fetch(API_CONFIG.FULL_URL.PROJECTS.PROJECT_OWNER(projectId), {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     ...authService.getAuthHeaders()
@@ -335,13 +342,46 @@ export const projectService = {
             if (!response.ok) {
                 throw {
                     status: response.status,
-                    message: 'Ошибка при присоединении к проекту'
+                    message: 'Ошибка получения владельца проекта'
                 };
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Ошибка при присоединении к проекту:', error);
+            console.error('Ошибка при получении владельца проекта:', error);
+            throw error;
+        }
+    },
+
+    // Передача прав на проект (согласно документации PUT /api/v1/projects/{id}/owner/)
+    transferProjectOwnership: async (projectId: number, newOwnerId: number): Promise<{
+        id: number;
+        email: string;
+        first_name: string;
+        last_name: string;
+        city: string;
+        avatar: string | null;
+    }> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.PROJECTS.TRANSFER_OWNERSHIP(projectId), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                },
+                body: JSON.stringify({ new_owner_id: newOwnerId })
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка при передаче прав на проект'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при передаче прав на проект:', error);
             throw error;
         }
     },
@@ -400,7 +440,7 @@ export const projectService = {
     // Назначение отдела участнику
     assignDepartmentToMember: async (projectId: number, userId: number, departmentId: number): Promise<{ success: boolean }> => {
         try {
-            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.ASSIGN_DEPARTMENT(projectId, userId, departmentId), {
+            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.ASSIGN_DEPARTMENT(projectId, userId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

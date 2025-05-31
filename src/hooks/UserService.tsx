@@ -33,13 +33,6 @@ export interface UserProjectsResponse {
     projects: UserProject[];
 }
 
-// Интерфейс для достижений (пока что заглушка, так как в API нет)
-export interface Achievement {
-    id: number;
-    title: string;
-    icon?: string;
-}
-
 // Интерфейс для обновления пользователя
 export interface UpdateUserData {
     first_name?: string;
@@ -204,7 +197,7 @@ export const userService = {
         }
     },
 
-    // Поиск пользователей (уже есть в projectService, но добавим сюда для полноты)
+    // Поиск пользователей
     searchUsers: async (searchQuery: string, page: number = 1, perPage: number = 10): Promise<{
         users: User[],
         count: number,
@@ -250,18 +243,12 @@ export const userService = {
         }
     },
 
-    // Получение достижений (заглушка, так как в API пока нет)
-    getUserAchievements: async (): Promise<Achievement[]> => {
-        // TODO: Заменить на реальный API когда будет добавлен
-        return Promise.resolve([]);
-    },
-
     // Преобразование API проекта в формат для UI
     convertProjectForUI: (project: UserProject) => ({
         id: project.id,
         title: project.title,
         isPrivate: !project.is_public,
-        emoji: '📁', // По умолчанию, можно добавить логику определения эмодзи
+        emoji: '📁', // TODO: По умолчанию, можно добавить логику определения эмодзи??? :D
         description: project.description,
         owner: project.owner,
         date_created: project.date_created

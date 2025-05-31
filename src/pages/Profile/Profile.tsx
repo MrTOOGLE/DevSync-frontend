@@ -6,7 +6,7 @@ import { ErrorField } from "../../components/common/ErrorField/ErrorField.tsx";
 import { Button } from "../../components/common/Button/Button.tsx";
 import { Input } from "../../components/common/Input/Input.tsx";
 import { Select } from "../../components/common/Select/Select.tsx";
-import { userService, User, UserProject, Achievement } from '../../hooks/UserService.tsx';
+import { userService, User, UserProject } from '../../hooks/UserService.tsx';
 import '../../styles/styles.css';
 import styles from '../../styles/Profile.module.css';
 
@@ -28,7 +28,6 @@ interface UIProject {
 interface LoadingStates {
     user: boolean;
     projects: boolean;
-    achievements: boolean;
     updating: boolean;
 }
 
@@ -46,13 +45,11 @@ const ProfilePage: React.FC = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState<User | null>(null);
     const [projects, setProjects] = useState<UIProject[]>([]);
-    const [achievements, setAchievements] = useState<Achievement[]>([]);
 
     // Состояния загрузки
     const [loading, setLoading] = useState<LoadingStates>({
         user: true,
         projects: true,
-        achievements: true,
         updating: false
     });
 
@@ -73,7 +70,6 @@ const ProfilePage: React.FC = () => {
     useEffect(() => {
         loadUserData();
         loadUserProjects();
-        loadUserAchievements();
     }, []);
 
     // Загрузка данных пользователя
@@ -121,20 +117,6 @@ const ProfilePage: React.FC = () => {
             setProjects([]);
         } finally {
             setLoading(prev => ({ ...prev, projects: false }));
-        }
-    };
-
-    // Загрузка достижений пользователя
-    const loadUserAchievements = async () => {
-        try {
-            setLoading(prev => ({ ...prev, achievements: true }));
-            const userAchievements = await userService.getUserAchievements();
-            setAchievements(userAchievements);
-        } catch (error: any) {
-            console.error('Ошибка загрузки достижений:', error);
-            setAchievements([]);
-        } finally {
-            setLoading(prev => ({ ...prev, achievements: false }));
         }
     };
 
@@ -301,7 +283,7 @@ const ProfilePage: React.FC = () => {
             <Header />
             <div className="main-content">
                 <div className={styles.profileContainer}>
-                    {/* Левая колонка - аватар и достижения */}
+                    {/* Левая колонка - только аватар, убираем достижения */}
                     <div className={styles.profileLeftColumn}>
                         <div className={styles.profileAvatarContainer}>
                             <img
@@ -323,24 +305,6 @@ const ProfilePage: React.FC = () => {
                                     </label>
                                 </div>
                             )}
-                        </div>
-                        <div className={styles.profileAchievements}>
-                            <h2>Мои достижения</h2>
-                            <div className={styles.achievementsContent}>
-                                {loading.achievements ? (
-                                    <p>Загрузка достижений...</p>
-                                ) : achievements.length > 0 ? (
-                                    <ul className={styles.achievementsList}>
-                                        {achievements.map((achievement) => (
-                                            <li key={achievement.id} className={styles.achievementItem}>
-                                                {achievement.icon} {achievement.title}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p>У вас пока нет достижений</p>
-                                )}
-                            </div>
                         </div>
                     </div>
 
