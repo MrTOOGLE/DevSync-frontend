@@ -1,256 +1,310 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Header} from "../../components/common/Header/Header.tsx";
-import {Footer} from "../../components/common/Footer/Footer.tsx";
-import {profileService, UserProfile} from "../../hooks/ProfileService.tsx";
-import {projectService} from "../../hooks/CreateProjectService.tsx";
-import {Input} from "../../components/common/Input/Input.tsx";
-import {Button} from "../../components/common/Button/Button.tsx";
-import {ErrorField} from "../../components/common/ErrorField/ErrorField.tsx";
-import "../../styles/styles.css";
+import { Header } from "../../components/common/Header/Header.tsx";
+import { Footer } from "../../components/common/Footer/Footer.tsx";
+import { ErrorField } from "../../components/common/ErrorField/ErrorField.tsx";
+import { Button } from "../../components/common/Button/Button.tsx";
+import { Input } from "../../components/common/Input/Input.tsx";
+import { Select } from "../../components/common/Select/Select.tsx";
+import { userService, User, UserProject } from '../../hooks/UserService.tsx';
+import '../../styles/styles.css';
 import styles from '../../styles/Profile.module.css';
-import defaultAvatarImage from '../../photos/avatar.png';
 
-// Типы для данных достижений
-interface Achievement {
-    id: number;
-    title: string;
-    icon?: string;
-}
+// Список городов (как в регистрации)
+const cities = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань'];
 
-// Типы для данных проектов
-interface Project {
+// Типы для проекта в UI
+interface UIProject {
     id: number;
     title: string;
     isPrivate: boolean;
     emoji: string;
+    description?: string;
+    owner?: any;
+    date_created?: string;
+}
+
+// Состояния загрузки
+interface LoadingStates {
+    user: boolean;
+    projects: boolean;
+    updating: boolean;
+}
+
+// Состояние редактирования
+interface EditState {
+    isEditing: boolean;
+    firstName: string;
+    lastName: string;
+    city: string;
+    avatar: File | null;
 }
 
 const ProfilePage: React.FC = () => {
+    // Основные данные
     const navigate = useNavigate();
+    const [user, setUser] = useState<User | null>(null);
+    const [projects, setProjects] = useState<UIProject[]>([]);
 
-    // Состояние профиля
-    const [isLoading, setIsLoading] = useState(true);
-    const [isEditing, setIsEditing] = useState(false);
-    const [userData, setUserData] = useState<UserProfile | null>(null);
-    const [achievements] = useState<Achievement[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    // Состояние формы
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        city: ''
+    // Состояния загрузки
+    const [loading, setLoading] = useState<LoadingStates>({
+        user: true,
+        projects: true,
+        updating: false
     });
 
-    // Аватар
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
-    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    // Состояние редактирования
+    const [editState, setEditState] = useState<EditState>({
+        isEditing: false,
+        firstName: '',
+        lastName: '',
+        city: '',
+        avatar: null
+    });
 
-    // Загрузка данных профиля
+    // Ошибки
+    const [errors, setErrors] = useState<{[key: string]: string}>({});
+    const [serverError, setServerError] = useState<string>('');
+
+    // Загрузка данных при монтировании
     useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                // Получаем данные пользователя
-                const userData = await profileService.getCurrentUser();
-
-                // Заполняем форму данными пользователя
-                setUserData(userData);
-                setFormData({
-                    firstName: userData.first_name || '',
-                    lastName: userData.last_name || '',
-                    email: userData.email || '',
-                    city: userData.city || ''
-                });
-                // @ts-ignore
-                setAvatarPreview(userData.avatar);
-
-                // Получаем проекты пользователя
-                try {
-                    const userProjects = await projectService.getProjects();
-
-                    // Преобразуем проекты в нужный формат
-                    const formattedProjects = userProjects.map(project => ({
-                        id: project.id!,
-                        title: project.title,
-                        isPrivate: !project.is_public,
-                        emoji: '🚀' // Заглушка, в реальном API нужно будет брать из данных проекта
-                    }));
-
-                    setProjects(formattedProjects);
-                } catch (error) {
-                    console.error('Ошибка при загрузке проектов:', error);
-                }
-
-                // TODO: Загрузка достижений пользователя, если API будет поддерживать
-
-                setIsLoading(false);
-            } catch (error) {
-                console.error('Ошибка при загрузке данных профиля:', error);
-                setErrors({
-                    general: 'Не удалось загрузить данные профиля'
-                });
-                setIsLoading(false);
-            }
-        };
-
-        fetchUserData();
+        loadUserData();
+        loadUserProjects();
     }, []);
 
-    // Обработчик изменения полей формы
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const {name, value} = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    // Обработчик изменения аватара
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const preview = URL.createObjectURL(file);
-
-            setAvatarFile(file);
-            setAvatarPreview(preview);
-        }
-    };
-
-    // Включение режима редактирования
-    const handleEdit = () => {
-        setIsEditing(true);
-    };
-
-    // Отмена редактирования
-    const handleCancel = () => {
-        // Возвращаем изначальные данные из userData
-        if (userData) {
-            setFormData({
-                firstName: userData.first_name || '',
-                lastName: userData.last_name || '',
-                email: userData.email || '',
-                city: userData.city || ''
-            });
-            setAvatarFile(null);
-            // @ts-ignore
-            setAvatarPreview(userData.avatar);
-            setErrors({});
-            setIsEditing(false);
-        }
-    };
-
-    // Сохранение обновленных данных профиля
-    const handleSave = async () => {
+    // Загрузка данных пользователя
+    const loadUserData = async () => {
         try {
-            setIsLoading(true);
-            setErrors({});
+            setLoading(prev => ({ ...prev, user: true }));
+            const userData = await userService.getCurrentUser();
+            setUser(userData);
 
-            // Подготовка данных для обновления
-            const updateData: Partial<UserProfile> = {
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                city: formData.city
+            // Инициализируем данные для редактирования
+            setEditState(prev => ({
+                ...prev,
+                firstName: userData.first_name,
+                lastName: userData.last_name,
+                city: userData.city
+            }));
+        } catch (error: any) {
+            console.error('Ошибка загрузки данных пользователя:', error);
+            setServerError(error.message || 'Ошибка загрузки профиля');
+        } finally {
+            setLoading(prev => ({ ...prev, user: false }));
+        }
+    };
+
+    // Загрузка проектов пользователя
+    const loadUserProjects = async () => {
+        try {
+            setLoading(prev => ({ ...prev, projects: true }));
+            const userProjects = await userService.getUserProjects();
+
+            // Преобразуем проекты для UI
+            const uiProjects: UIProject[] = userProjects.map(project => ({
+                id: project.id,
+                title: project.title,
+                isPrivate: !project.is_public,
+                emoji: getProjectEmoji(project),
+                description: project.description,
+                owner: project.owner,
+                date_created: project.date_created
+            }));
+
+            setProjects(uiProjects);
+        } catch (error: any) {
+            console.error('Ошибка загрузки проектов:', error);
+            setProjects([]);
+        } finally {
+            setLoading(prev => ({ ...prev, projects: false }));
+        }
+    };
+
+    // Определение эмодзи для проекта (простая логика)
+    const getProjectEmoji = (project: UserProject): string => {
+        const title = project.title.toLowerCase();
+        if (title.includes('робот') || title.includes('bot')) return '🤖';
+        if (title.includes('сайт') || title.includes('web')) return '🌐';
+        if (title.includes('игр') || title.includes('game')) return '🎮';
+        if (title.includes('мобильн') || title.includes('mobile')) return '📱';
+        if (title.includes('дизайн') || title.includes('design')) return '🎨';
+        return '📁';
+    };
+
+    // Переключение режима редактирования
+    const handleEditToggle = () => {
+        if (editState.isEditing) {
+            // Отмена редактирования - возвращаем исходные данные
+            if (user) {
+                setEditState({
+                    isEditing: false,
+                    firstName: user.first_name,
+                    lastName: user.last_name,
+                    city: user.city,
+                    avatar: null
+                });
+            }
+        } else {
+            // Начинаем редактирование
+            setEditState(prev => ({ ...prev, isEditing: true }));
+        }
+        setErrors({});
+        setServerError('');
+    };
+
+    // Обработка изменения полей
+    const handleInputChange = (field: keyof EditState, value: string) => {
+        setEditState(prev => ({ ...prev, [field]: value }));
+        // Удаляем ошибку для этого поля
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: '' }));
+        }
+    };
+
+    // Обработка изменения селекта города
+    const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        setEditState(prev => ({ ...prev, city: value }));
+        // Удаляем ошибку для города
+        if (errors.city) {
+            setErrors(prev => ({ ...prev, city: '' }));
+        }
+    };
+
+    // Обработка загрузки файла
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setEditState(prev => ({ ...prev, avatar: file }));
+    };
+
+    // Валидация формы
+    const validateForm = (): boolean => {
+        const newErrors: {[key: string]: string} = {};
+
+        if (!editState.firstName.trim()) {
+            newErrors.firstName = 'Имя обязательно для заполнения';
+        }
+
+        if (!editState.lastName.trim()) {
+            newErrors.lastName = 'Фамилия обязательна для заполнения';
+        }
+
+        if (!editState.city.trim()) {
+            newErrors.city = 'Город обязателен для заполнения';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    // Сохранение изменений
+    const handleSaveChanges = async () => {
+        if (!validateForm()) return;
+
+        try {
+            setLoading(prev => ({ ...prev, updating: true }));
+            setServerError('');
+
+            const updateData = {
+                first_name: editState.firstName,
+                last_name: editState.lastName,
+                city: editState.city,
+                avatar: editState.avatar
             };
 
-            if (avatarFile) {
-                updateData.avatar = avatarFile;
-            }
+            const updatedUser = await userService.updateCurrentUser(updateData);
+            setUser(updatedUser);
 
-            // Вызов метода обновления профиля
-            const updatedProfile = await profileService.updateProfile(updateData);
-
-            // Обновление состояния после успешного сохранения
-            setUserData(updatedProfile);
-            setAvatarFile(null);
-            setIsEditing(false);
-            setIsLoading(false);
-
+            // Выходим из режима редактирования
+            setEditState(prev => ({ ...prev, isEditing: false, avatar: null }));
         } catch (error: any) {
-            console.error('Ошибка при сохранении профиля:', error);
-
-            // Обработка ошибок API
-            const apiErrors: Record<string, string> = {};
-
+            console.error('Ошибка обновления профиля:', error);
             if (error.data) {
-                // Маппинг ошибок API на поля формы
-                if (error.data.first_name) apiErrors.firstName = error.data.first_name[0];
-                if (error.data.last_name) apiErrors.lastName = error.data.last_name[0];
-                if (error.data.city) apiErrors.city = error.data.city[0];
-                if (error.data.avatar) apiErrors.avatar = error.data.avatar[0];
+                setErrors(error.data);
+            } else {
+                setServerError(error.message || 'Ошибка сохранения изменений');
             }
-
-            if (Object.keys(apiErrors).length === 0) {
-                apiErrors.general = 'Произошла ошибка при сохранении профиля';
-            }
-
-            setErrors(apiErrors);
-            setIsLoading(false);
+        } finally {
+            setLoading(prev => ({ ...prev, updating: false }));
         }
     };
 
-    // Обработчик для открытия проекта
+    // Переход к проекту
     const handleOpenProject = (projectId: number) => {
         navigate(`/projects/${projectId}`);
     };
 
     // Переход на страницу всех проектов
     const navigateToAllProjects = () => {
-        navigate('/projects');
+        console.log('Переход на страницу всех проектов');
+        // navigate('/projects');
     };
 
-    // Создание нового проекта
-    const handleCreateProject = () => {
-        navigate('/create-project');
-    };
+    // Показать загрузку
+    if (loading.user) {
+        return (
+            <div className="main-container">
+                <Header />
+                <div className="main-content">
+                    <div className={styles.loadingContainer}>
+                        <h2>Загрузка профиля...</h2>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
-    if (isLoading && !userData) {
-        return <div className={styles.loading}>Загрузка данных профиля...</div>;
+    // Показать ошибку, если не удалось загрузить пользователя
+    if (!user && serverError) {
+        return (
+            <div className="main-container">
+                <Header />
+                <div className="main-content">
+                    <div className={styles.loadingContainer}>
+                        <h2>Ошибка загрузки профиля</h2>
+                        <ErrorField message={serverError} />
+                        <Button onClick={loadUserData} style={{ marginTop: '20px' }}>
+                            Попробовать снова
+                        </Button>
+                    </div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return null;
     }
 
     return (
         <div className="main-container">
-            <Header/>
+            <Header />
             <div className="main-content">
                 <div className={styles.profileContainer}>
+                    {/* Левая колонка - только аватар, убираем достижения */}
                     <div className={styles.profileLeftColumn}>
                         <div className={styles.profileAvatarContainer}>
                             <img
-                                //@ts-ignore
-                                src={avatarPreview || userData?.avatar || defaultAvatarImage}
+                                src={user.avatar || 'https://via.placeholder.com/200x200?text=Аватар'}
                                 alt="Аватар пользователя"
                                 className={styles.profileAvatar}
                             />
-                            {isEditing && (
+                            {editState.isEditing && (
                                 <div className={styles.avatarUpload}>
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={handleAvatarChange}
                                         id="avatar-upload"
+                                        style={{ display: 'none' }}
                                     />
-                                    <label htmlFor="avatar-upload">Изменить аватар</label>
-                                    {errors.avatar && <ErrorField message={errors.avatar}/>}
+                                    <label htmlFor="avatar-upload" className={styles.avatarUploadButton}>
+                                        Изменить фото
+                                    </label>
                                 </div>
                             )}
-                        </div>
-                        <div className={styles.profileAchievements}>
-                            <h2>Мои достижения</h2>
-                            <div className={styles.achievementsContent}>
-                                {achievements.length > 0 ? (
-                                    <ul className={styles.achievementsList}>
-                                        {achievements.map((achievement) => (
-                                            <li key={achievement.id} className={styles.achievementItem}>
-                                                {achievement.icon} {achievement.title}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p>У вас пока нет достижений</p>
-                                )}
-                            </div>
                         </div>
                     </div>
 
@@ -259,128 +313,127 @@ const ProfilePage: React.FC = () => {
                         <div className={styles.profileInfoContainer}>
                             <div className={styles.profileInfoHeader}>
                                 <h2>Личная информация</h2>
-                                {isEditing ? (
-                                    <div className={styles.editButtons}>
-                                        <Button onClick={handleSave} disabled={isLoading} className={styles.editButton}>
-                                            {isLoading ? 'Сохранение...' : 'Сохранить'}
-                                        </Button>
-                                        <Button onClick={handleCancel} disabled={isLoading}
-                                                className={styles.editButton}>
-                                            Отмена
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <Button onClick={handleEdit} className={styles.editButton}>Изменить</Button>
-                                )}
+                                <button
+                                    onClick={editState.isEditing ? handleEditToggle : handleEditToggle}
+                                    className={styles.editButton}
+                                    disabled={loading.updating}
+                                >
+                                    {editState.isEditing ? 'Отменить' : 'Изменить'}
+                                </button>
                             </div>
-                            {errors.general && (
-                                <div className={styles.errorMessage}>
-                                    <ErrorField message={errors.general}/>
+
+                            {serverError && <ErrorField message={serverError} />}
+
+                            <div className={styles.profileInfoContent}>
+                                <div className={styles.profileInfoItem}>
+                                    <span className={styles.infoLabel}>Имя</span>
+                                    {editState.isEditing ? (
+                                        <div>
+                                            <Input
+                                                value={editState.firstName}
+                                                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                                hasError={!!errors.firstName}
+                                                placeholder="Введите имя"
+                                            />
+                                            {errors.firstName && <ErrorField message={errors.firstName} />}
+                                        </div>
+                                    ) : (
+                                        <span className={styles.infoValue}>{user.first_name}</span>
+                                    )}
+                                </div>
+
+                                <div className={styles.profileInfoItem}>
+                                    <span className={styles.infoLabel}>Фамилия</span>
+                                    {editState.isEditing ? (
+                                        <div>
+                                            <Input
+                                                value={editState.lastName}
+                                                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                                                hasError={!!errors.lastName}
+                                                placeholder="Введите фамилию"
+                                            />
+                                            {errors.lastName && <ErrorField message={errors.lastName} />}
+                                        </div>
+                                    ) : (
+                                        <span className={styles.infoValue}>{user.last_name}</span>
+                                    )}
+                                </div>
+
+                                <div className={styles.profileInfoItem}>
+                                    <span className={styles.infoLabel}>Email</span>
+                                    <span className={styles.infoValue}>{user.email}</span>
+                                </div>
+
+                                <div className={styles.profileInfoItem}>
+                                    <span className={styles.infoLabel}>Город</span>
+                                    {editState.isEditing ? (
+                                        <div>
+                                            <Select
+                                                name="city"
+                                                value={editState.city}
+                                                onChange={handleCityChange}
+                                                hasError={!!errors.city}
+                                            >
+                                                <option value="">Выберите город*</option>
+                                                {cities.map(city => (
+                                                    <option key={city} value={city}>{city}</option>
+                                                ))}
+                                            </Select>
+                                            {errors.city && <ErrorField message={errors.city} />}
+                                        </div>
+                                    ) : (
+                                        <span className={styles.infoValue}>{user.city}</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {editState.isEditing && (
+                                <div className={styles.editActions}>
+                                    <Button
+                                        onClick={handleSaveChanges}
+                                        disabled={loading.updating}
+                                    >
+                                        {loading.updating ? 'Сохранение...' : 'Сохранить'}
+                                    </Button>
                                 </div>
                             )}
-                            <div className={styles.profileInfoContent}>
-                                {isEditing ? (
-                                    // Форма редактирования
-                                    <>
-                                        <div className={styles.profileInfoItem}>
-                                            <label className={styles.infoLabel}>Имя</label>
-                                            <Input
-                                                type="text"
-                                                name="firstName"
-                                                value={formData.firstName}
-                                                onChange={handleInputChange}
-                                                hasError={!!errors.firstName}
-                                            />
-                                            {errors.firstName && <ErrorField message={errors.firstName}/>}
-                                        </div>
-                                        <div className={styles.profileInfoItem}>
-                                            <label className={styles.infoLabel}>Фамилия</label>
-                                            <Input
-                                                type="text"
-                                                name="lastName"
-                                                value={formData.lastName}
-                                                onChange={handleInputChange}
-                                                hasError={!!errors.lastName}
-                                            />
-                                            {errors.lastName && <ErrorField message={errors.lastName}/>}
-                                        </div>
-                                        <div className={styles.profileInfoItem}>
-                                            <label className={styles.infoLabel}>Email</label>
-                                            <span className={styles.infoValue}>{formData.email}</span>
-                                            <p className={styles.infoHint}>Email нельзя изменить</p>
-                                        </div>
-                                        <div className={styles.profileInfoItem}>
-                                            <label className={styles.infoLabel}>Город</label>
-                                            <Input
-                                                type="text"
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleInputChange}
-                                                hasError={!!errors.city}
-                                            />
-                                            {errors.city && <ErrorField message={errors.city}/>}
-                                        </div>
-                                    </>
-                                ) : (
-                                    // Отображение информации
-                                    <>
-                                        <div className={styles.profileInfoItem}>
-                                            <span className={styles.infoLabel}>Имя</span>
-                                            <span className={styles.infoValue}>{userData?.first_name}</span>
-                                        </div>
-                                        <div className={styles.profileInfoItem}>
-                                            <span className={styles.infoLabel}>Фамилия</span>
-                                            <span className={styles.infoValue}>{userData?.last_name}</span>
-                                        </div>
-                                        <div className={styles.profileInfoItem}>
-                                            <span className={styles.infoLabel}>Email</span>
-                                            <span className={styles.infoValue}>{userData?.email}</span>
-                                        </div>
-                                        <div className={styles.profileInfoItem}>
-                                            <span className={styles.infoLabel}>Город</span>
-                                            <span className={styles.infoValue}>{userData?.city}</span>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Секция с проектами пользователя */}
                 <div className={styles.profileProjectsSection}>
-                    <div className={styles.profileProjectsContainer}>
-                        <div className={styles.projectsHeader}>
-                            <h2>Мои проекты</h2>
-                        </div>
+                    <h2>Мои проекты</h2>
+                    {loading.projects ? (
+                        <p>Загрузка проектов...</p>
+                    ) : projects.length > 0 ? (
                         <div className={styles.projectsList}>
-                            {projects.length > 0 ? (
-                                projects.map((project) => (
-                                    <div
-                                        key={project.id}
-                                        className={styles.projectItem}
-                                        onClick={() => handleOpenProject(project.id)}
-                                    >
-                                        <span className={styles.projectEmoji}>{project.emoji}</span>
-                                        <span className={styles.projectTitle}>{project.title}</span>
-                                        {project.isPrivate && (
-                                            <span className={styles.projectPrivateIcon}>🔒</span>
-                                        )}
-                                    </div>
-                                ))
-                            ) : (
-                                <p>У вас пока нет проектов</p>
-                            )}
+                            {projects.map((project) => (
+                                <div
+                                    key={project.id}
+                                    className={styles.projectItem}
+                                    onClick={() => handleOpenProject(project.id)}
+                                >
+                                    <span className={styles.projectEmoji}>{project.emoji}</span>
+                                    <span className={styles.projectTitle}>{project.title}</span>
+                                    {project.isPrivate && (
+                                        <span className={styles.projectPrivateIcon}>🔒</span>
+                                    )}
+                                </div>
+                            ))}
                         </div>
-                        <div className={styles.allProjectsButtonContainer}>
-                            <Button onClick={navigateToAllProjects}>
-                                Все проекты
-                            </Button>
-                        </div>
+                    ) : (
+                        <p>У вас пока нет проектов</p>
+                    )}
+
+                    <div className={styles.allProjectsButtonContainer}>
+                        <button onClick={navigateToAllProjects} className={styles.allProjectsButton}>
+                            Все проекты
+                        </button>
                     </div>
                 </div>
             </div>
-            <Footer/>
+            <Footer />
         </div>
     );
 };

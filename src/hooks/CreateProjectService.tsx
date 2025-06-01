@@ -18,14 +18,6 @@ export interface ProjectData {
     avatar?: string | null;
 }
 
-// Типы для пользователя в поиск
-export interface UserSearchResult {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string | null;
-}
-
 // Типы для участника проекта
 export interface ProjectMember {
     user: {
@@ -67,6 +59,27 @@ export interface Invitation {
     date_created?: string;
 }
 
+// Типы для пользователя в поиске
+export interface UserSearchResult {
+    id: number;
+    email: string;
+    first_name: string;
+    last_name: string;
+    city: string;
+    avatar: string | null;
+}
+
+// Интерфейс для ответа API поиска пользователей
+export interface UsersSearchResponse {
+    links: {
+        next: string | null;
+        previous: string | null;
+    };
+    count: number;
+    total_pages: number;
+    users: UserSearchResult[];
+}
+
 // Интерфейс для ошибок API
 export interface ApiError {
     status?: number;
@@ -78,6 +91,39 @@ export interface ApiError {
  * Сервис для работы с проектами
  */
 export const projectService = {
+    // Поиск пользователей по запросу
+    searchUsers: async (searchQuery: string, page: number = 1, perPage: number = 10): Promise<UsersSearchResponse> => {
+        try {
+            const url = new URL(API_CONFIG.FULL_URL.USERS.BASE_URL);
+
+            if (searchQuery) {
+                url.searchParams.append('search', searchQuery);
+            }
+            url.searchParams.append('page', page.toString());
+            url.searchParams.append('per_page', perPage.toString());
+
+            const response = await fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка поиска пользователей'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при поиске пользователей:', error);
+            throw error;
+        }
+    },
+
     // Получение списка проектов пользователя
     getProjects: async (): Promise<ProjectData[]> => {
         try {
@@ -250,11 +296,11 @@ export const projectService = {
         }
     },
 
-    // Выход из проекта
+    // Выход из проекта (согласно документации DELETE /api/v1/projects/{id}/me/)
     leaveProject: async (projectId: number): Promise<{ success: boolean }> => {
         try {
             const response = await fetch(API_CONFIG.FULL_URL.PROJECTS.LEAVE_PROJECT(projectId), {
-                method: 'POST',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     ...authService.getAuthHeaders()
@@ -275,11 +321,18 @@ export const projectService = {
         }
     },
 
-    // Присоединение к проекту
-    joinProject: async (projectId: number): Promise<{ success: boolean }> => {
+    // Получение владельца проекта
+    getProjectOwner: async (projectId: number): Promise<{
+        id: number;
+        email: string;
+        first_name: string;
+        last_name: string;
+        city: string;
+        avatar: string | null;
+    }> => {
         try {
-            const response = await fetch(API_CONFIG.FULL_URL.PROJECTS.JOIN_PROJECT(projectId), {
-                method: 'POST',
+            const response = await fetch(API_CONFIG.FULL_URL.PROJECTS.PROJECT_OWNER(projectId), {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     ...authService.getAuthHeaders()
@@ -289,13 +342,46 @@ export const projectService = {
             if (!response.ok) {
                 throw {
                     status: response.status,
-                    message: 'Ошибка при присоединении к проекту'
+                    message: 'Ошибка получения владельца проекта'
                 };
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Ошибка при присоединении к проекту:', error);
+            console.error('Ошибка при получении владельца проекта:', error);
+            throw error;
+        }
+    },
+
+    // Передача прав на проект (согласно документации PUT /api/v1/projects/{id}/owner/)
+    transferProjectOwnership: async (projectId: number, newOwnerId: number): Promise<{
+        id: number;
+        email: string;
+        first_name: string;
+        last_name: string;
+        city: string;
+        avatar: string | null;
+    }> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.PROJECTS.TRANSFER_OWNERSHIP(projectId), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                },
+                body: JSON.stringify({ new_owner_id: newOwnerId })
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка при передаче прав на проект'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при передаче прав на проект:', error);
             throw error;
         }
     },
@@ -351,54 +437,30 @@ export const projectService = {
         }
     },
 
-    // Поиск участников
-    searchUsers: async (query: string): Promise<UserSearchResult[]> => {
+    // Назначение отдела участнику
+    assignDepartmentToMember: async (projectId: number, userId: number, departmentId: number): Promise<{ success: boolean }> => {
         try {
-            const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/users/search?query=${encodeURIComponent(query)}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...authService.getAuthHeaders()
-                }
-            });
-
-            if (!response.ok) {
-                throw {
-                    status: response.status,
-                    message: 'Ошибка поиска пользователей'
-                };
-            }
-
-            const data = await response.json();
-            return data.users || [];
-        } catch (error) {
-            console.error('Ошибка при поиске пользователей:', error);
-            // В случае ошибки возвращаем пустой массив
-            return [];
-        }
-    },
-
-    // Назначение пользователя в отдел
-    assignUserToDepartment: async (projectId: number, userId: number, departmentId: number): Promise<{ success: boolean }> => {
-        try {
-            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.ASSIGN_DEPARTMENT(projectId, userId, departmentId), {
+            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.ASSIGN_DEPARTMENT(projectId, userId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...authService.getAuthHeaders()
-                }
+                },
+                body: JSON.stringify({ department_id: departmentId })
             });
 
             if (!response.ok) {
+                const errorData = await response.json();
                 throw {
                     status: response.status,
-                    message: 'Ошибка назначения пользователя в отдел'
+                    data: errorData,
+                    message: 'Ошибка назначения отдела участнику'
                 };
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Ошибка при назначении пользователя в отдел:', error);
+            console.error('Ошибка при назначении отдела участнику:', error);
             throw error;
         }
     },

@@ -1,0 +1,727 @@
+/* Общие стили для страниц управления проектом */
+.projectContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.loadingContainer, .errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+}
+
+.loadingContainer h2, .errorContainer h2 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 24px;
+    color: #353536;
+    margin-bottom: 20px;
+}
+
+/* Заголовок проекта */
+.projectHeader {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #F6F7F8;
+}
+
+.projectTitle h1 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: #353536;
+    margin: 0 0 10px 0;
+}
+
+.projectMeta {
+    display: flex;
+    gap: 20px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    color: #7C7C7C;
+}
+
+.projectOwner, .projectStatus {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Навигация по табам */
+.tabNavigation {
+    display: flex;
+    gap: 0;
+    margin-bottom: 30px;
+    background-color: #F6F7F8;
+    border-radius: 14px;
+    padding: 4px;
+}
+
+.tabButton {
+    flex: 1;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #7C7C7C;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+    color: #353536;
+    background-color: rgba(255, 221, 45, 0.1);
+}
+
+.tabActive {
+    background-color: #FFDD2D !important;
+    color: #353536 !important;
+    font-weight: 500;
+}
+
+.tabContent {
+    min-height: 500px;
+}
+
+/* Секции */
+.section {
+    margin-bottom: 40px;
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sectionTitle {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+    color: #353536;
+    margin: 0 0 20px 0;
+}
+
+.sectionDescription {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    color: #7C7C7C;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* Кнопки */
+.primaryButton {
+    background-color: #FFDD2D;
+    color: #353536;
+    border: none;
+    border-radius: 11px;
+    padding: 12px 24px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.primaryButton:hover:not(:disabled) {
+    background-color: #FFC641;
+}
+
+.primaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.secondaryButton {
+    background-color: #F6F7F8;
+    color: #353536;
+    border: 2px solid #E0E0E0;
+    border-radius: 11px;
+    padding: 10px 22px;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondaryButton:hover:not(:disabled) {
+    background-color: #E0E0E0;
+    border-color: #D0D0D0;
+}
+
+.secondaryButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.iconButton {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.iconButton:hover {
+    background-color: #F6F7F8;
+}
+
+.deleteButton {
+    color: #FF4444;
+}
+
+.deleteButton:hover {
+    background-color: #FEE0E0;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Формы */
+.formGroup {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.textarea {
+    width: 100%;
+    height: 120px;
+    border: none;
+    outline: none;
+    border-radius: 14px;
+    background-color: #F6F7F8;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 140%;
+    color: #353536;
+    padding: 16px 22px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    resize: vertical;
+}
+
+.textarea::placeholder {
+    color: #7C7C7C;
+}
+
+/* Списки элементов */
+.itemsList {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.itemCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #F6F7F8;
+    border-radius: 14px;
+    padding: 20px;
+    transition: all 0.2s ease;
+}
+
+.itemCard:hover {
+    background-color: #EEEFF0;
+}
+
+.itemInfo {
+    flex: 1;
+}
+
+.itemTitle {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #353536;
+    margin-bottom: 5px;
+}
+
+.itemDescription {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    color: #7C7C7C;
+    line-height: 1.4;
+}
+
+.itemActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Пустые состояния */
+.emptyState {
+    text-align: center;
+    padding: 60px 20px;
+    color: #7C7C7C;
+}
+
+.emptyIcon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.emptyState h3 {
+    font-family: 'NT Somic', sans-serif;
+    font-size: 20px;
+    color: #353536;
+    margin: 0 0 10px 0;
+}
+
+.emptyState p {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    color: #7C7C7C;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Стили для таблицы задач */
+.tasksTable {
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tasksTableHeader {
+    display: grid;
+    grid-template-columns: auto 150px 150px 150px 40px;
+    gap: 20px;
+    padding: 20px;
+    background-color: #F6F7F8;
+    font-size: 16px;
+    font-weight: 500;
+    color: #353536;
+}
+
+.tasksTableRow {
+    display: grid;
+    grid-template-columns: auto 150px 150px 150px 40px;
+    gap: 20px;
+    padding: 20px;
+    border-top: 1px solid #F6F7F8;
+    align-items: center;
+}
+
+.tasksTableRow:first-child {
+    border-top: none;
+}
+
+.taskStatus {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+.taskStatusCompleted {
+    background-color: #28A745;
+}
+
+.taskStatusInProgress {
+    background-color: #FFDD2D;
+}
+
+.taskStatusNew {
+    background-color: #7C7C7C;
+}
+
+/* Стили для фильтров */
+.filtersPopup {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #FFFFFF;
+    border-radius: 14px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 8px;
+    z-index: 10;
+    min-width: 300px;
+}
+
+.filtersHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filtersSection {
+    margin-bottom: 20px;
+}
+
+.filtersSection h4 {
+    font-size: 16px;
+    color: #353536;
+    margin-bottom: 10px;
+}
+
+.filterTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filterTag {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filterTagActive {
+    background-color: #FFDD2D;
+    font-weight: 500;
+}
+
+.filterTagInactive {
+    background-color: #F6F7F8;
+    font-weight: 400;
+}
+
+.filterParticipants {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.filterParticipant {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.participantAvatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #FFDD2D;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Стили для модального окна создания задачи */
+.taskModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.taskModalContent {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.taskModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.taskModalHeader h3 {
+    font-size: 24px;
+    color: #353536;
+    margin: 0;
+}
+
+.taskModalClose {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #7C7C7C;
+    cursor: pointer;
+}
+
+.taskFormGroup {
+    margin-bottom: 20px;
+}
+
+.taskFormLabel {
+    font-size: 16px;
+    color: #353536;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.taskDateRange {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.taskDateRange span {
+    color: #7C7C7C;
+}
+
+.taskDepartmentSelect {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.taskDepartmentButton {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.taskDepartmentButtonActive {
+    background-color: #FFDD2D;
+    font-weight: 500;
+}
+
+.taskDepartmentButtonInactive {
+    background-color: #F6F7F8;
+    font-weight: 400;
+}
+
+.taskAssigneeSelect {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.taskAssignee {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.taskAssigneeActive {
+    background-color: #FFDD2D;
+    border: 2px solid #FFDD2D;
+}
+
+.taskAssigneeInactive {
+    background-color: #F6F7F8;
+    border: 2px solid transparent;
+}
+
+.taskAssigneeAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.taskAssigneeAvatarActive {
+    background-color: #FFFFFF;
+}
+
+.taskAssigneeAvatarInactive {
+    background-color: #FFDD2D;
+}
+
+/* Стили для раскрывающихся отделов */
+.departmentCard {
+    background-color: #F6F7F8;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.departmentHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    cursor: pointer;
+}
+
+.departmentTitle {
+    font-size: 18px;
+    font-weight: 500;
+    color: #353536;
+}
+
+.departmentDescription {
+    font-size: 14px;
+    color: #7C7C7C;
+    margin-top: 4px;
+}
+
+.departmentActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.departmentEditButton, .departmentDeleteButton {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.departmentDeleteButton {
+    color: #FF4444;
+}
+
+.departmentExpandIcon {
+    transition: transform 0.2s ease;
+    font-size: 14px;
+}
+
+.departmentExpandIconRotated {
+    transform: rotate(180deg);
+}
+
+.departmentContent {
+    padding: 20px;
+    background-color: #FFFFFF;
+    border-top: 1px solid #E0E0E0;
+}
+
+.departmentMembers {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.departmentMember {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #F6F7F8;
+    border-radius: 8px;
+}
+
+.departmentMemberAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #FFDD2D;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.departmentMemberInfo {
+    flex: 1;
+}
+
+.departmentMemberName {
+    font-size: 16px;
+    font-weight: 500;
+    color: #353536;
+}
+
+.departmentMemberEmail {
+    font-size: 14px;
+    color: #7C7C7C;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .projectContainer {
+        padding: 20px 15px;
+    }
+
+    .tabNavigation {
+        flex-direction: column;
+    }
+
+    .tabButton {
+        text-align: center;
+    }
+
+    .projectMeta {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .actionButtons {
+        flex-direction: column;
+    }
+
+    .itemCard {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .itemActions {
+        align-self: flex-end;
+    }
+
+    .tasksTableHeader,
+    .tasksTableRow {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .taskAssigneeSelect {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .taskDateRange {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .filtersPopup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1001;
+    }
+}

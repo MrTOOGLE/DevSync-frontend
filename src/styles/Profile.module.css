@@ -247,11 +247,6 @@
 
 .projectItem {
     cursor: pointer;
-    border-radius: 14px;
-    padding: 20px 24px;
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    justify-content: center;
 }
 
 .projectItem:hover {
@@ -277,7 +272,6 @@
     font-size: 18px;
     font-weight: 400;
     color: #353536;
-    padding: 10px 10px;
 }
 
 .projectPrivateIcon {

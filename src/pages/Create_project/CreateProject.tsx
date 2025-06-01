@@ -7,8 +7,7 @@ import { Button } from '../../components/common/Button/Button.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
 import { Header } from "../../components/common/Header/Header.tsx";
 import { Footer } from "../../components/common/Footer/Footer.tsx";
-import { projectService, ProjectData, Department } from '../../hooks/CreateProjectService.tsx';
-import notificationService from '../../hooks/NotificationService.tsx';
+import { projectService, ProjectData, Department, UserSearchResult } from '../../hooks/CreateProjectService.tsx';
 
 // Типы для формы создания проекта
 interface CreateProjectFormData {
@@ -17,12 +16,9 @@ interface CreateProjectFormData {
     is_public: boolean;
 }
 
-// Типы для пользователя в поиске
-interface UserSearchResult {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string | null;
+// Интерфейс для отдела с назначенными участниками
+interface DepartmentWithMembers extends Department {
+    assignedMembers: UserSearchResult[];
 }
 
 // Типы для ошибок формы
@@ -33,9 +29,6 @@ interface FormErrors {
     departments?: string;
     server?: string;
 }
-
-// Типы для обработки статуса создания проекта
-type CreateProjectStatus = 'idle' | 'creating' | 'success' | 'error';
 
 const CreateProjectPage: React.FC = () => {
     const navigate = useNavigate();
@@ -49,40 +42,21 @@ const CreateProjectPage: React.FC = () => {
 
     // Списки участников и отделов
     const [members, setMembers] = useState<UserSearchResult[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
+    const [departments, setDepartments] = useState<DepartmentWithMembers[]>([]);
     const [errors, setErrors] = useState<FormErrors>({});
     const [isLoading, setIsLoading] = useState(false);
-
-    // Статус создания проекта
-    const [createStatus, setCreateStatus] = useState<CreateProjectStatus>('idle');
-    const [createdProjectId, setCreatedProjectId] = useState<number | null>(null);
 
     // Поиск пользователей
     const [memberSearch, setMemberSearch] = useState('');
     const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
     // Состояния для полей отдела
     const [departmentTitle, setDepartmentTitle] = useState('');
     const [departmentDescription, setDepartmentDescription] = useState('');
 
-    // Инициализация уведомлений
-    useEffect(() => {
-        // Подключаем WebSocket для уведомлений при монтировании компонента
-        notificationService.connectWebSocket({
-            onNotification: (notification) => {
-                console.log('Получено новое уведомление:', notification);
-                // В зависимости от уведомления можно выполнять различные действия
-                if (notification.message.includes('приглашение') && createdProjectId) {
-                    // Отображаем уведомление о приглашенных пользователях
-                }
-            }
-        });
-
-        // Отключаем WebSocket при размонтировании компонента
-        return () => {
-            notificationService.disconnectWebSocket();
-        };
-    }, [createdProjectId]);
+    // Состояния для добавления участников в отделы
+    const [showAddMemberModal, setShowAddMemberModal] = useState<number | null>(null); // ID отдела для которого показываем модалку
 
     // Обработчик изменения полей формы
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -101,24 +75,27 @@ const CreateProjectPage: React.FC = () => {
         });
     };
 
-    // Поиск пользователей (заглушка для демонстрации)
+    // Поиск пользователей через API
     useEffect(() => {
-        if (memberSearch.length > 2) {
-            // Заглушка для поиска пользователей
-            const mockUsers: UserSearchResult[] = [
-                { id: 1, name: 'Александра Лапшакова', email: 'avk65@tbank.ru', avatar: null },
-                { id: 2, name: 'Иван Петров', email: 'ipetrov@tbank.ru', avatar: null },
-                { id: 3, name: 'Мария Смирнова', email: 'msmirnova@tbank.ru', avatar: null },
-                { id: 4, name: 'Алексей Козлов', email: 'akozlov@tbank.ru', avatar: null }
-            ];
+        const searchUsers = async () => {
+            if (memberSearch.length > 2) {
+                setIsSearching(true);
+                try {
+                    const response = await projectService.searchUsers(memberSearch, 1, 10);
+                    setSearchResults(response.users);
+                } catch (error) {
+                    console.error('Ошибка поиска пользователей:', error);
+                    setSearchResults([]);
+                } finally {
+                    setIsSearching(false);
+                }
+            } else {
+                setSearchResults([]);
+            }
+        };
 
-            setSearchResults(mockUsers.filter(user =>
-                user.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
-                user.email.toLowerCase().includes(memberSearch.toLowerCase())
-            ));
-        } else {
-            setSearchResults([]);
-        }
+        const debounceTimer = setTimeout(searchUsers, 300);
+        return () => clearTimeout(debounceTimer);
     }, [memberSearch]);
 
     // Добавление участника в список
@@ -140,10 +117,12 @@ const CreateProjectPage: React.FC = () => {
     // Добавление отдела
     const handleAddDepartment = () => {
         if (departmentTitle.trim()) {
-            setDepartments([...departments, {
+            const newDepartment: DepartmentWithMembers = {
                 title: departmentTitle,
-                description: departmentDescription
-            }]);
+                description: departmentDescription,
+                assignedMembers: []
+            };
+            setDepartments([...departments, newDepartment]);
             setDepartmentTitle('');
             setDepartmentDescription('');
         }
@@ -154,6 +133,38 @@ const CreateProjectPage: React.FC = () => {
         const newDepartments = [...departments];
         newDepartments.splice(index, 1);
         setDepartments(newDepartments);
+    };
+
+    // Показать модалку добавления участника в отдел
+    const handleShowAddMemberModal = (departmentIndex: number) => {
+        setShowAddMemberModal(departmentIndex);
+    };
+
+    // Скрыть модалку
+    const handleHideAddMemberModal = () => {
+        setShowAddMemberModal(null);
+    };
+
+    // Добавление участника в отдел из списка найденных
+    const handleAddMemberToDepartment = (departmentIndex: number, user: UserSearchResult) => {
+        const updatedDepartments = [...departments];
+
+        // Проверяем, не добавлен ли уже такой участник в отдел
+        if (!updatedDepartments[departmentIndex].assignedMembers.find(m => m.id === user.id)) {
+            updatedDepartments[departmentIndex].assignedMembers.push(user);
+            setDepartments(updatedDepartments);
+        }
+
+        // Закрываем модалку
+        setShowAddMemberModal(null);
+    };
+
+    // Удаление участника из отдела
+    const handleRemoveMemberFromDepartment = (departmentIndex: number, userId: number) => {
+        const updatedDepartments = [...departments];
+        updatedDepartments[departmentIndex].assignedMembers =
+            updatedDepartments[departmentIndex].assignedMembers.filter(m => m.id !== userId);
+        setDepartments(updatedDepartments);
     };
 
     // Валидация формы
@@ -174,7 +185,6 @@ const CreateProjectPage: React.FC = () => {
 
         try {
             setIsLoading(true);
-            setCreateStatus('creating');
 
             // Создаем проект
             const createdProject: ProjectData = await projectService.createProject({
@@ -183,36 +193,23 @@ const CreateProjectPage: React.FC = () => {
                 is_public: formData.is_public
             });
 
-            // Сохраняем ID созданного проекта
-            setCreatedProjectId(createdProject.id!);
-            setCreateStatus('success');
-
             // После успешного создания проекта, добавляем отделы
-            const departmentPromises = departments.map(department =>
-                projectService.createDepartment(createdProject.id!, {
+            for (const department of departments) {
+                await projectService.createDepartment(createdProject.id!, {
                     title: department.title,
                     description: department.description
-                })
-            );
-
-            await Promise.all(departmentPromises);
+                });
+            }
 
             // Приглашаем участников
-            const invitationPromises = members.map(member =>
-                projectService.createInvitation(createdProject.id!, member.id)
-            );
+            for (const member of members) {
+                await projectService.createInvitation(createdProject.id!, member.id);
+            }
 
-            await Promise.all(invitationPromises);
-
-            // Задержка перед перенаправлением, чтобы пользователь увидел уведомление об успехе
-            setTimeout(() => {
-                // Перенаправляем пользователя на страницу проекта
-                navigate(`/projects/${createdProject.id}`);
-            }, 2000);
-
+            // Перенаправляем пользователя на страницу проекта
+            navigate(`/projects/${createdProject.id}`);
         } catch (error: any) {
             console.error('Ошибка при создании проекта:', error);
-            setCreateStatus('error');
 
             if (error.data) {
                 const newErrors: FormErrors = {};
@@ -234,70 +231,30 @@ const CreateProjectPage: React.FC = () => {
         }
     };
 
-    // Компонент уведомления о статусе создания проекта
-    const renderStatusNotification = () => {
-        switch (createStatus) {
-            case 'creating':
-                return (
-                    <div className={styles.statusNotification}>
-                        <div className={styles.statusCreating}>
-                            <div className={styles.spinner}></div>
-                            <p>Создание проекта...</p>
-                        </div>
-                    </div>
-                );
-            case 'success':
-                return (
-                    <div className={styles.statusNotification}>
-                        <div className={styles.statusSuccess}>
-                            <div className={styles.successIcon}>✓</div>
-                            <p>Проект успешно создан! Перенаправление...</p>
-                        </div>
-                    </div>
-                );
-            case 'error':
-                return (
-                    <div className={styles.statusNotification}>
-                        <div className={styles.statusError}>
-                            <div className={styles.errorIcon}>✗</div>
-                            <p>Не удалось создать проект. Пожалуйста, попробуйте снова.</p>
-                        </div>
-                    </div>
-                );
-            default:
-                return null;
-        }
-    };
-
     return (
         <div className="main-container">
             <Header />
             <div className="main-content">
-                {/* Уведомление о статусе создания проекта */}
-                {renderStatusNotification()}
-
                 <div className={styles.createProjectContainer}>
-                    <div className={styles.sectionContainer}>
-                        <h1>Добавление сведений о проекте</h1>
-                        <p className={styles.subtitle}>
-                            Объедините усилия команды для достижения общих целей! Здесь вы можете создать новый
-                            групповой проект, определить его цели и пригласить участников для совместной работы.
-                        </p>
-                        <p className={styles.required}>Обязательные поля помечены звездочкой *</p>
+                    <h1>Добавление сведений о проекте</h1>
+                    <p className={styles.subtitle}>
+                        Объедините усилия команды для достижения общих целей! Здесь вы можете создать новый групповой проект, определить его цели и пригласить участников для совместной работы.
+                    </p>
+                    <p className={styles.required}>Обязательные поля помечены звездочкой *</p>
 
-                        {/* Основная информация о проекте */}
-                        <div className={styles.formGroup}>
-                            <Input
-                                name="title"
-                                placeholder="Название проекта*"
-                                value={formData.title}
-                                onChange={handleInputChange}
-                                hasError={!!errors.title}
-                            />
-                            {errors.title && <ErrorField message={errors.title} />}
-                        </div>
+                    {/* Основная информация о проекте */}
+                    <div className={styles.formGroup}>
+                        <Input
+                            name="title"
+                            placeholder="Название проекта*"
+                            value={formData.title}
+                            onChange={handleInputChange}
+                            hasError={!!errors.title}
+                        />
+                        {errors.title && <ErrorField message={errors.title} />}
+                    </div>
 
-                        <div className={styles.formGroup}>
+                    <div className={styles.formGroup}>
                         <textarea
                             name="description"
                             placeholder="Описание проекта (необязательно, но желательно)"
@@ -305,8 +262,6 @@ const CreateProjectPage: React.FC = () => {
                             onChange={handleInputChange}
                             className={styles.textarea}
                         />
-                        </div>
-                        <hr className={styles.yellowLine}/>
                     </div>
 
                     {/* Блок добавления участников */}
@@ -317,7 +272,7 @@ const CreateProjectPage: React.FC = () => {
                         <div className={styles.searchContainer}>
                             <div className={styles.searchInputWrapper}>
                                 <span className={styles.searchIcon}>🔍</span>
-                                <Input
+                                <input
                                     type="text"
                                     placeholder="Поиск"
                                     value={memberSearch}
@@ -329,7 +284,9 @@ const CreateProjectPage: React.FC = () => {
                             {/* Результаты поиска */}
                             {memberSearch.length > 2 && (
                                 <div className={styles.searchResults}>
-                                    {searchResults.length > 0 ? (
+                                    {isSearching ? (
+                                        <div className={styles.noResults}>Поиск...</div>
+                                    ) : searchResults.length > 0 ? (
                                         searchResults.map(user => (
                                             <div
                                                 key={user.id}
@@ -338,15 +295,15 @@ const CreateProjectPage: React.FC = () => {
                                             >
                                                 <div className={styles.userAvatar}>
                                                     {user.avatar ? (
-                                                        <img src={user.avatar} alt={user.name} />
+                                                        <img src={user.avatar} alt={`${user.first_name} ${user.last_name}`} />
                                                     ) : (
                                                         <div className={styles.defaultAvatar}>
-                                                            {user.name.charAt(0)}
+                                                            {user.first_name.charAt(0)}
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div className={styles.userInfo}>
-                                                    <div className={styles.userName}>{user.name}</div>
+                                                    <div className={styles.userName}>{user.first_name} {user.last_name}</div>
                                                     <div className={styles.userEmail}>{user.email}</div>
                                                 </div>
                                             </div>
@@ -366,15 +323,15 @@ const CreateProjectPage: React.FC = () => {
                                     <div key={member.id} className={styles.memberItem}>
                                         <div className={styles.memberAvatar}>
                                             {member.avatar ? (
-                                                <img src={member.avatar} alt={member.name} />
+                                                <img src={member.avatar} alt={`${member.first_name} ${member.last_name}`} />
                                             ) : (
                                                 <div className={styles.defaultAvatar}>
-                                                    {member.name.charAt(0)}
+                                                    {member.first_name.charAt(0)}
                                                 </div>
                                             )}
                                         </div>
                                         <div className={styles.memberInfo}>
-                                            <div className={styles.memberName}>{member.name}</div>
+                                            <div className={styles.memberName}>{member.first_name} {member.last_name}</div>
                                             <div className={styles.memberEmail}>{member.email}</div>
                                         </div>
                                         <button
@@ -388,7 +345,6 @@ const CreateProjectPage: React.FC = () => {
                                 ))}
                             </div>
                         )}
-                        <hr className={styles.yellowLine}/>
                     </div>
 
                     {/* Блок добавления отделов */}
@@ -437,9 +393,50 @@ const CreateProjectPage: React.FC = () => {
                                 {departments.map((department, index) => (
                                     <div key={index} className={styles.departmentItem}>
                                         <div className={styles.departmentContent}>
-                                            <h4 className={styles.departmentTitle}>{department.title}</h4>
+                                            <div className={styles.departmentHeader}>
+                                                <h4 className={styles.departmentTitle}>{department.title}</h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleShowAddMemberModal(index)}
+                                                    className={styles.addMemberButton}
+                                                    title="Добавить участника в отдел"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
                                             {department.description && (
                                                 <p className={styles.departmentDescription}>{department.description}</p>
+                                            )}
+
+                                            {/* Список участников отдела */}
+                                            {department.assignedMembers.length > 0 && (
+                                                <div className={styles.membersList}>
+                                                    <h5>Участники отдела:</h5>
+                                                    {department.assignedMembers.map(member => (
+                                                        <div key={member.id} className={styles.memberItem}>
+                                                            <div className={styles.memberAvatar}>
+                                                                {member.avatar ? (
+                                                                    <img src={member.avatar} alt={`${member.first_name} ${member.last_name}`} />
+                                                                ) : (
+                                                                    <div className={styles.defaultAvatar}>
+                                                                        {member.first_name.charAt(0)}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className={styles.memberInfo}>
+                                                                <div className={styles.memberName}>{member.first_name} {member.last_name}</div>
+                                                                <div className={styles.memberEmail}>{member.email}</div>
+                                                            </div>
+                                                            <button
+                                                                className={styles.removeButton}
+                                                                onClick={() => handleRemoveMemberFromDepartment(index, member.id)}
+                                                                aria-label="Удалить участника из отдела"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
                                         <button
@@ -453,7 +450,60 @@ const CreateProjectPage: React.FC = () => {
                                 ))}
                             </div>
                         )}
-                        <hr className={styles.yellowLine}/>
+
+                        {/* Модальное окно для добавления участника в отдел */}
+                        {showAddMemberModal !== null && (
+                            <div className={styles.modalOverlay} onClick={handleHideAddMemberModal}>
+                                <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                                    <div className={styles.modalHeader}>
+                                        <h3>Добавить участника в отдел</h3>
+                                        <button onClick={handleHideAddMemberModal} className={styles.modalClose}>
+                                            ✕
+                                        </button>
+                                    </div>
+                                    <div className={styles.modalContent}>
+                                        {members.length > 0 ? (
+                                            <div className={styles.membersList}>
+                                                {members
+                                                    .filter(member =>
+                                                        !departments[showAddMemberModal]?.assignedMembers.find(m => m.id === member.id)
+                                                    )
+                                                    .map(member => (
+                                                        <div
+                                                            key={member.id}
+                                                            className={styles.selectableMemberItem}
+                                                            onClick={() => handleAddMemberToDepartment(showAddMemberModal, member)}
+                                                        >
+                                                            <div className={styles.memberAvatar}>
+                                                                {member.avatar ? (
+                                                                    <img src={member.avatar} alt={`${member.first_name} ${member.last_name}`} />
+                                                                ) : (
+                                                                    <div className={styles.defaultAvatar}>
+                                                                        {member.first_name.charAt(0)}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className={styles.memberInfo}>
+                                                                <div className={styles.memberName}>{member.first_name} {member.last_name}</div>
+                                                                <div className={styles.memberEmail}>{member.email}</div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                {members.filter(member =>
+                                                    !departments[showAddMemberModal]?.assignedMembers.find(m => m.id === member.id)
+                                                ).length === 0 && (
+                                                    <p className={styles.noMembers}>Все участники уже добавлены в этот отдел</p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className={styles.noMembers}>
+                                                Сначала добавьте участников в проект через поиск выше
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Настройки приватности */}
@@ -512,7 +562,7 @@ const CreateProjectPage: React.FC = () => {
                     <div className={styles.submitContainer}>
                         <Button
                             onClick={handleSubmit}
-                            disabled={isLoading || createStatus === 'creating' || createStatus === 'success'}
+                            disabled={isLoading}
                         >
                             {isLoading ? 'Создание...' : 'Создать проект'}
                         </Button>

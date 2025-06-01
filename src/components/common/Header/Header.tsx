@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Header.module.css';
-import notificationStyles from '../../../styles/Notifications.module.css';
 import arrowBack from "../../../photos/pngwing.com.png";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../photos/logo.png";
 import bell from "../../../photos/bell.png";
+import { Notifications } from "../../../utils/Notifications.tsx";
 import { authService } from "../../../hooks/AuthService.tsx";
-import notificationService from "../../../hooks/NotificationService";
-import { NotificationsPanel } from "../../../utils/NotificationsPanel";
+import { notificationsService, Notification } from "../../../hooks/NotificationService.tsx";
 
 interface HeaderProps {
     variant?: 'default' | 'back';
@@ -16,62 +15,108 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
+    const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
+    const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
     const isAuthenticated = authService.isAuthenticated();
-    const [notificationCount, setNotificationCount] = useState<number>(0);
 
-    // Получение уведомлений при монтировании компонента
+    // Загрузка уведомлений при монтировании компонента
     useEffect(() => {
         if (isAuthenticated) {
-            // Получаем список уведомлений с сервера
-            fetchNotifications();
-
-            // Подключаемся к WebSocket для обновлений в реальном времени
-            notificationService.connectWebSocket({
-                onNotification: (notification) => {
-                    // Увеличиваем счетчик непрочитанных уведомлений
-                    if (!notification.is_read) {
-                        setNotificationCount(prevCount => prevCount + 1);
-                    }
-                },
-                onUpdate: (notification) => {
-                    // Если уведомление было отмечено как прочитанное, уменьшаем счетчик
-                    if (notification.is_read) {
-                        setNotificationCount(prevCount => Math.max(0, prevCount - 1));
-                    }
-                },
-                onDelete: () => {
-                    // При удалении уведомления обновляем список
-                    fetchNotifications();
-                }
-            });
-
-            // Отключаем WebSocket при размонтировании компонента
-            return () => {
-                notificationService.disconnectWebSocket();
-            };
+            loadNotifications();
         }
     }, [isAuthenticated]);
 
-    // Загрузка уведомлений с сервера
-    const fetchNotifications = async () => {
+    // Функция загрузки уведомлений
+    const loadNotifications = async () => {
         try {
-            const notifications = await notificationService.getNotifications();
-            // Считаем количество непрочитанных уведомлений
-            const unreadCount = notifications.filter(notification => !notification.is_read).length;
-            setNotificationCount(unreadCount);
+            setIsLoadingNotifications(true);
+            const notifications = await notificationsService.getAllNotifications();
+            setNotificationsList(notifications);
         } catch (error) {
-            console.error('Ошибка при загрузке уведомлений:', error);
+            console.error('Ошибка загрузки уведомлений:', error);
+            // В случае ошибки показываем пустую заглушку
+            setNotificationsList([]);
+        } finally {
+            setIsLoadingNotifications(false);
         }
     };
 
     // Показ/скрытие уведомлений
     const toggleNotifications = () => {
         setShowNotifications(!showNotifications);
+        // Перезагружаем уведомления при открытии
+        if (!showNotifications && isAuthenticated) {
+            loadNotifications();
+        }
+    };
 
-        // Если закрываем панель уведомлений, считаем все уведомления прочитанными
-        if (showNotifications) {
-            notificationService.markAllAsRead();
-            setNotificationCount(0);
+    // Обработчик принятия уведомления
+    const handleAcceptNotification = async (id: number) => {
+        try {
+            const notification = notificationsList.find(n => n.id === id);
+            if (!notification) return;
+
+            // Находим действие "Принять"
+            const acceptAction = notification.actions_data.find(action =>
+                action.text === 'Принять' || action.style === 'primary'
+            );
+
+            if (acceptAction) {
+                // Выполняем действие через API
+                await notificationsService.executeNotificationAction(acceptAction);
+
+                // Помечаем уведомление как прочитанное локально
+                setNotificationsList(prev =>
+                    prev.map(notification =>
+                        notification.id === id
+                            ? { ...notification, is_read: true }
+                            : notification
+                    )
+                );
+
+                // Перезагружаем уведомления для актуальности
+                await loadNotifications();
+            }
+        } catch (error) {
+            console.error('Ошибка при принятии уведомления:', error);
+            // В случае ошибки можно показать toast уведомление пользователю
+        }
+    };
+
+    // Обработчик отклонения уведомления
+    const handleDeclineNotification = async (id: number) => {
+        try {
+            const notification = notificationsList.find(n => n.id === id);
+            if (!notification) return;
+
+            // Находим действие "Отклонить"
+            const declineAction = notification.actions_data.find(action =>
+                action.text === 'Отклонить' || action.style === 'secondary'
+            );
+
+            if (declineAction) {
+                // Выполняем действие через API
+                await notificationsService.executeNotificationAction(declineAction);
+
+                // Удаляем уведомление из локального состояния
+                setNotificationsList(prev =>
+                    prev.filter(notification => notification.id !== id)
+                );
+
+                // Перезагружаем уведомления для актуальности
+                await loadNotifications();
+            } else {
+                // Если нет специального действия для отклонения, просто удаляем локально
+                setNotificationsList(prev =>
+                    prev.filter(notification => notification.id !== id)
+                );
+            }
+        } catch (error) {
+            console.error('Ошибка при отклонении уведомления:', error);
+            // В случае ошибки всё равно удаляем из интерфейса
+            setNotificationsList(prev =>
+                prev.filter(notification => notification.id !== id)
+            );
         }
     };
 
@@ -91,6 +136,9 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
         authService.logout();
         navigate('/');
     };
+
+    // Получаем количество непрочитанных уведомлений
+    const unreadCount = notificationsList.filter(n => !n.is_read).length;
 
     return (
         <header className={styles.headerFixed}>
@@ -115,21 +163,19 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
                         </div>
                         {isAuthenticated && (
                             <div className={styles.right}>
-                                <div className={notificationStyles.bellContainer}>
-                                    <button
-                                        className={styles.bell}
-                                        onClick={toggleNotifications}
-                                    >
-                                        <img src={bell} alt="Уведомления"/>
-                                    </button>
-                                    {notificationCount > 0 && (
-                                        <span className={notificationStyles.unreadBadge}>
-                                            {notificationCount > 99 ? '99+' : notificationCount}
+                                <button
+                                    className={styles.bell}
+                                    onClick={toggleNotifications}
+                                    style={{ position: 'relative' }}
+                                >
+                                    <img src={bell} alt="Уведомления"/>
+                                    {unreadCount > 0 && (
+                                        <span className={styles.notificationBadge}>
+                                            {unreadCount > 99 ? '99+' : unreadCount}
                                         </span>
                                     )}
-                                </div>
-
-                                <button onClick={handleLogout} className={styles.logoutButton}>Выйти</button>
+                                </button>
+                                <button onClick={handleLogout}>Выйти</button>
                                 <button
                                     className={styles.profile}
                                     onClick={() => navigate('/profile')}
@@ -137,9 +183,13 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
                                     Личный кабинет
                                 </button>
 
-                                {/* Панель уведомлений */}
-                                <NotificationsPanel
+                                {/* Компонент уведомлений */}
+                                <Notifications
+                                    notifications={notificationsList}
                                     visible={showNotifications}
+                                    isLoading={isLoadingNotifications}
+                                    onAccept={handleAcceptNotification}
+                                    onDecline={handleDeclineNotification}
                                     onClose={() => setShowNotifications(false)}
                                 />
                             </div>
