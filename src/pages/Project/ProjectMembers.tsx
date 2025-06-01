@@ -8,8 +8,8 @@ import {
     Department,
     UserSearchResult
 } from '../../hooks/CreateProjectService.tsx';
-// @ts-ignore
-import { userService } from '../../hooks/UserService.tsx';
+import { authService } from '../../hooks/AuthService.tsx';
+import API_CONFIG from '../../utils/Urls.ts';
 
 interface ProjectMembersProps {
     projectId: number;
@@ -39,6 +39,10 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     const [newDepartmentDescription, setNewDepartmentDescription] = useState('');
     const [addingDepartment, setAddingDepartment] = useState(false);
 
+    // Состояния для управления участниками отделов
+    const [showAddMemberToDepartment, setShowAddMemberToDepartment] = useState<number | null>(null);
+    const [departmentMemberSearch, setDepartmentMemberSearch] = useState('');
+
     // Загрузка данных при монтировании
     useEffect(() => {
         loadMembers();
@@ -52,7 +56,6 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                 setIsSearching(true);
                 try {
                     const response = await projectService.searchUsers(memberSearch, 1, 10);
-                    // Убираем фильтрацию - ищем всех пользователей
                     setSearchResults(response.users);
                 } catch (error) {
                     console.error('Ошибка поиска пользователей:', error);
@@ -84,17 +87,20 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Загрузка отделов с участниками
+    // ИСПРАВЛЕННАЯ загрузка отделов с участниками
     const loadDepartments = async () => {
         try {
             setErrors(prev => ({ ...prev, departments: '' }));
-            // Загружаем отделы с параметром members=true для получения участников
-            const url = new URL(projectService.getProjectDepartments.toString());
-            const response = await fetch(`${url}?members=true`, {
+
+            // Правильно формируем URL с параметром members=true
+            const baseUrl = API_CONFIG.FULL_URL.DEPARTMENTS.BASE_URL(projectId);
+            const urlWithParams = `${baseUrl}?members=true`;
+
+            const response = await fetch(urlWithParams, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Добавляем заголовки авторизации если нужно
+                    ...authService.getAuthHeaders() // Добавляем правильные заголовки авторизации
                 }
             });
 
@@ -102,6 +108,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                 const data = await response.json();
                 setDepartments(data.departments || []);
             } else {
+                console.warn('Не удалось загрузить отделы с участниками, загружаем без участников');
                 // Fallback на обычную загрузку без участников
                 const departmentsData = await projectService.getProjectDepartments(projectId);
                 setDepartments(departmentsData);
@@ -109,6 +116,14 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         } catch (error: any) {
             console.error('Ошибка загрузки отделов:', error);
             setErrors(prev => ({ ...prev, departments: error.message || 'Ошибка загрузки отделов' }));
+
+            // Пытаемся загрузить хотя бы без участников
+            try {
+                const departmentsData = await projectService.getProjectDepartments(projectId);
+                setDepartments(departmentsData);
+            } catch (fallbackError) {
+                console.error('Не удалось загрузить отделы даже без участников:', fallbackError);
+            }
         }
     };
 
@@ -237,6 +252,65 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
             const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении отдела';
             setErrors(prev => ({ ...prev, deleteDepartment: errorMessage }));
         }
+    };
+
+    // Добавление участника в отдел
+    const handleAddMemberToDepartment = async (departmentId: number, userId: number) => {
+        try {
+            setErrors(prev => ({ ...prev, addMemberToDepartment: '' }));
+            await projectService.assignDepartmentToMember(projectId, userId, departmentId);
+            await loadDepartments(); // Перезагружаем отделы
+            setShowAddMemberToDepartment(null);
+            setDepartmentMemberSearch('');
+        } catch (error: any) {
+            console.error('Ошибка добавления участника в отдел:', error);
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при добавлении участника в отдел';
+            setErrors(prev => ({ ...prev, addMemberToDepartment: errorMessage }));
+        }
+    };
+
+    // Удаление участника из отдела
+    const handleRemoveMemberFromDepartment = async (departmentId: number, userId: number) => {
+        const department = departments.find(d => d.id === departmentId);
+        const member = department?.members?.find(m => m.user.id === userId);
+
+        if (!member || !department) return;
+
+        if (!confirm(`Вы уверены, что хотите удалить ${member.user.first_name} ${member.user.last_name} из отдела "${department.title}"?`)) {
+            return;
+        }
+
+        try {
+            setErrors(prev => ({ ...prev, removeMemberFromDepartment: '' }));
+
+            // Используем API для удаления участника из отдела
+            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.REMOVE_DEPARTMENT(projectId, userId, departmentId), {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при удалении участника из отдела');
+            }
+
+            await loadDepartments(); // Перезагружаем отделы
+        } catch (error: any) {
+            console.error('Ошибка удаления участника из отдела:', error);
+            const errorMessage = error.message || 'Ошибка при удалении участника из отдела';
+            setErrors(prev => ({ ...prev, removeMemberFromDepartment: errorMessage }));
+        }
+    };
+
+    // Фильтрация участников для добавления в отдел (исключаем уже добавленных)
+    const getAvailableMembersForDepartment = (departmentId: number) => {
+        const department = departments.find(d => d.id === departmentId);
+        if (!department) return members;
+
+        const departmentMemberIds = department.members?.map(m => m.user.id) || [];
+        return members.filter(member => !departmentMemberIds.includes(member.user.id));
     };
 
     if (loading) {
@@ -445,20 +519,42 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                         backgroundColor: '#FFFFFF',
                                         borderTop: '1px solid #E0E0E0'
                                     }}>
+                                        {/* Кнопка добавления участника в отдел */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                            <h4 style={{ fontSize: '16px', color: '#353536', margin: 0 }}>
+                                                Участники отдела:
+                                            </h4>
+                                            <button
+                                                onClick={() => setShowAddMemberToDepartment(department.id!)}
+                                                style={{
+                                                    backgroundColor: '#FFDD2D',
+                                                    color: '#353536',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    padding: '6px 12px',
+                                                    fontSize: '14px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '5px'
+                                                }}
+                                            >
+                                                + Добавить участника
+                                            </button>
+                                        </div>
+
                                         {department.members && department.members.length > 0 ? (
-                                            <div>
-                                                <h4 style={{ fontSize: '16px', color: '#353536', marginBottom: '15px' }}>
-                                                    Участники отдела:
-                                                </h4>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                                    {department.members.map(member => (
-                                                        <div key={member.user.id} style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            padding: '10px',
-                                                            backgroundColor: '#F6F7F8',
-                                                            borderRadius: '8px'
-                                                        }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                {department.members.map(member => (
+                                                    <div key={member.user.id} style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between',
+                                                        padding: '10px',
+                                                        backgroundColor: '#F6F7F8',
+                                                        borderRadius: '8px'
+                                                    }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center' }}>
                                                             <div style={{
                                                                 width: '40px',
                                                                 height: '40px',
@@ -473,7 +569,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                                             }}>
                                                                 {member.user.first_name.charAt(0)}
                                                             </div>
-                                                            <div style={{ flex: 1 }}>
+                                                            <div>
                                                                 <div style={{ fontSize: '16px', fontWeight: '500', color: '#353536' }}>
                                                                     {member.user.first_name} {member.user.last_name}
                                                                 </div>
@@ -482,13 +578,143 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
+                                                        <button
+                                                            onClick={() => handleRemoveMemberFromDepartment(department.id!, member.user.id)}
+                                                            style={{
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                color: '#FF4444',
+                                                                fontSize: '16px',
+                                                                cursor: 'pointer',
+                                                                padding: '5px'
+                                                            }}
+                                                            title="Удалить из отдела"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ))}
                                             </div>
                                         ) : (
                                             <p style={{ color: '#7C7C7C', textAlign: 'center', margin: '20px 0' }}>
                                                 В отделе пока нет участников
                                             </p>
+                                        )}
+
+                                        {/* Модальное окно для добавления участника в отдел */}
+                                        {showAddMemberToDepartment === department.id && (
+                                            <div style={{
+                                                position: 'fixed',
+                                                top: 0,
+                                                left: 0,
+                                                right: 0,
+                                                bottom: 0,
+                                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                zIndex: 1000
+                                            }}>
+                                                <div style={{
+                                                    backgroundColor: '#FFFFFF',
+                                                    borderRadius: '20px',
+                                                    padding: '30px',
+                                                    maxWidth: '500px',
+                                                    width: '90%',
+                                                    maxHeight: '70vh',
+                                                    overflowY: 'auto'
+                                                }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                                        <h3 style={{ fontSize: '20px', color: '#353536', margin: 0 }}>
+                                                            Добавить участника в отдел "{department.title}"
+                                                        </h3>
+                                                        <button
+                                                            onClick={() => {
+                                                                setShowAddMemberToDepartment(null);
+                                                                setDepartmentMemberSearch('');
+                                                            }}
+                                                            style={{
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                fontSize: '24px',
+                                                                color: '#7C7C7C',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Поиск внутри модального окна */}
+                                                    <div style={{ marginBottom: '20px' }}>
+                                                        <Input
+                                                            placeholder="🔍 Поиск участников"
+                                                            value={departmentMemberSearch}
+                                                            onChange={(e) => setDepartmentMemberSearch(e.target.value)}
+                                                        />
+                                                    </div>
+
+                                                    {/* Список доступных участников */}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                        {getAvailableMembersForDepartment(department.id!)
+                                                            .filter(member =>
+                                                                member.user.first_name.toLowerCase().includes(departmentMemberSearch.toLowerCase()) ||
+                                                                member.user.last_name.toLowerCase().includes(departmentMemberSearch.toLowerCase()) ||
+                                                                member.user.email.toLowerCase().includes(departmentMemberSearch.toLowerCase())
+                                                            )
+                                                            .map(member => (
+                                                                <div
+                                                                    key={member.user.id}
+                                                                    onClick={() => handleAddMemberToDepartment(department.id!, member.user.id)}
+                                                                    style={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        padding: '12px',
+                                                                        backgroundColor: '#F6F7F8',
+                                                                        borderRadius: '12px',
+                                                                        cursor: 'pointer',
+                                                                        transition: 'background-color 0.2s'
+                                                                    }}
+                                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#FFDD2D'}
+                                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#F6F7F8'}
+                                                                >
+                                                                    <div style={{
+                                                                        width: '40px',
+                                                                        height: '40px',
+                                                                        borderRadius: '50%',
+                                                                        backgroundColor: '#FFDD2D',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        marginRight: '12px',
+                                                                        fontSize: '16px',
+                                                                        fontWeight: '500'
+                                                                    }}>
+                                                                        {member.user.first_name.charAt(0)}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div style={{ fontSize: '16px', fontWeight: '500', color: '#353536' }}>
+                                                                            {member.user.first_name} {member.user.last_name}
+                                                                        </div>
+                                                                        <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
+                                                                            {member.user.email}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+
+                                                        {getAvailableMembersForDepartment(department.id!).length === 0 && (
+                                                            <p style={{ textAlign: 'center', color: '#7C7C7C', margin: '20px 0' }}>
+                                                                Все участники проекта уже добавлены в этот отдел
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    {errors.addMemberToDepartment && (
+                                                        <ErrorField message={errors.addMemberToDepartment} />
+                                                    )}
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -505,6 +731,8 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
                 {errors.departments && <ErrorField message={errors.departments} />}
                 {errors.deleteDepartment && <ErrorField message={errors.deleteDepartment} />}
+                {errors.addMemberToDepartment && <ErrorField message={errors.addMemberToDepartment} />}
+                {errors.removeMemberFromDepartment && <ErrorField message={errors.removeMemberFromDepartment} />}
             </div>
 
             {/* Все участники */}
