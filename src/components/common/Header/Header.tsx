@@ -175,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
                                         </span>
                                     )}
                                 </button>
-                                <button onClick={handleLogout}>Выйти</button>
+                                <button className={styles.exitButton} onClick={handleLogout}>Выйти</button>
                                 <button
                                     className={styles.profile}
                                     onClick={() => navigate('/profile')}

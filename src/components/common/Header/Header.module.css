@@ -125,3 +125,18 @@
     border: none;
     cursor: pointer;
 }
+
+.exitButton {
+    width: 150px;
+    height: 45px;
+    border-radius: 12px;
+    background-color: #F6F7F8;
+    color: #126DF7;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 100%;
+    letter-spacing: 0;
+    border: none;
+    cursor: pointer;
+}
