@@ -331,7 +331,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                         className={styles.primaryButton}
                         onClick={() => setShowAddDepartment(true)}
                     >
-                        + Добавить отдел
+                        Добавить отдел
                     </button>
                 </div>
 
@@ -344,7 +344,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                         marginBottom: '20px',
                         border: '1px solid #E0E0E0'
                     }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', fontFamily: '"Helvetica Neue", sans-serif' }}>
                             <h3 style={{ fontSize: '18px', color: '#353536', margin: 0 }}>Добавление отдела</h3>
                             <button
                                 onClick={() => {
@@ -371,6 +371,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                 value={newDepartmentTitle}
                                 onChange={(e) => setNewDepartmentTitle(e.target.value)}
                                 hasError={!!errors.departmentTitle}
+                                style={{width: '1050px'}}
                             />
                             {errors.departmentTitle && <ErrorField message={errors.departmentTitle} />}
                         </div>
@@ -381,6 +382,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                 placeholder="Описание отдела"
                                 value={newDepartmentDescription}
                                 onChange={(e) => setNewDepartmentDescription(e.target.value)}
+                                style={{width: '1050px', fontFamily: '"Helvetica Neue", sans-serif', fontSize: '21px'}}
                             />
                         </div>
 
@@ -749,6 +751,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                         placeholder="🔍 Поиск"
                         value={memberSearch}
                         onChange={(e) => setMemberSearch(e.target.value)}
+                        style={{width: '1093px'}}
                     />
 
                     {/* Результаты поиска */}
@@ -847,7 +850,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                         <div className={styles.itemDescription}>
                                             {member.user.email}
                                         </div>
-                                        <div style={{ fontSize: '12px', color: '#7C7C7C', marginTop: '4px' }}>
+                                        <div style={{ fontSize: '12px', color: '#7C7C7C', marginTop: '4px', fontFamily: '"Hueventica Neue", sans-serif' }}>
                                             Присоединился: {new Date(member.date_joined).toLocaleDateString('ru-RU')}
                                         </div>
                                     </div>

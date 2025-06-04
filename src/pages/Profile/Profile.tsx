@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import { Header } from "../../components/common/Header/Header.tsx";
-import { Footer } from "../../components/common/Footer/Footer.tsx";
-import { ErrorField } from "../../components/common/ErrorField/ErrorField.tsx";
-import { Button } from "../../components/common/Button/Button.tsx";
-import { Input } from "../../components/common/Input/Input.tsx";
-import { Select } from "../../components/common/Select/Select.tsx";
-import { userService, User, UserProject } from '../../hooks/UserService.tsx';
+import {Header} from "../../components/common/Header/Header.tsx";
+import {Footer} from "../../components/common/Footer/Footer.tsx";
+import {ErrorField} from "../../components/common/ErrorField/ErrorField.tsx";
+import {Button} from "../../components/common/Button/Button.tsx";
+import {Input} from "../../components/common/Input/Input.tsx";
+import {Select} from "../../components/common/Select/Select.tsx";
+import {userService, User, UserProject} from '../../hooks/UserService.tsx';
 import '../../styles/styles.css';
 import styles from '../../styles/Profile.module.css';
 
@@ -63,7 +63,7 @@ const ProfilePage: React.FC = () => {
     });
 
     // Ошибки
-    const [errors, setErrors] = useState<{[key: string]: string}>({});
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [serverError, setServerError] = useState<string>('');
 
     // Загрузка данных при монтировании
@@ -75,7 +75,7 @@ const ProfilePage: React.FC = () => {
     // Загрузка данных пользователя
     const loadUserData = async () => {
         try {
-            setLoading(prev => ({ ...prev, user: true }));
+            setLoading(prev => ({...prev, user: true}));
             const userData = await userService.getCurrentUser();
             setUser(userData);
 
@@ -90,14 +90,14 @@ const ProfilePage: React.FC = () => {
             console.error('Ошибка загрузки данных пользователя:', error);
             setServerError(error.message || 'Ошибка загрузки профиля');
         } finally {
-            setLoading(prev => ({ ...prev, user: false }));
+            setLoading(prev => ({...prev, user: false}));
         }
     };
 
     // Загрузка проектов пользователя
     const loadUserProjects = async () => {
         try {
-            setLoading(prev => ({ ...prev, projects: true }));
+            setLoading(prev => ({...prev, projects: true}));
             const userProjects = await userService.getUserProjects();
 
             // Преобразуем проекты для UI
@@ -116,7 +116,7 @@ const ProfilePage: React.FC = () => {
             console.error('Ошибка загрузки проектов:', error);
             setProjects([]);
         } finally {
-            setLoading(prev => ({ ...prev, projects: false }));
+            setLoading(prev => ({...prev, projects: false}));
         }
     };
 
@@ -146,7 +146,7 @@ const ProfilePage: React.FC = () => {
             }
         } else {
             // Начинаем редактирование
-            setEditState(prev => ({ ...prev, isEditing: true }));
+            setEditState(prev => ({...prev, isEditing: true}));
         }
         setErrors({});
         setServerError('');
@@ -154,32 +154,32 @@ const ProfilePage: React.FC = () => {
 
     // Обработка изменения полей
     const handleInputChange = (field: keyof EditState, value: string) => {
-        setEditState(prev => ({ ...prev, [field]: value }));
+        setEditState(prev => ({...prev, [field]: value}));
         // Удаляем ошибку для этого поля
         if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: '' }));
+            setErrors(prev => ({...prev, [field]: ''}));
         }
     };
 
     // Обработка изменения селекта города
     const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
-        setEditState(prev => ({ ...prev, city: value }));
+        setEditState(prev => ({...prev, city: value}));
         // Удаляем ошибку для города
         if (errors.city) {
-            setErrors(prev => ({ ...prev, city: '' }));
+            setErrors(prev => ({...prev, city: ''}));
         }
     };
 
     // Обработка загрузки файла
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] || null;
-        setEditState(prev => ({ ...prev, avatar: file }));
+        setEditState(prev => ({...prev, avatar: file}));
     };
 
     // Валидация формы
     const validateForm = (): boolean => {
-        const newErrors: {[key: string]: string} = {};
+        const newErrors: { [key: string]: string } = {};
 
         if (!editState.firstName.trim()) {
             newErrors.firstName = 'Имя обязательно для заполнения';
@@ -202,7 +202,7 @@ const ProfilePage: React.FC = () => {
         if (!validateForm()) return;
 
         try {
-            setLoading(prev => ({ ...prev, updating: true }));
+            setLoading(prev => ({...prev, updating: true}));
             setServerError('');
 
             const updateData = {
@@ -216,7 +216,7 @@ const ProfilePage: React.FC = () => {
             setUser(updatedUser);
 
             // Выходим из режима редактирования
-            setEditState(prev => ({ ...prev, isEditing: false, avatar: null }));
+            setEditState(prev => ({...prev, isEditing: false, avatar: null}));
         } catch (error: any) {
             console.error('Ошибка обновления профиля:', error);
             if (error.data) {
@@ -225,7 +225,7 @@ const ProfilePage: React.FC = () => {
                 setServerError(error.message || 'Ошибка сохранения изменений');
             }
         } finally {
-            setLoading(prev => ({ ...prev, updating: false }));
+            setLoading(prev => ({...prev, updating: false}));
         }
     };
 
@@ -244,13 +244,13 @@ const ProfilePage: React.FC = () => {
     if (loading.user) {
         return (
             <div className="main-container">
-                <Header />
+                <Header/>
                 <div className="main-content">
                     <div className={styles.loadingContainer}>
                         <h2>Загрузка профиля...</h2>
                     </div>
                 </div>
-                <Footer />
+                <Footer/>
             </div>
         );
     }
@@ -259,17 +259,17 @@ const ProfilePage: React.FC = () => {
     if (!user && serverError) {
         return (
             <div className="main-container">
-                <Header />
+                <Header/>
                 <div className="main-content">
                     <div className={styles.loadingContainer}>
                         <h2>Ошибка загрузки профиля</h2>
-                        <ErrorField message={serverError} />
-                        <Button onClick={loadUserData} style={{ marginTop: '20px' }}>
+                        <ErrorField message={serverError}/>
+                        <Button onClick={loadUserData} style={{marginTop: '20px'}}>
                             Попробовать снова
                         </Button>
                     </div>
                 </div>
-                <Footer />
+                <Footer/>
             </div>
         );
     }
@@ -280,7 +280,7 @@ const ProfilePage: React.FC = () => {
 
     return (
         <div className="main-container">
-            <Header />
+            <Header/>
             <div className="main-content">
                 <div className={styles.profileContainer}>
                     {/* Левая колонка - только аватар, убираем достижения */}
@@ -298,7 +298,7 @@ const ProfilePage: React.FC = () => {
                                         accept="image/*"
                                         onChange={handleAvatarChange}
                                         id="avatar-upload"
-                                        style={{ display: 'none' }}
+                                        style={{display: 'none'}}
                                     />
                                     <label htmlFor="avatar-upload" className={styles.avatarUploadButton}>
                                         Изменить фото
@@ -322,7 +322,7 @@ const ProfilePage: React.FC = () => {
                                 </button>
                             </div>
 
-                            {serverError && <ErrorField message={serverError} />}
+                            {serverError && <ErrorField message={serverError}/>}
 
                             <div className={styles.profileInfoContent}>
                                 <div className={styles.profileInfoItem}>
@@ -334,8 +334,9 @@ const ProfilePage: React.FC = () => {
                                                 onChange={(e) => handleInputChange('firstName', e.target.value)}
                                                 hasError={!!errors.firstName}
                                                 placeholder="Введите имя"
+                                                className={styles.inputProfile}
                                             />
-                                            {errors.firstName && <ErrorField message={errors.firstName} />}
+                                            {errors.firstName && <ErrorField message={errors.firstName}/>}
                                         </div>
                                     ) : (
                                         <span className={styles.infoValue}>{user.first_name}</span>
@@ -351,8 +352,9 @@ const ProfilePage: React.FC = () => {
                                                 onChange={(e) => handleInputChange('lastName', e.target.value)}
                                                 hasError={!!errors.lastName}
                                                 placeholder="Введите фамилию"
+                                                className={styles.inputProfile}
                                             />
-                                            {errors.lastName && <ErrorField message={errors.lastName} />}
+                                            {errors.lastName && <ErrorField message={errors.lastName}/>}
                                         </div>
                                     ) : (
                                         <span className={styles.infoValue}>{user.last_name}</span>
@@ -373,13 +375,14 @@ const ProfilePage: React.FC = () => {
                                                 value={editState.city}
                                                 onChange={handleCityChange}
                                                 hasError={!!errors.city}
+                                                className={styles.selectCity}
                                             >
                                                 <option value="">Выберите город*</option>
                                                 {cities.map(city => (
                                                     <option key={city} value={city}>{city}</option>
                                                 ))}
                                             </Select>
-                                            {errors.city && <ErrorField message={errors.city} />}
+                                            {errors.city && <ErrorField message={errors.city}/>}
                                         </div>
                                     ) : (
                                         <span className={styles.infoValue}>{user.city}</span>
@@ -403,37 +406,39 @@ const ProfilePage: React.FC = () => {
 
                 {/* Секция с проектами пользователя */}
                 <div className={styles.profileProjectsSection}>
-                    <h2>Мои проекты</h2>
-                    {loading.projects ? (
-                        <p>Загрузка проектов...</p>
-                    ) : projects.length > 0 ? (
-                        <div className={styles.projectsList}>
-                            {projects.map((project) => (
-                                <div
-                                    key={project.id}
-                                    className={styles.projectItem}
-                                    onClick={() => handleOpenProject(project.id)}
-                                >
-                                    <span className={styles.projectEmoji}>{project.emoji}</span>
-                                    <span className={styles.projectTitle}>{project.title}</span>
-                                    {project.isPrivate && (
-                                        <span className={styles.projectPrivateIcon}>🔒</span>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p>У вас пока нет проектов</p>
-                    )}
+                    <div className={styles.profileProjectsContainer}>
+                        <h2 className={styles.projectsHeader}>Мои проекты</h2>
+                        {loading.projects ? (
+                            <p>Загрузка проектов...</p>
+                        ) : projects.length > 0 ? (
+                            <div className={styles.projectsList}>
+                                {projects.map((project) => (
+                                    <div
+                                        key={project.id}
+                                        className={styles.projectItem}
+                                        onClick={() => handleOpenProject(project.id)}
+                                    >
+                                        <span className={styles.projectEmoji}>{project.emoji}</span>
+                                        <span className={styles.projectTitle}>{project.title}</span>
+                                        {project.isPrivate && (
+                                            <span className={styles.projectPrivateIcon}>🔒</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p>У вас пока нет проектов</p>
+                        )}
 
-                    <div className={styles.allProjectsButtonContainer}>
-                        <button onClick={navigateToAllProjects} className={styles.allProjectsButton}>
-                            Все проекты
-                        </button>
+                        <div className={styles.allProjectsButtonContainer}>
+                            <button onClick={navigateToAllProjects}>
+                                Все проекты
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <Footer />
+            <Footer/>
         </div>
     );
 };

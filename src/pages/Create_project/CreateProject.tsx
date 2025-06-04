@@ -250,6 +250,7 @@ const CreateProjectPage: React.FC = () => {
                             value={formData.title}
                             onChange={handleInputChange}
                             hasError={!!errors.title}
+                            className={styles.input}
                         />
                         {errors.title && <ErrorField message={errors.title} />}
                     </div>
@@ -360,12 +361,12 @@ const CreateProjectPage: React.FC = () => {
                         </p>
 
                         {/* Форма добавления отдела */}
-                        <div className={styles.departmentForm}>
                             <div className={styles.formGroup}>
                                 <Input
                                     placeholder="Название отдела*"
                                     value={departmentTitle}
                                     onChange={(e) => setDepartmentTitle(e.target.value)}
+                                    className={styles.inputForDepartment}
                                 />
                             </div>
                             <div className={styles.formGroup}>
@@ -373,7 +374,7 @@ const CreateProjectPage: React.FC = () => {
                                     placeholder="Описание отдела"
                                     value={departmentDescription}
                                     onChange={(e) => setDepartmentDescription(e.target.value)}
-                                    className={styles.textarea}
+                                    className={styles.textareaForDepartment}
                                 />
                             </div>
                             <div className={styles.addDepartmentButton}>
@@ -384,7 +385,6 @@ const CreateProjectPage: React.FC = () => {
                                     Добавить отдел
                                 </Button>
                             </div>
-                        </div>
 
                         {/* Список добавленных отделов */}
                         {departments.length > 0 && (

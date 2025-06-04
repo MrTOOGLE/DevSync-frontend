@@ -155,28 +155,28 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ project, onUpdate }) => {
                     // Просмотр информации
                     <div>
                         <div style={{ marginBottom: '20px' }}>
-                            <h3 style={{ fontSize: '20px', color: '#353536', marginBottom: '8px' }}>
+                            <h3 style={{ fontSize: '20px', color: '#353536', marginBottom: '8px', fontFamily: '"Helvetica Neue", sans-serif' }}>
                                 Название
                             </h3>
-                            <p style={{ fontSize: '18px', color: '#7C7C7C' }}>
+                            <p style={{ fontSize: '18px', color: '#7C7C7C', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                 {project.title}
                             </p>
                         </div>
 
                         <div style={{ marginBottom: '20px' }}>
-                            <h3 style={{ fontSize: '20px', color: '#353536', marginBottom: '8px' }}>
+                            <h3 style={{ fontSize: '20px', color: '#353536', marginBottom: '8px', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                 Описание
                             </h3>
-                            <p style={{ fontSize: '16px', color: '#7C7C7C', lineHeight: '1.5' }}>
+                            <p style={{ fontSize: '16px', color: '#7C7C7C', lineHeight: '1.5', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                 {project.description || 'Описание не указано'}
                             </p>
                         </div>
 
                         <div style={{ marginBottom: '20px' }}>
-                            <h3 style={{ fontSize: '20px', color: '#353536', marginBottom: '8px' }}>
+                            <h3 style={{ fontSize: '20px', color: '#353536', marginBottom: '8px', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                 Дата создания
                             </h3>
-                            <p style={{ fontSize: '16px', color: '#7C7C7C' }}>
+                            <p style={{ fontSize: '16px', color: '#7C7C7C', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                 {project.date_created ? formatDate(project.date_created) : 'Не указана'}
                             </p>
                         </div>
@@ -212,10 +212,10 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ project, onUpdate }) => {
                             >
                                 <span style={{ fontSize: '24px', marginRight: '15px' }}>🌍</span>
                                 <div style={{ flex: 1 }}>
-                                    <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', color: '#353536' }}>
+                                    <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', color: '#353536', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                         Публичный проект
                                     </h3>
-                                    <p style={{ margin: 0, fontSize: '14px', color: '#7C7C7C' }}>
+                                    <p style={{ margin: 0, fontSize: '14px', color: '#7C7C7C', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                         Проект доступен всем пользователям для просмотра и предложений
                                     </p>
                                 </div>
@@ -243,10 +243,10 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ project, onUpdate }) => {
                             >
                                 <span style={{ fontSize: '24px', marginRight: '15px' }}>🔒</span>
                                 <div style={{ flex: 1 }}>
-                                    <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', color: '#353536' }}>
+                                    <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', color: '#353536', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                         Приватный проект
                                     </h3>
-                                    <p style={{ margin: 0, fontSize: '14px', color: '#7C7C7C' }}>
+                                    <p style={{ margin: 0, fontSize: '14px', color: '#7C7C7C', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                         Проект доступен только приглашённым участникам
                                     </p>
                                 </div>
@@ -275,10 +275,10 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ project, onUpdate }) => {
                                 {project.is_public ? '🌍' : '🔒'}
                             </span>
                             <div>
-                                <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#353536' }}>
+                                <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#353536', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                     {project.is_public ? 'Публичный проект' : 'Приватный проект'}
                                 </h3>
-                                <p style={{ margin: 0, fontSize: '16px', color: '#7C7C7C' }}>
+                                <p style={{ margin: 0, fontSize: '16px', color: '#7C7C7C', fontFamily: '"Helvetica Neue", sans-serif'  }}>
                                     {project.is_public
                                         ? 'Проект доступен всем пользователям для просмотра и предложений'
                                         : 'Проект доступен только приглашённым участникам'

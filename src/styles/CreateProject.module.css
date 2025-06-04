@@ -37,8 +37,12 @@
     position: relative;
 }
 
+.input {
+    width: 855px;
+}
+
 .textarea {
-    width: 100%;
+    width: 855px;
     height: 150px;
     border: none;
     outline: none;
@@ -56,6 +60,32 @@
 }
 
 .textarea::placeholder {
+    color: #7C7C7C;
+}
+
+.inputForDepartment {
+    width: 800px;
+}
+
+.textareaForDepartment {
+    width: 800px;
+    height: 150px;
+    border: none;
+    outline: none;
+    border-radius: 14px;
+    background-color: #F6F7F8;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 140%;
+    letter-spacing: 0;
+    color: #353536;
+    padding: 16px 22px;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.2);
+    resize: vertical;
+}
+
+.textareaForDepartment::placeholder {
     color: #7C7C7C;
 }
 
@@ -111,7 +141,7 @@
 }
 
 .searchInput {
-    width: 100%;
+    width: 770px;
     height: 55px;
     border: none;
     outline: none;
