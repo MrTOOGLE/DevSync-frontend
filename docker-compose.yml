@@ -9,3 +9,9 @@ services:
     volumes:
       - ./dist:/usr/share/nginx/html
     restart: unless-stopped
+    networks:
+      - devsync-network
+networks:
+  devsync-network:
+    external: true
+    driver: bridge
