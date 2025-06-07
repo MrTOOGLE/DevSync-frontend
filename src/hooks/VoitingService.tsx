@@ -302,7 +302,7 @@ export const suggestionsService = {
     },
 
     // Голосование за предложение
-    voteForSuggestion: async (projectId: number, suggestionId: number, voteData: VoteData): Promise<Vote> => {
+    voteForSuggestion: async (_projectId: number, suggestionId: number, voteData: VoteData): Promise<Vote> => {
         try {
             // TODO: Заменить на реальный API когда будет реализован
             // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/${suggestionId}/vote/`, {
@@ -342,7 +342,7 @@ export const suggestionsService = {
     },
 
     // Получение голосов по предложению
-    getSuggestionVotes: async (projectId: number, suggestionId: number): Promise<Vote[]> => {
+    getSuggestionVotes: async (_projectId: number, _suggestionId: number): Promise<Vote[]> => {
         try {
             // TODO: Заменить на реальный API когда будет реализован
             // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/${suggestionId}/votes/`, {

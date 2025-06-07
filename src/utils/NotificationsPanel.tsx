@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from '../styles/Notifications.module.css';
-import notificationService, { Notification as NotificationType, Action } from '../hooks/NotificationService';
+import { notificationsService, Notification as NotificationType, NotificationAction } from '../hooks/NotificationService.tsx';
 
 interface NotificationsProps {
     visible: boolean;
@@ -23,48 +23,12 @@ export const NotificationsPanel: React.FC<NotificationsProps> = ({
         }
     }, [visible]);
 
-    // Подключение к WebSocket для уведомлений в реальном времени
-    useEffect(() => {
-        // Настраиваем обработчики событий WebSocket
-        const eventHandlers = {
-            onNotification: (notification: NotificationType) => {
-                // Добавляем новое уведомление в список
-                setNotifications(prev => [notification, ...prev]);
-            },
-            onUpdate: (notification: NotificationType) => {
-                // Обновляем существующее уведомление
-                setNotifications(prev =>
-                    prev.map(item =>
-                        item.id === notification.id ? notification : item
-                    )
-                );
-            },
-            onDelete: (notificationId: number) => {
-                // Удаляем уведомление из списка
-                setNotifications(prev =>
-                    prev.filter(item => item.id !== notificationId)
-                );
-            },
-            onError: (message: string) => {
-                setError(message);
-            }
-        };
-
-        // Подключаемся к WebSocket
-        notificationService.connectWebSocket(eventHandlers);
-
-        // Очистка при размонтировании компонента
-        return () => {
-            notificationService.disconnectWebSocket();
-        };
-    }, []);
-
     // Загрузка уведомлений с сервера
     const fetchNotifications = async () => {
         try {
             setLoading(true);
             setError(null);
-            const data = await notificationService.getNotifications();
+            const data = await notificationsService.getAllNotifications();
             setNotifications(data);
         } catch (err) {
             setError('Не удалось загрузить уведомления');
@@ -75,28 +39,15 @@ export const NotificationsPanel: React.FC<NotificationsProps> = ({
     };
 
     // Обработка действий в уведомлении
-    const handleAction = async (action: Action) => {
+    const handleAction = async (action: NotificationAction) => {
         try {
             if (action.type === 'request') {
-                const method = action.payload.method || 'GET';
-
-                const response = await fetch(action.payload.url, {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...notificationService.getAuthHeaders()
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Ошибка запроса: ${response.status}`);
-                }
-
+                await notificationsService.executeNotificationAction(action);
                 // Перезагружаем уведомления после успешного действия
                 fetchNotifications();
             } else if (action.type === 'anchor') {
                 // Перенаправляем пользователя по указанному URL
-                window.location.href = action.payload.url;
+                window.open(action.payload.url, '_blank');
             }
         } catch (err) {
             setError('Не удалось выполнить действие');
@@ -106,7 +57,6 @@ export const NotificationsPanel: React.FC<NotificationsProps> = ({
 
     // Обработка прочтения уведомления
     const handleMarkAsRead = (notificationId: number) => {
-        notificationService.markAsRead(notificationId);
         // Обновляем локальное состояние
         setNotifications(prev =>
             prev.map(item =>
@@ -117,7 +67,6 @@ export const NotificationsPanel: React.FC<NotificationsProps> = ({
 
     // Обработка скрытия уведомления
     const handleMarkAsHidden = (notificationId: number) => {
-        notificationService.markAsHidden(notificationId);
         // Удаляем из локального состояния
         setNotifications(prev =>
             prev.filter(item => item.id !== notificationId)
@@ -138,14 +87,14 @@ export const NotificationsPanel: React.FC<NotificationsProps> = ({
             </div>
 
             {loading && (
-                <div className={styles.notificationsLoading}>
-                    Загрузка уведомлений...
+                <div className={styles.notificationsEmpty}>
+                    <div className={styles.loadingSpinner}>Загрузка уведомлений...</div>
                 </div>
             )}
 
             {error && (
-                <div className={styles.notificationsError}>
-                    {error}
+                <div className={styles.notificationsEmpty}>
+                    <p style={{ color: '#FF4444' }}>{error}</p>
                 </div>
             )}
 
@@ -161,7 +110,9 @@ export const NotificationsPanel: React.FC<NotificationsProps> = ({
                         >
                             <div className={styles.notificationHeader}>
                                 <div className={styles.notificationTitle}>{notification.title}</div>
-                                <span className={styles.notificationDate}>{new Date(notification.created_at).toLocaleString()}</span>
+                                <span className={styles.notificationDate}>
+                                    {new Date(notification.created_at).toLocaleDateString('ru-RU')}
+                                </span>
                             </div>
                             <div className={styles.notificationContent}>
                                 <p>{notification.message}</p>
@@ -176,7 +127,7 @@ export const NotificationsPanel: React.FC<NotificationsProps> = ({
                                                 e.stopPropagation();
                                                 handleAction(action);
                                             }}
-                                            className={`${styles.notificationAction} ${styles[`actionStyle${action.style}`]}`}
+                                            className={`${styles.notificationAction} ${styles[`action_${action.style}`]}`}
                                         >
                                             {action.text}
                                         </button>
@@ -185,48 +136,33 @@ export const NotificationsPanel: React.FC<NotificationsProps> = ({
                             )}
 
                             {notification.footnote && (
-                                <div className={styles.notificationFootnote}>
+                                <div className={styles.footnote}>
                                     {notification.footnote}
                                 </div>
                             )}
 
                             <button
-                                className={styles.notificationClose}
+                                className={styles.notificationsClose}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleMarkAsHidden(notification.id);
                                 }}
                                 aria-label="Скрыть уведомление"
+                                style={{
+                                    position: 'absolute',
+                                    top: '10px',
+                                    right: '10px',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    color: '#7C7C7C'
+                                }}
                             >
                                 ✕
                             </button>
                         </div>
                     ))}
-                </div>
-            )}
-
-            {notifications.length > 0 && (
-                <div className={styles.notificationsFooter}>
-                    <button
-                        className={styles.markAllReadButton}
-                        onClick={() => {
-                            notificationService.markAllAsRead();
-                            setNotifications(prev =>
-                                prev.map(item => ({ ...item, is_read: true }))
-                            );
-                        }}
-                    >
-                        Отметить все как прочитанные
-                    </button>
-                    <button
-                        className={styles.clearAllButton}
-                        onClick={() => {
-                            notificationService.markAllAsHidden();
-                            setNotifications([]);
-                        }}
-                    >
-                        Очистить все
-                    </button>
                 </div>
             )}
         </div>
