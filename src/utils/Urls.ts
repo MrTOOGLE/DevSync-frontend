@@ -55,7 +55,7 @@ const API_CONFIG = {
             INVITATION_DETAIL: (invitationId: number) => `${invitationId}/`,
             ACCEPT_INVITATION: (invitationId: number) => `${invitationId}/accept/`,
             REJECT_INVITATION: (invitationId: number) => `${invitationId}/reject/`,
-        }
+        },
     },
 
     get FULL_URL() {

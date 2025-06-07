@@ -1,6 +1,39 @@
 import API_CONFIG from '../utils/Urls.ts';
 import { authService } from './AuthService.tsx';
 
+// Типы для прав доступа
+export interface Permission {
+    codename: string;
+    name: string;
+    category: string;
+    description: string;
+}
+
+export interface RolePermission {
+    permission: Permission;
+    value: boolean | null;
+}
+
+// Типы для прав участника
+export interface MemberPermissions {
+    comment_create?: boolean | null;
+    comment_manage?: boolean | null;
+    department_manage?: boolean | null;
+    member_department_assign?: boolean | null;
+    member_manage?: boolean | null;
+    member_role_assign?: boolean | null;
+    project_manage?: boolean | null;
+    role_manage?: boolean | null;
+    task_department_manage?: boolean | null;
+    task_manage?: boolean | null;
+    task_view_all?: boolean | null;
+    task_view_assigned?: boolean | null;
+    task_view_department?: boolean | null;
+    voting_create?: boolean | null;
+    voting_manage?: boolean | null;
+    voting_vote?: boolean | null;
+}
+
 // Типы для данных проекта
 export interface ProjectData {
     id?: number;
@@ -382,6 +415,301 @@ export const projectService = {
             return await response.json();
         } catch (error) {
             console.error('Ошибка при передаче прав на проект:', error);
+            throw error;
+        }
+    },
+
+    // Добавьте эти методы в projectService в файле CreateProjectService.tsx
+
+// РАБОТА С РОЛЯМИ
+
+// Получение списка ролей проекта
+    getProjectRoles: async (projectId: number, includeMembers: boolean = false): Promise<Role[]> => {
+        try {
+            const baseUrl = API_CONFIG.FULL_URL.ROLES.BASE_URL(projectId);
+            const urlWithParams = includeMembers ? `${baseUrl}?members=true` : baseUrl;
+
+            const response = await fetch(urlWithParams, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения ролей проекта'
+                };
+            }
+
+            const data = await response.json();
+            return data.roles || [];
+        } catch (error) {
+            console.error('Ошибка при получении ролей проекта:', error);
+            throw error;
+        }
+    },
+
+// Создание роли проекта
+    createRole: async (projectId: number, roleData: { name: string, color: string, rank: number }): Promise<Role> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.ROLES.BASE_URL(projectId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                },
+                body: JSON.stringify(roleData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    data: errorData,
+                    message: 'Ошибка создания роли'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при создании роли:', error);
+            throw error;
+        }
+    },
+
+// Получение информации о роли
+    getRole: async (projectId: number, roleId: number, includeMembers: boolean = false): Promise<Role> => {
+        try {
+            const baseUrl = API_CONFIG.FULL_URL.ROLES.ROLE_DETAIL(projectId, roleId);
+            const urlWithParams = includeMembers ? `${baseUrl}?members=true` : baseUrl;
+
+            const response = await fetch(urlWithParams, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения роли'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при получении роли:', error);
+            throw error;
+        }
+    },
+
+// Обновление роли
+    updateRole: async (projectId: number, roleId: number, roleData: Partial<Role>): Promise<Role> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.ROLES.ROLE_DETAIL(projectId, roleId), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                },
+                body: JSON.stringify(roleData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    data: errorData,
+                    message: 'Ошибка обновления роли'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при обновлении роли:', error);
+            throw error;
+        }
+    },
+
+// Удаление роли
+    deleteRole: async (projectId: number, roleId: number): Promise<void> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.ROLES.ROLE_DETAIL(projectId, roleId), {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка удаления роли'
+                };
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении роли:', error);
+            throw error;
+        }
+    },
+
+// Получение ролей участника
+    getMemberRoles: async (projectId: number, userId: number): Promise<Role[]> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.MEMBER_ROLES(projectId, userId), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения ролей участника'
+                };
+            }
+
+            const data = await response.json();
+            return data.roles || [];
+        } catch (error) {
+            console.error('Ошибка при получении ролей участника:', error);
+            throw error;
+        }
+    },
+
+// Назначение роли участнику
+    assignRoleToMember: async (projectId: number, userId: number, roleId: number): Promise<{ success: boolean }> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.ASSIGN_ROLE(projectId, userId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                },
+                body: JSON.stringify({ role_id: roleId })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    data: errorData,
+                    message: 'Ошибка назначения роли участнику'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при назначении роли участнику:', error);
+            throw error;
+        }
+    },
+
+// Удаление роли у участника
+    removeRoleFromMember: async (projectId: number, userId: number, roleId: number): Promise<void> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.REMOVE_ROLE(projectId, userId, roleId), {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка удаления роли у участника'
+                };
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении роли у участника:', error);
+            throw error;
+        }
+    },
+
+// Получение прав участника в проекте
+    getMemberPermissions: async (projectId: number, userId: number): Promise<{[key: string]: boolean | null}> => {
+        try {
+            const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/members/${userId}/permissions/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения прав участника'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при получении прав участника:', error);
+            throw error;
+        }
+    },
+
+// Получение прав роли
+    getRolePermissions: async (projectId: number, roleId: number): Promise<{permissions: Array<{permission: any, value: boolean | null}>}> => {
+        try {
+            const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/roles/${roleId}/permissions/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения прав роли'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при получении прав роли:', error);
+            throw error;
+        }
+    },
+
+// Обновление прав роли
+    updateRolePermissions: async (projectId: number, roleId: number, permissions: {[key: string]: boolean | null}): Promise<{[key: string]: boolean | null}> => {
+        try {
+            const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/roles/${roleId}/permissions/batch/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                },
+                body: JSON.stringify(permissions)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    data: errorData,
+                    message: 'Ошибка обновления прав роли'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при обновлении прав роли:', error);
             throw error;
         }
     },
