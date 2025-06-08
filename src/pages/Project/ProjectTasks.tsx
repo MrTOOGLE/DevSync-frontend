@@ -37,17 +37,13 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
     // Создание задачи
     const [showCreateTask, setShowCreateTask] = useState(false);
     const [newTask, setNewTask] = useState<TaskCreateData & {
-        department_id?: number;
-        assignee_id?: number;
-        deadline_end?: string;
+        start_date_string?: string;
+        end_date_string?: string;
     }>({
         title: '',
-        description: '',
-        priority: 'medium',
-        deadline: '',
-        deadline_end: '',
-        department_id: undefined,
-        assignee_id: undefined
+        assignees: [],
+        start_date_string: '',
+        end_date_string: ''
     });
     const [creating, setCreating] = useState(false);
 
@@ -64,7 +60,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
             setLoading(true);
             setErrors(prev => ({ ...prev, tasks: '' }));
 
-            const tasksData = await tasksService.getProjectTasks(projectId);
+            const tasksData = await tasksService.getProjectTasks(projectId, true);
             setTasks(tasksData);
         } catch (error: any) {
             console.error('Ошибка загрузки задач:', error);
@@ -105,22 +101,13 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
             setCreating(true);
             setErrors(prev => ({ ...prev, taskCreate: '', taskTitle: '' }));
 
-            // Формируем дедлайн
-            let deadlineString = '';
-            if (newTask.deadline && newTask.deadline_end) {
-                const startDate = new Date(newTask.deadline).toLocaleDateString('ru-RU');
-                const endDate = new Date(newTask.deadline_end).toLocaleDateString('ru-RU');
-                deadlineString = `${startDate} - ${endDate}`;
-            } else if (newTask.deadline) {
-                deadlineString = new Date(newTask.deadline).toLocaleDateString('ru-RU');
-            }
-
+            // Преобразуем строки дат в ISO формат
             const taskData: TaskCreateData = {
-                title: newTask.title,
-                description: newTask.description || '',
-                priority: newTask.priority,
-                deadline: deadlineString,
-                assignee: newTask.assignee_id
+                title: newTask.title.trim(),
+                assignees: newTask.assignees,
+                department: newTask.department,
+                start_date: newTask.start_date_string ? new Date(newTask.start_date_string).toISOString() : undefined,
+                end_date: newTask.end_date_string ? new Date(newTask.end_date_string).toISOString() : undefined
             };
 
             const createdTask = await tasksService.createTask(projectId, taskData);
@@ -129,12 +116,9 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
             // Сброс формы
             setNewTask({
                 title: '',
-                description: '',
-                priority: 'medium',
-                deadline: '',
-                deadline_end: '',
-                department_id: undefined,
-                assignee_id: undefined
+                assignees: [],
+                start_date_string: '',
+                end_date_string: ''
             });
             setShowCreateTask(false);
 
@@ -167,6 +151,23 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
         }
     };
 
+    // Переключение статуса выполнения задачи
+    const handleToggleTaskCompletion = async (taskId: number, isCompleted: boolean) => {
+        try {
+            setErrors(prev => ({ ...prev, toggleTask: '' }));
+            await tasksService.toggleTaskCompletion(projectId, taskId, isCompleted);
+
+            // Обновляем локальное состояние
+            setTasks(prev => prev.map(task =>
+                task.id === taskId ? { ...task, is_completed: isCompleted } : task
+            ));
+        } catch (error: any) {
+            console.error('Ошибка изменения статуса задачи:', error);
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при изменении статуса задачи';
+            setErrors(prev => ({ ...prev, toggleTask: errorMessage }));
+        }
+    };
+
     // Применение фильтров
     const applyFilters = () => {
         setShowFilters(false);
@@ -182,29 +183,28 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
     // Фильтрация задач
     const filteredTasks = tasks.filter(task => {
-        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            task.description.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesDepartment = filters.departments.length === 0; // Пока без отделов в задачах
+        const matchesDepartment = filters.departments.length === 0 ||
+            (task.department && filters.departments.includes(task.department));
+
         const matchesAssignee = filters.assignees.length === 0 ||
-            (task.assignee && filters.assignees.includes(task.assignee.id));
+            task.assignees.some(assignee => filters.assignees.includes(assignee.id));
 
         return matchesSearch && matchesDepartment && matchesAssignee;
     });
 
     // Получение названия отдела
-    const getDepartmentName = (departmentId?: number): string => {
+    const getDepartmentName = (departmentId?: number | null): string => {
         if (!departmentId) return 'Без отдела';
         const department = departments.find(d => d.id === departmentId);
         return department?.title || 'Неизвестный отдел';
     };
 
-    // Получение участника
-    // @ts-ignore
-    const getMemberName = (memberId?: number): string => {
-        if (!memberId) return 'Не назначен';
-        const member = members.find(m => m.user.id === memberId);
-        return member ? `${member.user.first_name} ${member.user.last_name}` : 'Неизвестный участник';
+    // Форматирование даты
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return 'Не указана';
+        return new Date(dateString).toLocaleDateString('ru-RU');
     };
 
     if (loading) {
@@ -313,7 +313,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
                                 {/* Фильтр по участникам */}
                                 <div style={{ marginBottom: '20px' }}>
-                                    <h4 style={{ fontSize: '16px', color: '#353536', marginBottom: '10px' }}>Участники</h4>
+                                    <h4 style={{ fontSize: '16px', color: '#353536', marginBottom: '10px' }}>Исполнители</h4>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
                                         {members.map(member => (
                                             <label key={member.user.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -420,12 +420,9 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                                     setShowCreateTask(false);
                                     setNewTask({
                                         title: '',
-                                        description: '',
-                                        priority: 'medium',
-                                        deadline: '',
-                                        deadline_end: '',
-                                        department_id: undefined,
-                                        assignee_id: undefined
+                                        assignees: [],
+                                        start_date_string: '',
+                                        end_date_string: ''
                                     });
                                     setErrors(prev => ({ ...prev, taskTitle: '', taskCreate: '' }));
                                 }}
@@ -443,7 +440,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
                         <div className={styles.formGroup}>
                             <label style={{ fontSize: '16px', color: '#353536', marginBottom: '8px', display: 'block' }}>
-                                Название
+                                Название*
                             </label>
                             <Input
                                 placeholder="Название задачи*"
@@ -456,20 +453,20 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
                         <div className={styles.formGroup}>
                             <label style={{ fontSize: '16px', color: '#353536', marginBottom: '8px', display: 'block' }}>
-                                Дедлайн
+                                Период выполнения
                             </label>
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                 <Input
                                     type="date"
-                                    value={newTask.deadline}
-                                    onChange={(e) => setNewTask(prev => ({ ...prev, deadline: e.target.value }))}
+                                    value={newTask.start_date_string}
+                                    onChange={(e) => setNewTask(prev => ({ ...prev, start_date_string: e.target.value }))}
                                     style={{ flex: 1 }}
                                 />
                                 <span style={{ color: '#7C7C7C' }}>—</span>
                                 <Input
                                     type="date"
-                                    value={newTask.deadline_end}
-                                    onChange={(e) => setNewTask(prev => ({ ...prev, deadline_end: e.target.value }))}
+                                    value={newTask.end_date_string}
+                                    onChange={(e) => setNewTask(prev => ({ ...prev, end_date_string: e.target.value }))}
                                     style={{ flex: 1 }}
                                 />
                             </div>
@@ -486,16 +483,16 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                                         type="button"
                                         onClick={() => setNewTask(prev => ({
                                             ...prev,
-                                            department_id: prev.department_id === department.id ? undefined : department.id
+                                            department: prev.department === department.id ? undefined : department.id
                                         }))}
                                         style={{
                                             padding: '8px 16px',
-                                            backgroundColor: newTask.department_id === department.id ? '#FFDD2D' : '#F6F7F8',
+                                            backgroundColor: newTask.department === department.id ? '#FFDD2D' : '#F6F7F8',
                                             border: 'none',
                                             borderRadius: '12px',
                                             fontSize: '14px',
                                             cursor: 'pointer',
-                                            fontWeight: newTask.department_id === department.id ? '500' : '400'
+                                            fontWeight: newTask.department === department.id ? '500' : '400'
                                         }}
                                     >
                                         {department.title}
@@ -506,32 +503,37 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
                         <div className={styles.formGroup}>
                             <label style={{ fontSize: '16px', color: '#353536', marginBottom: '8px', display: 'block' }}>
-                                Исполнитель
+                                Исполнители
                             </label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                 {members.map(member => (
                                     <div
                                         key={member.user.id}
-                                        onClick={() => setNewTask(prev => ({
-                                            ...prev,
-                                            assignee_id: prev.assignee_id === member.user.id ? undefined : member.user.id
-                                        }))}
+                                        onClick={() => {
+                                            const isSelected = newTask.assignees.includes(member.user.id);
+                                            setNewTask(prev => ({
+                                                ...prev,
+                                                assignees: isSelected
+                                                    ? prev.assignees.filter(id => id !== member.user.id)
+                                                    : [...prev.assignees, member.user.id]
+                                            }));
+                                        }}
                                         style={{
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '8px',
                                             padding: '8px 12px',
-                                            backgroundColor: newTask.assignee_id === member.user.id ? '#FFDD2D' : '#F6F7F8',
+                                            backgroundColor: newTask.assignees.includes(member.user.id) ? '#FFDD2D' : '#F6F7F8',
                                             borderRadius: '12px',
                                             cursor: 'pointer',
-                                            border: newTask.assignee_id === member.user.id ? '2px solid #FFDD2D' : '2px solid transparent'
+                                            border: newTask.assignees.includes(member.user.id) ? '2px solid #FFDD2D' : '2px solid transparent'
                                         }}
                                     >
                                         <div style={{
                                             width: '32px',
                                             height: '32px',
                                             borderRadius: '50%',
-                                            backgroundColor: newTask.assignee_id === member.user.id ? '#FFFFFF' : '#FFDD2D',
+                                            backgroundColor: newTask.assignees.includes(member.user.id) ? '#FFFFFF' : '#FFDD2D',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -542,7 +544,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                                         </div>
                                         <span style={{
                                             fontSize: '14px',
-                                            fontWeight: newTask.assignee_id === member.user.id ? '500' : '400'
+                                            fontWeight: newTask.assignees.includes(member.user.id) ? '500' : '400'
                                         }}>
                                             {member.user.first_name} {member.user.last_name}
                                         </span>
@@ -577,7 +579,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                     {/* Заголовок таблицы */}
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'auto 150px 150px 150px 40px',
+                        gridTemplateColumns: 'auto 150px 150px 200px 60px',
                         gap: '20px',
                         padding: '20px',
                         backgroundColor: '#F6F7F8',
@@ -586,9 +588,9 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                         color: '#353536'
                     }}>
                         <div>Название</div>
-                        <div>Дедлайн</div>
-                        <div>Отдел</div>
-                        <div>Исполнитель</div>
+                        <div>Начало</div>
+                        <div>Окончание</div>
+                        <div>Исполнители</div>
                         <div></div>
                     </div>
 
@@ -598,7 +600,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                             key={task.id}
                             style={{
                                 display: 'grid',
-                                gridTemplateColumns: 'auto 150px 150px 150px 40px',
+                                gridTemplateColumns: 'auto 150px 150px 200px 60px',
                                 gap: '20px',
                                 padding: '20px',
                                 borderTop: index > 0 ? '1px solid #F6F7F8' : 'none',
@@ -606,57 +608,84 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={task.is_completed}
+                                    onChange={(e) => handleToggleTaskCompletion(task.id, e.target.checked)}
+                                    style={{
+                                        width: '16px',
+                                        height: '16px',
+                                        accentColor: '#FFDD2D'
+                                    }}
+                                />
                                 <div style={{
                                     width: '12px',
                                     height: '12px',
                                     borderRadius: '50%',
-                                    backgroundColor: task.status === 'completed' ? '#28A745' : '#FFDD2D'
+                                    backgroundColor: task.is_completed ? '#28A745' : '#FFDD2D'
                                 }}></div>
                                 <div>
-                                    <div style={{ fontSize: '16px', fontWeight: '500', color: '#353536', marginBottom: '4px' }}>
+                                    <div style={{
+                                        fontSize: '16px',
+                                        fontWeight: '500',
+                                        color: '#353536',
+                                        marginBottom: '4px',
+                                        textDecoration: task.is_completed ? 'line-through' : 'none'
+                                    }}>
                                         {task.title}
                                     </div>
-                                    {task.description && (
-                                        <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
-                                            {task.description.length > 100
-                                                ? `${task.description.substring(0, 100)}...`
-                                                : task.description
-                                            }
-                                        </div>
-                                    )}
+                                    <div style={{ fontSize: '12px', color: '#7C7C7C' }}>
+                                        {getDepartmentName(task.department)}
+                                    </div>
                                 </div>
                             </div>
 
                             <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
-                                {task.deadline || 'Не указан'}
+                                {formatDate(task.start_date)}
                             </div>
 
                             <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
-                                {getDepartmentName(newTask.department_id)}
+                                {formatDate(task.end_date)}
                             </div>
 
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {task.assignee ? (
-                                    <>
-                                        <div style={{
-                                            width: '24px',
-                                            height: '24px',
-                                            borderRadius: '50%',
-                                            backgroundColor: '#FFDD2D',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '12px',
-                                            fontWeight: '500'
-                                        }}>
-                                            {task.assignee.first_name.charAt(0)}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                {task.assignees.length > 0 ? (
+                                    task.assignees.slice(0, 3).map(assignee => (
+                                        <div
+                                            key={assignee.id}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px'
+                                            }}
+                                        >
+                                            <div style={{
+                                                width: '24px',
+                                                height: '24px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#FFDD2D',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '12px',
+                                                fontWeight: '500'
+                                            }}>
+                                                {assignee.first_name.charAt(0)}
+                                            </div>
+                                            {task.assignees.length === 1 && (
+                                                <span style={{ fontSize: '12px', color: '#353536' }}>
+                                                    {assignee.first_name}
+                                                </span>
+                                            )}
                                         </div>
-                                        <span style={{ fontSize: '14px', color: '#353536' }}>
-                                            {task.assignee.first_name} {task.assignee.last_name}
-                                        </span>
-                                    </>
+                                    ))
                                 ) : (
-                                    <span style={{ fontSize: '14px', color: '#7C7C7C' }}>Не назначен</span>
+                                    <span style={{ fontSize: '14px', color: '#7C7C7C' }}>Не назначены</span>
+                                )}
+                                {task.assignees.length > 3 && (
+                                    <span style={{ fontSize: '12px', color: '#7C7C7C' }}>
+                                        +{task.assignees.length - 3}
+                                    </span>
                                 )}
                             </div>
 
@@ -697,6 +726,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
             {/* Отображение ошибок */}
             {errors.tasks && <ErrorField message={errors.tasks} />}
             {errors.deleteTask && <ErrorField message={errors.deleteTask} />}
+            {errors.toggleTask && <ErrorField message={errors.toggleTask} />}
         </div>
     );
 };

@@ -56,6 +56,19 @@ const API_CONFIG = {
             ACCEPT_INVITATION: (invitationId: number) => `${invitationId}/accept/`,
             REJECT_INVITATION: (invitationId: number) => `${invitationId}/reject/`,
         },
+        TASKS: {
+            BASE_URL: (projectId: number) => `api/v1/projects/${projectId}/tasks/`,
+            TASK_DETAIL: (taskId: number) => `${taskId}/`,
+        },
+        VOTINGS: {
+            BASE_URL: (projectId: number) => `api/v1/projects/${projectId}/votings/`,
+            VOTING_DETAIL: (votingId: number) => `${votingId}/`,
+            VOTE: (votingId: number) => `${votingId}/choices/`,
+            CANCEL_VOTE: (votingId: number, choiceId: number) => `${votingId}/choices/${choiceId}/`,
+            OPTIONS: (votingId: number) => `${votingId}/options/`,
+            COMMENTS: (votingId: number) => `${votingId}/comments/`,
+            COMMENT_DETAIL: (votingId: number, commentId: number) => `${votingId}/comments/${commentId}/`,
+        },
     },
 
     get FULL_URL() {
@@ -113,6 +126,19 @@ const API_CONFIG = {
                 INVITATION_DETAIL: (invitationId: number) => this.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.INVITATION_DETAIL(invitationId),
                 ACCEPT_INVITATION: (invitationId: number) => this.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.ACCEPT_INVITATION(invitationId),
                 REJECT_INVITATION: (invitationId: number) => this.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.BASE_URL + this.ENDPOINTS.MY_INVITATIONS.REJECT_INVITATION(invitationId),
+            },
+            TASKS: {
+                BASE_URL: (projectId: number) => this.BASE_URL + this.ENDPOINTS.TASKS.BASE_URL(projectId),
+                TASK_DETAIL: (projectId: number, taskId: number) => this.BASE_URL + this.ENDPOINTS.TASKS.BASE_URL(projectId) + this.ENDPOINTS.TASKS.TASK_DETAIL(taskId),
+            },
+            VOTINGS: {
+                BASE_URL: (projectId: number) => this.BASE_URL + this.ENDPOINTS.VOTINGS.BASE_URL(projectId),
+                VOTING_DETAIL: (projectId: number, votingId: number) => this.BASE_URL + this.ENDPOINTS.VOTINGS.BASE_URL(projectId) + this.ENDPOINTS.VOTINGS.VOTING_DETAIL(votingId),
+                VOTE: (projectId: number, votingId: number) => this.BASE_URL + this.ENDPOINTS.VOTINGS.BASE_URL(projectId) + this.ENDPOINTS.VOTINGS.VOTE(votingId),
+                CANCEL_VOTE: (projectId: number, votingId: number, choiceId: number) => this.BASE_URL + this.ENDPOINTS.VOTINGS.BASE_URL(projectId) + this.ENDPOINTS.VOTINGS.CANCEL_VOTE(votingId, choiceId),
+                OPTIONS: (projectId: number, votingId: number) => this.BASE_URL + this.ENDPOINTS.VOTINGS.BASE_URL(projectId) + this.ENDPOINTS.VOTINGS.OPTIONS(votingId),
+                COMMENTS: (projectId: number, votingId: number) => this.BASE_URL + this.ENDPOINTS.VOTINGS.BASE_URL(projectId) + this.ENDPOINTS.VOTINGS.COMMENTS(votingId),
+                COMMENT_DETAIL: (projectId: number, votingId: number, commentId: number) => this.BASE_URL + this.ENDPOINTS.VOTINGS.BASE_URL(projectId) + this.ENDPOINTS.VOTINGS.COMMENT_DETAIL(votingId, commentId),
             }
         }
     }

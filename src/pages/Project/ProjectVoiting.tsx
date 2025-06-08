@@ -3,9 +3,9 @@ import styles from '../../styles/ProjectManagement.module.css';
 import { Input } from '../../components/common/Input/Input.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
 import {
-    suggestionsService,
-    Suggestion,
-    SuggestionCreateData
+    votingService,
+    Voting,
+    VotingCreateData
 } from '../../hooks/VoitingService.tsx';
 
 interface ProjectVotingProps {
@@ -14,7 +14,7 @@ interface ProjectVotingProps {
 
 const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     // Состояния
-    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+    const [votings, setVotings] = useState<Voting[]>([]);
     const [loading, setLoading] = useState(true);
     const [errors, setErrors] = useState<{[key: string]: string}>({});
 
@@ -22,46 +22,70 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Создание предложения
-    const [showCreateSuggestion, setShowCreateSuggestion] = useState(false);
-    const [newSuggestion, setNewSuggestion] = useState<SuggestionCreateData>({
+    // Создание голосования
+    const [showCreateVoting, setShowCreateVoting] = useState(false);
+    const [newVoting, setNewVoting] = useState<VotingCreateData & { options_text: string }>({
         title: '',
-        description: '',
-        deadline: '',
-        allow_multiple_votes: false
+        body: '',
+        end_date: '',
+        options: [],
+        is_anonymous: false,
+        options_text: ''
     });
     const [creating, setCreating] = useState(false);
 
-    // Загрузка предложений при монтировании
+    // Загрузка голосований при монтировании
     useEffect(() => {
-        loadSuggestions();
+        loadVotings();
     }, [projectId]);
 
-    // Загрузка предложений
-    const loadSuggestions = async () => {
+    // Загрузка голосований
+    const loadVotings = async () => {
         try {
             setLoading(true);
-            setErrors(prev => ({ ...prev, suggestions: '' }));
+            setErrors(prev => ({ ...prev, votings: '' }));
 
-            const suggestionsData = await suggestionsService.getProjectSuggestions(projectId);
-            setSuggestions(suggestionsData);
+            const votingsResponse = await votingService.getProjectVotings(projectId);
+            setVotings(votingsResponse.votings);
         } catch (error: any) {
-            console.error('Ошибка загрузки предложений:', error);
-            setErrors(prev => ({ ...prev, suggestions: error.message || 'Ошибка загрузки предложений' }));
+            console.error('Ошибка загрузки голосований:', error);
+            setErrors(prev => ({ ...prev, votings: error.message || 'Ошибка загрузки голосований' }));
         } finally {
             setLoading(false);
         }
     };
 
-    // Создание предложения
-    const handleCreateSuggestion = async () => {
-        if (!newSuggestion.title.trim()) {
-            setErrors(prev => ({ ...prev, suggestionTitle: 'Название предложения обязательно' }));
+    // Создание голосования
+    const handleCreateVoting = async () => {
+        if (!newVoting.title.trim()) {
+            setErrors(prev => ({ ...prev, votingTitle: 'Название голосования обязательно' }));
             return;
         }
 
-        if (!newSuggestion.description.trim()) {
-            setErrors(prev => ({ ...prev, suggestionDescription: 'Описание предложения обязательно' }));
+        if (!newVoting.body.trim()) {
+            setErrors(prev => ({ ...prev, votingBody: 'Описание голосования обязательно' }));
+            return;
+        }
+
+        if (!newVoting.end_date) {
+            setErrors(prev => ({ ...prev, votingEndDate: 'Дата окончания обязательна' }));
+            return;
+        }
+
+        if (!newVoting.options_text.trim()) {
+            setErrors(prev => ({ ...prev, votingOptions: 'Варианты ответов обязательны' }));
+            return;
+        }
+
+        // Парсим варианты ответов из текста
+        const options = newVoting.options_text
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .map(line => ({ body: line }));
+
+        if (options.length < 2) {
+            setErrors(prev => ({ ...prev, votingOptions: 'Необходимо минимум 2 варианта ответа' }));
             return;
         }
 
@@ -69,63 +93,53 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             setCreating(true);
             setErrors(prev => ({
                 ...prev,
-                suggestionCreate: '',
-                suggestionTitle: '',
-                suggestionDescription: ''
+                votingCreate: '',
+                votingTitle: '',
+                votingBody: '',
+                votingEndDate: '',
+                votingOptions: ''
             }));
 
-            const createdSuggestion = await suggestionsService.createSuggestion(projectId, newSuggestion);
-            setSuggestions(prev => [createdSuggestion, ...prev]);
+            const votingData: VotingCreateData = {
+                title: newVoting.title.trim(),
+                body: newVoting.body.trim(),
+                end_date: newVoting.end_date,
+                options: options,
+                is_anonymous: newVoting.is_anonymous
+            };
+
+            const createdVoting = await votingService.createVoting(projectId, votingData);
+            setVotings(prev => [createdVoting, ...prev]);
 
             // Сброс формы
-            setNewSuggestion({
+            setNewVoting({
                 title: '',
-                description: '',
-                deadline: '',
-                allow_multiple_votes: false
+                body: '',
+                end_date: '',
+                options: [],
+                is_anonymous: false,
+                options_text: ''
             });
-            setShowCreateSuggestion(false);
+            setShowCreateVoting(false);
 
         } catch (error: any) {
-            console.error('Ошибка создания предложения:', error);
-            const errorMessage = error.data?.title?.[0] || error.data?.detail || error.message || 'Ошибка при создании предложения';
-            setErrors(prev => ({ ...prev, suggestionCreate: errorMessage }));
+            console.error('Ошибка создания голосования:', error);
+            const errorMessage = error.data?.title?.[0] || error.data?.detail || error.message || 'Ошибка при создании голосования';
+            setErrors(prev => ({ ...prev, votingCreate: errorMessage }));
         } finally {
             setCreating(false);
         }
     };
 
     // Голосование
-    const handleVote = async (suggestionId: number, voteType: 'for' | 'against') => {
+    const handleVote = async (votingId: number, optionId: number) => {
         try {
             setErrors(prev => ({ ...prev, vote: '' }));
 
-            await suggestionsService.voteForSuggestion(projectId, suggestionId, { vote_type: voteType });
+            await votingService.vote(projectId, votingId, optionId);
 
-            // Обновляем локальное состояние
-            setSuggestions(prev => prev.map(suggestion => {
-                if (suggestion.id === suggestionId) {
-                    let updatedSuggestion = { ...suggestion };
-
-                    // Убираем предыдущий голос
-                    if (suggestion.user_vote === 'for') {
-                        updatedSuggestion.votes_for--;
-                    } else if (suggestion.user_vote === 'against') {
-                        updatedSuggestion.votes_against--;
-                    }
-
-                    // Добавляем новый голос
-                    if (voteType === 'for') {
-                        updatedSuggestion.votes_for++;
-                    } else {
-                        updatedSuggestion.votes_against++;
-                    }
-
-                    updatedSuggestion.user_vote = voteType;
-                    return updatedSuggestion;
-                }
-                return suggestion;
-            }));
+            // Обновляем статистику голосования
+            await loadVotings();
         } catch (error: any) {
             console.error('Ошибка голосования:', error);
             const errorMessage = error.data?.detail || error.message || 'Ошибка при голосовании';
@@ -133,54 +147,52 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
         }
     };
 
-    // Удаление предложения
-    const handleDeleteSuggestion = async (suggestionId: number) => {
-        const suggestion = suggestions.find(s => s.id === suggestionId);
-        if (!suggestion) return;
+    // Удаление голосования
+    const handleDeleteVoting = async (votingId: number) => {
+        const voting = votings.find(v => v.id === votingId);
+        if (!voting) return;
 
-        if (!confirm(`Вы уверены, что хотите удалить предложение "${suggestion.title}"?`)) {
+        if (!confirm(`Вы уверены, что хотите удалить голосование "${voting.title}"?`)) {
             return;
         }
 
         try {
-            setErrors(prev => ({ ...prev, deleteSuggestion: '' }));
-            await suggestionsService.deleteSuggestion(projectId, suggestionId);
-            setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
+            setErrors(prev => ({ ...prev, deleteVoting: '' }));
+            await votingService.deleteVoting(projectId, votingId);
+            setVotings(prev => prev.filter(v => v.id !== votingId));
         } catch (error: any) {
-            console.error('Ошибка удаления предложения:', error);
-            const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении предложения';
-            setErrors(prev => ({ ...prev, deleteSuggestion: errorMessage }));
+            console.error('Ошибка удаления голосования:', error);
+            const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении голосования';
+            setErrors(prev => ({ ...prev, deleteVoting: errorMessage }));
         }
     };
 
-    // Фильтрация предложений
-    const filteredSuggestions = suggestions.filter(suggestion => {
-        const matchesStatus = statusFilter === 'all' || suggestion.status === statusFilter;
-        const matchesSearch = suggestion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            suggestion.description.toLowerCase().includes(searchQuery.toLowerCase());
+    // Фильтрация голосований
+    const filteredVotings = votings.filter(voting => {
+        const matchesStatus = statusFilter === 'all' || voting.status === statusFilter;
+        const matchesSearch = voting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            voting.body.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesStatus && matchesSearch;
     });
 
     // Получение названия статуса
-    const getStatusName = (status: Suggestion['status']): string => {
-        switch (status) {
-            case 'new': return 'Новое';
-            case 'under_review': return 'На рассмотрении';
-            case 'approved': return 'Принято';
-            case 'rejected': return 'Отклонено';
-            default: return status;
-        }
+    const getStatusName = (status: string): string => {
+        const statusMap: {[key: string]: string} = {
+            'active': 'Активное',
+            'ended': 'Завершено',
+            'draft': 'Черновик'
+        };
+        return statusMap[status] || status;
     };
 
     // Получение цвета статуса
-    const getStatusColor = (status: Suggestion['status']): string => {
-        switch (status) {
-            case 'new': return '#FFDD2D';
-            case 'under_review': return '#126DF7';
-            case 'approved': return '#28A745';
-            case 'rejected': return '#FF4444';
-            default: return '#7C7C7C';
-        }
+    const getStatusColor = (status: string): string => {
+        const colorMap: {[key: string]: string} = {
+            'active': '#28A745',
+            'ended': '#7C7C7C',
+            'draft': '#FFDD2D'
+        };
+        return colorMap[status] || '#7C7C7C';
     };
 
     // Форматирование даты
@@ -198,7 +210,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     if (loading) {
         return (
             <div className={styles.section}>
-                <p>Загрузка предложений...</p>
+                <p>Загрузка голосований...</p>
             </div>
         );
     }
@@ -210,9 +222,9 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 <h2 className={styles.sectionTitle}>Голосования</h2>
                 <button
                     className={styles.primaryButton}
-                    onClick={() => setShowCreateSuggestion(true)}
+                    onClick={() => setShowCreateVoting(true)}
                 >
-                    Создать предложение
+                    Создать голосование
                 </button>
             </div>
 
@@ -227,7 +239,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 alignItems: 'center'
             }}>
                 <Input
-                    placeholder="🔍 Поиск предложений"
+                    placeholder="🔍 Поиск голосований"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{ flex: 1 }}
@@ -238,10 +250,9 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                     <div style={{ display: 'flex', gap: '8px' }}>
                         {[
                             { value: 'all', label: 'Все' },
-                            { value: 'new', label: 'Новые' },
-                            { value: 'under_review', label: 'На рассмотрении' },
-                            { value: 'approved', label: 'Принятые' },
-                            { value: 'rejected', label: 'Отклоненные' }
+                            { value: 'active', label: 'Активные' },
+                            { value: 'ended', label: 'Завершенные' },
+                            { value: 'draft', label: 'Черновики' }
                         ].map(filter => (
                             <button
                                 key={filter.value}
@@ -265,8 +276,8 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 </div>
             </div>
 
-            {/* Форма создания предложения */}
-            {showCreateSuggestion && (
+            {/* Форма создания голосования */}
+            {showCreateVoting && (
                 <div style={{
                     backgroundColor: '#F6F7F8',
                     padding: '20px',
@@ -274,76 +285,96 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                     marginBottom: '20px'
                 }}>
                     <h3 style={{ marginBottom: '20px', fontSize: '20px', color: '#353536' }}>
-                        Новое предложение
+                        Новое голосование
                     </h3>
 
                     <div className={styles.formGroup}>
                         <Input
-                            placeholder="Название предложения*"
-                            value={newSuggestion.title}
-                            onChange={(e) => setNewSuggestion(prev => ({ ...prev, title: e.target.value }))}
-                            hasError={!!errors.suggestionTitle}
+                            placeholder="Название голосования*"
+                            value={newVoting.title}
+                            onChange={(e) => setNewVoting(prev => ({ ...prev, title: e.target.value }))}
+                            hasError={!!errors.votingTitle}
                         />
-                        {errors.suggestionTitle && <ErrorField message={errors.suggestionTitle} />}
+                        {errors.votingTitle && <ErrorField message={errors.votingTitle} />}
                     </div>
 
                     <div className={styles.formGroup}>
                         <textarea
                             className={styles.textarea}
-                            placeholder="Описание предложения*"
-                            value={newSuggestion.description}
-                            onChange={(e) => setNewSuggestion(prev => ({ ...prev, description: e.target.value }))}
+                            placeholder="Описание голосования*"
+                            value={newVoting.body}
+                            onChange={(e) => setNewVoting(prev => ({ ...prev, body: e.target.value }))}
                             style={{ height: '120px' }}
                         />
-                        {errors.suggestionDescription && <ErrorField message={errors.suggestionDescription} />}
+                        {errors.votingBody && <ErrorField message={errors.votingBody} />}
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <textarea
+                            className={styles.textarea}
+                            placeholder="Варианты ответов (каждый с новой строки)*"
+                            value={newVoting.options_text}
+                            onChange={(e) => setNewVoting(prev => ({ ...prev, options_text: e.target.value }))}
+                            style={{ height: '120px' }}
+                        />
+                        {errors.votingOptions && <ErrorField message={errors.votingOptions} />}
+                        <div style={{ fontSize: '12px', color: '#7C7C7C', marginTop: '5px' }}>
+                            Пример:<br />
+                            Вариант 1<br />
+                            Вариант 2<br />
+                            Вариант 3
+                        </div>
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
                         <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
-                            Дедлайн (необязательно)
+                            Дата окончания*
                         </label>
                         <Input
                             type="datetime-local"
-                            value={newSuggestion.deadline}
-                            onChange={(e) => setNewSuggestion(prev => ({ ...prev, deadline: e.target.value }))}
+                            value={newVoting.end_date}
+                            onChange={(e) => setNewVoting(prev => ({ ...prev, end_date: e.target.value }))}
+                            hasError={!!errors.votingEndDate}
                         />
+                        {errors.votingEndDate && <ErrorField message={errors.votingEndDate} />}
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
-                        <h4 style={{ fontSize: '16px', color: '#353536', marginBottom: '15px' }}>
-                            Настройки
-                        </h4>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                             <input
                                 type="checkbox"
-                                checked={newSuggestion.allow_multiple_votes}
-                                onChange={(e) => setNewSuggestion(prev => ({ ...prev, allow_multiple_votes: e.target.checked }))}
+                                checked={newVoting.is_anonymous}
+                                onChange={(e) => setNewVoting(prev => ({ ...prev, is_anonymous: e.target.checked }))}
                                 style={{ width: '16px', height: '16px' }}
                             />
                             <span style={{ fontFamily: 'Helvetica Neue', fontSize: '16px', color: '#353536' }}>
-                                Разрешить множественный выбор вариантов ответа
+                                Анонимное голосование
                             </span>
                         </label>
                     </div>
 
-                    {errors.suggestionCreate && <ErrorField message={errors.suggestionCreate} />}
+                    {errors.votingCreate && <ErrorField message={errors.votingCreate} />}
 
                     <div className={styles.actionButtons}>
                         <button
                             className={styles.secondaryButton}
                             onClick={() => {
-                                setShowCreateSuggestion(false);
-                                setNewSuggestion({
+                                setShowCreateVoting(false);
+                                setNewVoting({
                                     title: '',
-                                    description: '',
-                                    deadline: '',
-                                    allow_multiple_votes: false
+                                    body: '',
+                                    end_date: '',
+                                    options: [],
+                                    is_anonymous: false,
+                                    options_text: ''
                                 });
                                 setErrors(prev => ({
                                     ...prev,
-                                    suggestionTitle: '',
-                                    suggestionDescription: '',
-                                    suggestionCreate: ''
+                                    votingTitle: '',
+                                    votingBody: '',
+                                    votingEndDate: '',
+                                    votingOptions: '',
+                                    votingCreate: ''
                                 }));
                             }}
                             disabled={creating}
@@ -352,7 +383,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                         </button>
                         <button
                             className={styles.primaryButton}
-                            onClick={handleCreateSuggestion}
+                            onClick={handleCreateVoting}
                             disabled={creating}
                         >
                             {creating ? 'Создание...' : 'Создать'}
@@ -361,16 +392,14 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 </div>
             )}
 
-            {/* Список предложений */}
-            {filteredSuggestions.length > 0 ? (
+            {/* Список голосований */}
+            {filteredVotings.length > 0 ? (
                 <div className={styles.itemsList}>
-                    {filteredSuggestions.map(suggestion => {
-                        const totalVotes = suggestion.votes_for + suggestion.votes_against;
-                        const forPercentage = totalVotes > 0 ? Math.round((suggestion.votes_for / totalVotes) * 100) : 0;
-                        const againstPercentage = totalVotes > 0 ? Math.round((suggestion.votes_against / totalVotes) * 100) : 0;
+                    {filteredVotings.map(voting => {
+                        const totalVotes = voting.options.reduce((sum, option) => sum + option.votes_count, 0);
 
                         return (
-                            <div key={suggestion.id} style={{
+                            <div key={voting.id} style={{
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: '14px',
                                 padding: '25px',
@@ -387,28 +416,30 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                             fontFamily: 'Helvetica Neue',
                                             fontWeight: '500'
                                         }}>
-                                            #{suggestion.id} {suggestion.title}
+                                            #{voting.id} {voting.title}
                                         </h3>
                                         <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
-                                            {formatDate(suggestion.created_at)} • {suggestion.author.first_name} {suggestion.author.last_name}
+                                            Создано: {formatDate(voting.date_started)} • {voting.creator.first_name} {voting.creator.last_name}
+                                            <br />
+                                            Завершится: {formatDate(voting.end_date)}
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                         <span style={{
-                                            backgroundColor: getStatusColor(suggestion.status),
-                                            color: suggestion.status === 'new' ? '#353536' : 'white',
+                                            backgroundColor: getStatusColor(voting.status),
+                                            color: voting.status === 'draft' ? '#353536' : 'white',
                                             fontSize: '14px',
                                             padding: '6px 12px',
                                             borderRadius: '12px',
                                             fontWeight: '500'
                                         }}>
-                                            {getStatusName(suggestion.status)}
+                                            {getStatusName(voting.status)}
                                         </span>
 
                                         <button
                                             className={`${styles.iconButton} ${styles.deleteButton}`}
-                                            onClick={() => handleDeleteSuggestion(suggestion.id)}
-                                            title="Удалить предложение"
+                                            onClick={() => handleDeleteVoting(voting.id)}
+                                            title="Удалить голосование"
                                         >
                                             🗑️
                                         </button>
@@ -422,119 +453,80 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                     lineHeight: '1.5',
                                     margin: '0 0 20px 0'
                                 }}>
-                                    {suggestion.description}
+                                    {voting.body}
                                 </p>
 
-                                {/* Дедлайн */}
-                                {suggestion.deadline && (
-                                    <div style={{
-                                        fontSize: '14px',
-                                        color: '#7C7C7C',
-                                        marginBottom: '15px'
-                                    }}>
-                                        📅 Открыто до: {formatDate(suggestion.deadline)}
-                                    </div>
-                                )}
-
-                                {/* Результаты голосования */}
+                                {/* Варианты ответов */}
                                 <div style={{ marginBottom: '15px' }}>
                                     <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '10px' }}>
-                                        Результаты голосования
+                                        Варианты ответов ({totalVotes} голосов)
                                     </div>
 
-                                    {/* Голоса "За" */}
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                                        <span style={{ fontSize: '20px', marginRight: '10px' }}>👍</span>
-                                        <span style={{ fontSize: '16px', marginRight: '10px', minWidth: '60px' }}>За</span>
-                                        <div style={{
-                                            flex: 1,
-                                            height: '8px',
-                                            backgroundColor: '#E0E0E0',
-                                            borderRadius: '4px',
-                                            overflow: 'hidden',
-                                            marginRight: '10px'
-                                        }}>
-                                            <div style={{
-                                                width: `${forPercentage}%`,
-                                                height: '100%',
-                                                backgroundColor: '#28A745',
-                                                borderRadius: '4px'
-                                            }} />
-                                        </div>
-                                        <span style={{ fontSize: '16px', fontWeight: '500', minWidth: '80px' }}>
-                                            {suggestion.votes_for} ({forPercentage}%)
-                                        </span>
-                                    </div>
+                                    {voting.options.map((option, index) => {
+                                        const percentage = totalVotes > 0 ? Math.round((option.votes_count / totalVotes) * 100) : 0;
 
-                                    {/* Голоса "Против" */}
-                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                                        <span style={{ fontSize: '20px', marginRight: '10px' }}>👎</span>
-                                        <span style={{ fontSize: '16px', marginRight: '10px', minWidth: '60px' }}>Против</span>
-                                        <div style={{
-                                            flex: 1,
-                                            height: '8px',
-                                            backgroundColor: '#E0E0E0',
-                                            borderRadius: '4px',
-                                            overflow: 'hidden',
-                                            marginRight: '10px'
-                                        }}>
-                                            <div style={{
-                                                width: `${againstPercentage}%`,
-                                                height: '100%',
-                                                backgroundColor: '#FF4444',
-                                                borderRadius: '4px'
-                                            }} />
-                                        </div>
-                                        <span style={{ fontSize: '16px', fontWeight: '500', minWidth: '80px' }}>
-                                            {suggestion.votes_against} ({againstPercentage}%)
-                                        </span>
-                                    </div>
-
-                                    <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
-                                        Всего голосов: {totalVotes}
-                                        {suggestion.comments_count && suggestion.comments_count > 0 && (
-                                            <> • Комментариев: {suggestion.comments_count}</>
-                                        )}
-                                    </div>
+                                        return (
+                                            <div key={option.id} style={{ marginBottom: '10px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                                                    <span style={{ fontSize: '16px', marginRight: '10px', minWidth: '60px' }}>
+                                                        Вариант {index + 1}
+                                                    </span>
+                                                    <div style={{
+                                                        flex: 1,
+                                                        height: '8px',
+                                                        backgroundColor: '#E0E0E0',
+                                                        borderRadius: '4px',
+                                                        overflow: 'hidden',
+                                                        marginRight: '10px'
+                                                    }}>
+                                                        <div style={{
+                                                            width: `${percentage}%`,
+                                                            height: '100%',
+                                                            backgroundColor: '#FFDD2D',
+                                                            borderRadius: '4px'
+                                                        }} />
+                                                    </div>
+                                                    <span style={{ fontSize: '16px', fontWeight: '500', minWidth: '80px' }}>
+                                                        {option.votes_count} ({percentage}%)
+                                                    </span>
+                                                </div>
+                                                <div style={{ fontSize: '14px', color: '#353536', marginLeft: '70px' }}>
+                                                    {option.body}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Кнопки голосования */}
-                                {suggestion.status === 'new' || suggestion.status === 'under_review' ? (
-                                    <div style={{ display: 'flex', gap: '10px' }}>
-                                        <button
-                                            onClick={() => handleVote(suggestion.id, 'for')}
-                                            style={{
-                                                backgroundColor: suggestion.user_vote === 'for' ? '#28A745' : '#F6F7F8',
-                                                color: suggestion.user_vote === 'for' ? 'white' : '#353536',
-                                                border: suggestion.user_vote === 'for' ? '2px solid #28A745' : '2px solid transparent',
-                                                borderRadius: '11px',
-                                                padding: '10px 20px',
-                                                cursor: 'pointer',
-                                                fontFamily: 'Helvetica Neue',
-                                                fontSize: '16px',
-                                                fontWeight: suggestion.user_vote === 'for' ? '500' : '400',
-                                                transition: 'all 0.2s ease'
-                                            }}
-                                        >
-                                            👍 За
-                                        </button>
-                                        <button
-                                            onClick={() => handleVote(suggestion.id, 'against')}
-                                            style={{
-                                                backgroundColor: suggestion.user_vote === 'against' ? '#FF4444' : '#F6F7F8',
-                                                color: suggestion.user_vote === 'against' ? 'white' : '#353536',
-                                                border: suggestion.user_vote === 'against' ? '2px solid #FF4444' : '2px solid transparent',
-                                                borderRadius: '11px',
-                                                padding: '10px 20px',
-                                                cursor: 'pointer',
-                                                fontFamily: 'Helvetica Neue',
-                                                fontSize: '16px',
-                                                fontWeight: suggestion.user_vote === 'against' ? '500' : '400',
-                                                transition: 'all 0.2s ease'
-                                            }}
-                                        >
-                                            👎 Против
-                                        </button>
+                                {voting.status === 'active' ? (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                        {voting.options.map((option, index) => (
+                                            <button
+                                                key={option.id}
+                                                onClick={() => handleVote(voting.id, option.id)}
+                                                style={{
+                                                    backgroundColor: '#F6F7F8',
+                                                    color: '#353536',
+                                                    border: '2px solid #FFDD2D',
+                                                    borderRadius: '11px',
+                                                    padding: '10px 20px',
+                                                    cursor: 'pointer',
+                                                    fontFamily: 'Helvetica Neue',
+                                                    fontSize: '16px',
+                                                    fontWeight: '400',
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = '#FFDD2D';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = '#F6F7F8';
+                                                }}
+                                            >
+                                                Вариант {index + 1}
+                                            </button>
+                                        ))}
                                     </div>
                                 ) : (
                                     <div style={{
@@ -545,6 +537,17 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                         Голосование завершено
                                     </div>
                                 )}
+
+                                {voting.is_anonymous && (
+                                    <div style={{
+                                        fontSize: '12px',
+                                        color: '#7C7C7C',
+                                        marginTop: '10px',
+                                        fontStyle: 'italic'
+                                    }}>
+                                        🔒 Анонимное голосование
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
@@ -553,11 +556,11 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 <div className={styles.emptyState}>
                     <div className={styles.emptyIcon}>🗳️</div>
                     <h3>
-                        {suggestions.length === 0 ? 'Пока нет предложений' : 'Ничего не найдено'}
+                        {votings.length === 0 ? 'Пока нет голосований' : 'Ничего не найдено'}
                     </h3>
                     <p>
-                        {suggestions.length === 0
-                            ? 'Создайте первое предложение для голосования'
+                        {votings.length === 0
+                            ? 'Создайте первое голосование для принятия коллективных решений'
                             : 'Попробуйте изменить фильтры или поисковый запрос'
                         }
                     </p>
@@ -565,9 +568,9 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             )}
 
             {/* Отображение ошибок */}
-            {errors.suggestions && <ErrorField message={errors.suggestions} />}
+            {errors.votings && <ErrorField message={errors.votings} />}
             {errors.vote && <ErrorField message={errors.vote} />}
-            {errors.deleteSuggestion && <ErrorField message={errors.deleteSuggestion} />}
+            {errors.deleteVoting && <ErrorField message={errors.deleteVoting} />}
         </div>
     );
 };

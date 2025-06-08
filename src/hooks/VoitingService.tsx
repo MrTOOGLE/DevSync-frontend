@@ -1,62 +1,80 @@
-// import API_CONFIG from '../utils/Urls.ts';
-// import { authService } from './AuthService.tsx';
+import API_CONFIG from '../utils/Urls.ts';
+import { authService } from './AuthService.tsx';
 
-// Типы для предложений и голосований
-export interface Suggestion {
+// Типы для голосований
+export interface VotingOption {
+    id: number;
+    body: string;
+    votes_count: number;
+}
+
+export interface Voting {
     id: number;
     title: string;
-    description: string;
-    status: 'new' | 'under_review' | 'approved' | 'rejected';
-    author: {
+    body: string;
+    date_started: string;
+    end_date: string;
+    creator: {
         id: number;
+        email: string;
         first_name: string;
         last_name: string;
-        email: string;
+        city: string;
         avatar: string | null;
     };
-    project: number;
-    votes_for: number;
-    votes_against: number;
-    user_vote?: 'for' | 'against' | null;
-    created_at: string;
-    deadline?: string;
-    allow_multiple_votes: boolean;
-    comments_count?: number;
+    status: string;
+    options: VotingOption[];
+    is_anonymous: boolean;
 }
 
-export interface SuggestionCreateData {
-    title: string;
-    description: string;
-    deadline?: string;
-    allow_multiple_votes?: boolean;
-}
-
-export interface SuggestionUpdateData {
-    title?: string;
-    description?: string;
-    status?: string;
-    deadline?: string;
-    allow_multiple_votes?: boolean;
-}
-
-export interface Vote {
+export interface VotingChoice {
     id: number;
-    suggestion: number;
-    user: number;
-    vote_type: 'for' | 'against';
-    created_at: string;
+    voting_option: number;
+    user: {
+        id: number;
+        email: string;
+        first_name: string;
+        last_name: string;
+        city: string;
+        avatar: string | null;
+    };
 }
 
-export interface VoteData {
-    vote_type: 'for' | 'against';
+export interface VotingCreateData {
+    title: string;
+    body: string;
+    end_date: string;
+    options: { body: string }[];
+    is_anonymous: boolean;
 }
 
-export interface SuggestionsResponse {
-    suggestions: Suggestion[];
+export interface VotingsResponse {
+    links: {
+        next: string | null;
+        previous: string | null;
+    };
+    count: number;
+    total_pages: number;
+    votings: Voting[];
 }
 
-export interface VotesResponse {
-    votes: Vote[];
+export interface Comment {
+    id: number;
+    body: string;
+    date_sent: string;
+    sender: {
+        id: number;
+        email: string;
+        first_name: string;
+        last_name: string;
+        avatar: string | null;
+    };
+    parent_comment: number | null;
+}
+
+export interface CommentCreateData {
+    body: string;
+    parent_comment?: number;
 }
 
 // Интерфейс для ошибок API
@@ -67,356 +85,291 @@ export interface ApiError {
 }
 
 /**
- * Сервис для работы с предложениями и голосованиями
- * ПРИМЕЧАНИЕ: API для предложений пока не реализовано в бэкенде,
- * поэтому используются заглушки с подготовкой к интеграции
+ * Сервис для работы с голосованиями
  */
-export const suggestionsService = {
-    // Получение списка предложений проекта
-    getProjectSuggestions: async (projectId: number): Promise<Suggestion[]> => {
+export const votingService = {
+    // Получение списка голосований проекта
+    getProjectVotings: async (projectId: number, page: number = 1): Promise<VotingsResponse> => {
         try {
-            // TODO: Заменить на реальный API когда будет реализован
-            // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/`, {
-            //     method: 'GET',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         ...authService.getAuthHeaders()
-            //     }
-            // });
+            const url = new URL(API_CONFIG.FULL_URL.VOTINGS.BASE_URL(projectId));
+            url.searchParams.append('page', page.toString());
 
-            // if (!response.ok) {
-            //     throw {
-            //         status: response.status,
-            //         message: 'Ошибка получения предложений'
-            //     };
-            // }
-
-            // const data: SuggestionsResponse = await response.json();
-            // return data.suggestions || [];
-
-            // Заглушка с моковыми данными
-            const mockSuggestions: Suggestion[] = [
-                {
-                    id: 15524,
-                    title: 'Установка кофемашины на 3 этаже офиса',
-                    description: 'Всех очень интересует момент, где же нам пить кофе всем вместе, если наша любимая кофейня закрылась. Мы придумали решение - поставить кофемашину прямо в офисе на 3 этаже в правом крыле. От нас требуется лишь показать, что это нам действительно нужно: голосуй "за", если хочешь и "против", если не хочешь. От нас будет нужно купить кофе и вкусняшки!',
-                    status: 'new',
-                    author: {
-                        id: 1,
-                        first_name: 'Александра',
-                        last_name: 'Ланшакова',
-                        email: 'avk465@tbank.ru',
-                        avatar: null
-                    },
-                    project: projectId,
-                    votes_for: 122,
-                    votes_against: 2,
-                    user_vote: null,
-                    created_at: '2025-02-15T13:23:00Z',
-                    deadline: '2025-03-10T19:00:00Z',
-                    allow_multiple_votes: false,
-                    comments_count: 15
-                },
-                {
-                    id: 15525,
-                    title: 'Добавление геймификации енотика-полоскуна в игру',
-                    description: 'Предлагаю добавить нового персонажа - енотика-полоскуна для разнообразия игрового процесса',
-                    status: 'under_review',
-                    author: {
-                        id: 2,
-                        first_name: 'Никита',
-                        last_name: 'Пупкин',
-                        email: 'nikita@tbank.ru',
-                        avatar: null
-                    },
-                    project: projectId,
-                    votes_for: 45,
-                    votes_against: 12,
-                    user_vote: 'for',
-                    created_at: '2025-02-10T13:45:00Z',
-                    allow_multiple_votes: true,
-                    comments_count: 8
-                },
-                {
-                    id: 15526,
-                    title: 'Переход с Python на Java',
-                    description: 'Предлагаю перевести весь backend на Java для улучшения производительности',
-                    status: 'rejected',
-                    author: {
-                        id: 3,
-                        first_name: 'Владислав',
-                        last_name: 'Дживаваспрингович',
-                        email: 'vlad@tbank.ru',
-                        avatar: null
-                    },
-                    project: projectId,
-                    votes_for: 8,
-                    votes_against: 156,
-                    user_vote: 'against',
-                    created_at: '2025-01-11T16:45:00Z',
-                    allow_multiple_votes: false,
-                    comments_count: 42
+            const response = await fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
                 }
-            ];
+            });
 
-            return mockSuggestions;
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения голосований'
+                };
+            }
+
+            const data = await response.json();
+            return data.votings;
         } catch (error) {
-            console.error('Ошибка при получении предложений:', error);
+            console.error('Ошибка при получении голосований:', error);
             throw error;
         }
     },
 
-    // Создание нового предложения
-    createSuggestion: async (projectId: number, suggestionData: SuggestionCreateData): Promise<Suggestion> => {
+    // Создание нового голосования
+    createVoting: async (projectId: number, votingData: VotingCreateData): Promise<Voting> => {
         try {
-            // TODO: Заменить на реальный API когда будет реализован
-            // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/`, {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         ...authService.getAuthHeaders()
-            //     },
-            //     body: JSON.stringify(suggestionData)
-            // });
-
-            // if (!response.ok) {
-            //     const errorData = await response.json();
-            //     throw {
-            //         status: response.status,
-            //         data: errorData,
-            //         message: 'Ошибка создания предложения'
-            //     };
-            // }
-
-            // return await response.json();
-
-            // Заглушка для создания предложения
-            const mockNewSuggestion: Suggestion = {
-                id: Date.now(),
-                title: suggestionData.title,
-                description: suggestionData.description,
-                status: 'new',
-                author: {
-                    id: 1, // Текущий пользователь
-                    first_name: 'Текущий',
-                    last_name: 'Пользователь',
-                    email: 'user@tbank.ru',
-                    avatar: null
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.BASE_URL(projectId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
                 },
-                project: projectId,
-                votes_for: 0,
-                votes_against: 0,
-                user_vote: null,
-                created_at: new Date().toISOString(),
-                deadline: suggestionData.deadline || undefined,
-                allow_multiple_votes: suggestionData.allow_multiple_votes || false,
-                comments_count: 0
-            };
+                body: JSON.stringify(votingData)
+            });
 
-            return mockNewSuggestion;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    data: errorData,
+                    message: 'Ошибка создания голосования'
+                };
+            }
+
+            return await response.json();
         } catch (error) {
-            console.error('Ошибка при создании предложения:', error);
+            console.error('Ошибка при создании голосования:', error);
             throw error;
         }
     },
 
-    // Обновление предложения
-    updateSuggestion: async (projectId: number, suggestionId: number, suggestionData: SuggestionUpdateData): Promise<Suggestion> => {
+    // Получение информации о голосовании
+    getVoting: async (projectId: number, votingId: number): Promise<Voting> => {
         try {
-            // TODO: Заменить на реальный API когда будет реализован
-            // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/${suggestionId}/`, {
-            //     method: 'PATCH',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         ...authService.getAuthHeaders()
-            //     },
-            //     body: JSON.stringify(suggestionData)
-            // });
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.VOTING_DETAIL(projectId, votingId), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
 
-            // if (!response.ok) {
-            //     const errorData = await response.json();
-            //     throw {
-            //         status: response.status,
-            //         data: errorData,
-            //         message: 'Ошибка обновления предложения'
-            //     };
-            // }
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения голосования'
+                };
+            }
 
-            // return await response.json();
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при получении голосования:', error);
+            throw error;
+        }
+    },
 
-            // Заглушка для обновления предложения
-            const mockUpdatedSuggestion: Suggestion = {
-                id: suggestionId,
-                title: suggestionData.title || 'Обновленное предложение',
-                description: suggestionData.description || 'Описание обновлено',
-                status: (suggestionData.status as Suggestion['status']) || 'new',
-                author: {
-                    id: 1,
-                    first_name: 'Текущий',
-                    last_name: 'Пользователь',
-                    email: 'user@tbank.ru',
-                    avatar: null
+    // Удаление голосования
+    deleteVoting: async (projectId: number, votingId: number): Promise<void> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.VOTING_DETAIL(projectId, votingId), {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка удаления голосования'
+                };
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении голосования:', error);
+            throw error;
+        }
+    },
+
+    // Голосование за вариант
+    vote: async (projectId: number, votingId: number, votingOption: number): Promise<VotingChoice> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.VOTE(projectId, votingId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
                 },
-                project: projectId,
-                votes_for: 0,
-                votes_against: 0,
-                user_vote: null,
-                created_at: '2025-05-20T10:00:00Z',
-                deadline: suggestionData.deadline,
-                allow_multiple_votes: suggestionData.allow_multiple_votes || false,
-                comments_count: 0
-            };
+                body: JSON.stringify({ voting_option: votingOption })
+            });
 
-            return mockUpdatedSuggestion;
-        } catch (error) {
-            console.error('Ошибка при обновлении предложения:', error);
-            throw error;
-        }
-    },
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    data: errorData,
+                    message: 'Ошибка голосования'
+                };
+            }
 
-    // Удаление предложения
-    deleteSuggestion: async (projectId: number, suggestionId: number): Promise<void> => {
-        try {
-            // TODO: Заменить на реальный API когда будет реализован
-            // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/${suggestionId}/`, {
-            //     method: 'DELETE',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         ...authService.getAuthHeaders()
-            //     }
-            // });
-
-            // if (!response.ok) {
-            //     throw {
-            //         status: response.status,
-            //         message: 'Ошибка удаления предложения'
-            //     };
-            // }
-
-            // Заглушка для удаления - просто логируем
-            console.log(`Предложение ${suggestionId} удалено из проекта ${projectId}`);
-        } catch (error) {
-            console.error('Ошибка при удалении предложения:', error);
-            throw error;
-        }
-    },
-
-    // Голосование за предложение
-    voteForSuggestion: async (_projectId: number, suggestionId: number, voteData: VoteData): Promise<Vote> => {
-        try {
-            // TODO: Заменить на реальный API когда будет реализован
-            // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/${suggestionId}/vote/`, {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         ...authService.getAuthHeaders()
-            //     },
-            //     body: JSON.stringify(voteData)
-            // });
-
-            // if (!response.ok) {
-            //     const errorData = await response.json();
-            //     throw {
-            //         status: response.status,
-            //         data: errorData,
-            //         message: 'Ошибка голосования'
-            //     };
-            // }
-
-            // return await response.json();
-
-            // Заглушка для голосования
-            const mockVote: Vote = {
-                id: Date.now(),
-                suggestion: suggestionId,
-                user: 1, // Текущий пользователь
-                vote_type: voteData.vote_type,
-                created_at: new Date().toISOString()
-            };
-
-            return mockVote;
+            return await response.json();
         } catch (error) {
             console.error('Ошибка при голосовании:', error);
             throw error;
         }
     },
 
-    // Получение голосов по предложению
-    getSuggestionVotes: async (_projectId: number, _suggestionId: number): Promise<Vote[]> => {
+    // Отмена голоса
+    cancelVote: async (projectId: number, votingId: number, choiceId: number): Promise<void> => {
         try {
-            // TODO: Заменить на реальный API когда будет реализован
-            // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/${suggestionId}/votes/`, {
-            //     method: 'GET',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         ...authService.getAuthHeaders()
-            //     }
-            // });
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.CANCEL_VOTE(projectId, votingId, choiceId), {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
 
-            // if (!response.ok) {
-            //     throw {
-            //         status: response.status,
-            //         message: 'Ошибка получения голосов'
-            //     };
-            // }
-
-            // const data: VotesResponse = await response.json();
-            // return data.votes || [];
-
-            // Заглушка для голосов
-            return [];
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка отмены голоса'
+                };
+            }
         } catch (error) {
-            console.error('Ошибка при получении голосов:', error);
+            console.error('Ошибка при отмене голоса:', error);
             throw error;
         }
     },
 
-    // Получение информации о предложении
-    getSuggestion: async (projectId: number, suggestionId: number): Promise<Suggestion> => {
+    // Получение вариантов ответов
+    getVotingOptions: async (projectId: number, votingId: number): Promise<VotingOption[]> => {
         try {
-            // TODO: Заменить на реальный API когда будет реализован
-            // const response = await fetch(`${API_CONFIG.BASE_URL}api/v1/projects/${projectId}/suggestions/${suggestionId}/`, {
-            //     method: 'GET',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         ...authService.getAuthHeaders()
-            //     }
-            // });
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.OPTIONS(projectId, votingId), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
 
-            // if (!response.ok) {
-            //     throw {
-            //         status: response.status,
-            //         message: 'Ошибка получения предложения'
-            //     };
-            // }
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения вариантов ответов'
+                };
+            }
 
-            // return await response.json();
-
-            // Заглушка для получения предложения
-            const mockSuggestion: Suggestion = {
-                id: suggestionId,
-                title: 'Тестовое предложение',
-                description: 'Описание тестового предложения',
-                status: 'new',
-                author: {
-                    id: 1,
-                    first_name: 'Тестовый',
-                    last_name: 'Пользователь',
-                    email: 'test@tbank.ru',
-                    avatar: null
-                },
-                project: projectId,
-                votes_for: 0,
-                votes_against: 0,
-                user_vote: null,
-                created_at: '2025-05-20T10:00:00Z',
-                allow_multiple_votes: false,
-                comments_count: 0
-            };
-
-            return mockSuggestion;
+            return await response.json();
         } catch (error) {
-            console.error('Ошибка при получении предложения:', error);
+            console.error('Ошибка при получении вариантов ответов:', error);
+            throw error;
+        }
+    },
+
+    // Получение комментариев к голосованию
+    getVotingComments: async (projectId: number, votingId: number): Promise<Comment[]> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.COMMENTS(projectId, votingId), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка получения комментариев'
+                };
+            }
+
+            const data = await response.json();
+            return data.comments || [];
+        } catch (error) {
+            console.error('Ошибка при получении комментариев:', error);
+            throw error;
+        }
+    },
+
+    // Создание комментария
+    createComment: async (projectId: number, votingId: number, commentData: CommentCreateData): Promise<Comment> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.COMMENTS(projectId, votingId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                },
+                body: JSON.stringify(commentData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    data: errorData,
+                    message: 'Ошибка создания комментария'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при создании комментария:', error);
+            throw error;
+        }
+    },
+
+    // Обновление комментария
+    updateComment: async (projectId: number, votingId: number, commentId: number, body: string): Promise<Comment> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.COMMENT_DETAIL(projectId, votingId, commentId), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                },
+                body: JSON.stringify({ body })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw {
+                    status: response.status,
+                    data: errorData,
+                    message: 'Ошибка обновления комментария'
+                };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка при обновлении комментария:', error);
+            throw error;
+        }
+    },
+
+    // Удаление комментария
+    deleteComment: async (projectId: number, votingId: number, commentId: number): Promise<void> => {
+        try {
+            const response = await fetch(API_CONFIG.FULL_URL.VOTINGS.COMMENT_DETAIL(projectId, votingId, commentId), {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeaders()
+                }
+            });
+
+            if (!response.ok) {
+                throw {
+                    status: response.status,
+                    message: 'Ошибка удаления комментария'
+                };
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении комментария:', error);
             throw error;
         }
     }
