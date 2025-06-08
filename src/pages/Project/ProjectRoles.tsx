@@ -7,6 +7,8 @@ import { projectService, Role } from '../../hooks/CreateProjectService.tsx';
 
 interface ProjectRolesProps {
     projectId: number;
+    selectedUserId?: number; // ID пользователя для назначения роли
+    onClose?: () => void; // Callback для закрытия модального окна
 }
 
 interface Permission {
@@ -21,15 +23,14 @@ interface RolePermission {
     value: boolean | null;
 }
 
-// @ts-ignore
-interface RoleWithPermissions extends Role {
-    permissions?: RolePermission[];
+interface RoleWithMembers extends Role {
+    members_count?: number;
 }
 
-const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
+const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId, selectedUserId, onClose }) => {
     // Состояния для ролей
-    const [roles, setRoles] = useState<Role[]>([]);
-    const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+    const [roles, setRoles] = useState<RoleWithMembers[]>([]);
+    const [selectedRole, setSelectedRole] = useState<RoleWithMembers | null>(null);
     const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([]);
     const [loading, setLoading] = useState(true);
     const [savingPermissions, setSavingPermissions] = useState(false);
@@ -44,6 +45,11 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
     // Поиск
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Управление ролями участника
+    const [assigningRole, setAssigningRole] = useState(false);
+    const [removingRole, setRemovingRole] = useState(false);
+    const [userRoles, setUserRoles] = useState<Role[]>([]);
+
     // Доступные цвета для ролей
     const roleColors = [
         '#00BCD4', '#FF5722', '#E91E63', '#4CAF50', '#2196F3', '#FF9800',
@@ -54,7 +60,10 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
     // Загрузка ролей при монтировании
     useEffect(() => {
         loadRoles();
-    }, [projectId]);
+        if (selectedUserId) {
+            loadUserRoles();
+        }
+    }, [projectId, selectedUserId]);
 
     // Загрузка ролей
     const loadRoles = async () => {
@@ -64,8 +73,8 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
             const rolesData = await projectService.getProjectRoles(projectId, true);
             setRoles(rolesData);
 
-            // Выбираем первую роль по умолчанию
-            if (rolesData.length > 0 && !selectedRole) {
+            // Выбираем первую роль по умолчанию, если не назначаем роли пользователю
+            if (rolesData.length > 0 && !selectedRole && !selectedUserId) {
                 setSelectedRole(rolesData[0]);
                 await loadRolePermissions(rolesData[0].id!);
             }
@@ -74,6 +83,28 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
             setErrors(prev => ({ ...prev, roles: error.message || 'Ошибка загрузки ролей' }));
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Загрузка ролей пользователя
+    const loadUserRoles = async () => {
+        if (!selectedUserId) return;
+
+        try {
+            const response = await fetch(`http://localhost:80/api/v1/projects/${projectId}/members/${selectedUserId}/roles/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setUserRoles(data.roles || []);
+            }
+        } catch (error: any) {
+            console.error('Ошибка загрузки ролей пользователя:', error);
         }
     };
 
@@ -103,9 +134,72 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
     };
 
     // Выбор роли
-    const handleSelectRole = async (role: Role) => {
+    const handleSelectRole = async (role: RoleWithMembers) => {
         setSelectedRole(role);
-        await loadRolePermissions(role.id!);
+        if (!selectedUserId) {
+            await loadRolePermissions(role.id!);
+        }
+    };
+
+    // Назначение роли пользователю
+    const handleAssignRole = async (roleId: number) => {
+        if (!selectedUserId) return;
+
+        try {
+            setAssigningRole(true);
+            setErrors(prev => ({ ...prev, assignRole: '' }));
+
+            const response = await fetch(`http://localhost:80/api/v1/projects/${projectId}/members/${selectedUserId}/roles/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ role_id: roleId })
+            });
+
+            if (response.ok) {
+                await loadUserRoles();
+                alert('Роль успешно назначена');
+            } else {
+                throw new Error('Ошибка назначения роли');
+            }
+        } catch (error: any) {
+            console.error('Ошибка назначения роли:', error);
+            setErrors(prev => ({ ...prev, assignRole: error.message || 'Ошибка назначения роли' }));
+        } finally {
+            setAssigningRole(false);
+        }
+    };
+
+    // Удаление роли у пользователя
+    const handleRemoveRole = async (roleId: number) => {
+        if (!selectedUserId) return;
+
+        try {
+            setRemovingRole(true);
+            setErrors(prev => ({ ...prev, removeRole: '' }));
+
+            const response = await fetch(`http://localhost:80/api/v1/projects/${projectId}/members/${selectedUserId}/roles/${roleId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                await loadUserRoles();
+                alert('Роль успешно удалена');
+            } else {
+                throw new Error('Ошибка удаления роли');
+            }
+        } catch (error: any) {
+            console.error('Ошибка удаления роли:', error);
+            setErrors(prev => ({ ...prev, removeRole: error.message || 'Ошибка удаления роли' }));
+        } finally {
+            setRemovingRole(false);
+        }
     };
 
     // Изменение права
@@ -177,8 +271,10 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
             setShowCreateRole(false);
 
             // Выбираем созданную роль
-            setSelectedRole(createdRole);
-            await loadRolePermissions(createdRole.id!);
+            if (!selectedUserId) {
+                setSelectedRole(createdRole);
+                await loadRolePermissions(createdRole.id!);
+            }
         } catch (error: any) {
             console.error('Ошибка создания роли:', error);
             const errorMessage = error.data?.name?.[0] || error.data?.detail || error.message || 'Ошибка при создании роли';
@@ -204,7 +300,7 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
             setRoles(updatedRoles);
 
             // Выбираем первую доступную роль
-            if (updatedRoles.length > 0) {
+            if (updatedRoles.length > 0 && !selectedUserId) {
                 setSelectedRole(updatedRoles[0]);
                 await loadRolePermissions(updatedRoles[0].id!);
             } else {
@@ -282,6 +378,91 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
         );
     }
 
+    // Если мы назначаем роли пользователю
+    if (selectedUserId) {
+        return (
+            <div className={rolesStyles.userRoleManagement}>
+                {onClose && (
+                    <div className={rolesStyles.modalHeader}>
+                        <h2>Управление ролями участника</h2>
+                        <button onClick={onClose} className={rolesStyles.closeButton}>✕</button>
+                    </div>
+                )}
+
+                {/* Текущие роли пользователя */}
+                <div className={rolesStyles.currentRoles}>
+                    <h3>Текущие роли:</h3>
+                    {userRoles.length > 0 ? (
+                        <div className={rolesStyles.rolesList}>
+                            {userRoles.map(role => (
+                                <div key={role.id} className={rolesStyles.roleItem}>
+                                    <div
+                                        className={rolesStyles.roleColor}
+                                        style={{ backgroundColor: role.color }}
+                                    ></div>
+                                    <span className={rolesStyles.roleName}>{role.name}</span>
+                                    <button
+                                        onClick={() => handleRemoveRole(role.id!)}
+                                        disabled={removingRole}
+                                        className={rolesStyles.removeRoleButton}
+                                        title="Удалить роль"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p>У участника пока нет ролей</p>
+                    )}
+                </div>
+
+                {/* Доступные роли для назначения */}
+                <div className={rolesStyles.availableRoles}>
+                    <h3>Назначить роль:</h3>
+                    <div className={rolesStyles.rolesList}>
+                        {roles
+                            .filter(role => !userRoles.find(ur => ur.id === role.id))
+                            .map(role => (
+                                <div key={role.id} className={rolesStyles.roleItem}>
+                                    <div
+                                        className={rolesStyles.roleColor}
+                                        style={{ backgroundColor: role.color }}
+                                    ></div>
+                                    <span className={rolesStyles.roleName}>{role.name}</span>
+                                    <button
+                                        onClick={() => handleAssignRole(role.id!)}
+                                        disabled={assigningRole}
+                                        className={rolesStyles.assignRoleButton}
+                                    >
+                                        + Назначить
+                                    </button>
+                                </div>
+                            ))}
+                    </div>
+
+                    {roles.filter(role => !userRoles.find(ur => ur.id === role.id)).length === 0 && (
+                        <p>Все доступные роли уже назначены</p>
+                    )}
+                </div>
+
+                {/* Создание новой роли */}
+                <div className={rolesStyles.createNewRole}>
+                    <button
+                        onClick={() => setShowCreateRole(true)}
+                        className={rolesStyles.createRoleButton}
+                    >
+                        Создать новую роль
+                    </button>
+                </div>
+
+                {errors.assignRole && <ErrorField message={errors.assignRole} />}
+                {errors.removeRole && <ErrorField message={errors.removeRole} />}
+            </div>
+        );
+    }
+
+    // Полная страница управления ролями
     return (
         <div className={rolesStyles.rolesContainer}>
             {/* Заголовок */}
@@ -341,7 +522,7 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
                             <div className={rolesStyles.roleInfo}>
                                 <div className={rolesStyles.roleName}>{role.name}</div>
                                 <div className={rolesStyles.roleMembersCount}>
-                                    {(role as any).members_count || 0} 👤
+                                    {role.members_count || 0} 👤
                                 </div>
                             </div>
                             <div className={rolesStyles.roleActions}>⋯</div>
@@ -440,7 +621,7 @@ const ProjectRoles: React.FC<ProjectRolesProps> = ({ projectId }) => {
                                                         className={`${rolesStyles.permissionButton} ${rp.value === null ? rolesStyles.permissionButtonActive : ''}`}
                                                         onClick={() => handlePermissionChange(rp.permission.codename, null)}
                                                     >
-                                                        ✗
+                                                        ◐
                                                     </button>
                                                 </div>
                                             </div>

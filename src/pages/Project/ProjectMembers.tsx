@@ -10,17 +10,10 @@ import {
 } from '../../hooks/CreateProjectService.tsx';
 import { authService } from '../../hooks/AuthService.tsx';
 import API_CONFIG from '../../utils/Urls.ts';
+import ProjectRoles from './ProjectRoles.tsx'; // Импортируем компонент ролей
 
 interface ProjectMembersProps {
     projectId: number;
-}
-
-// Интерфейс для роли
-interface Role {
-    id: number;
-    name: string;
-    color: string;
-    rank: number;
 }
 
 const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
@@ -58,15 +51,11 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
     // Состояния для управления ролями
     const [showRoleModal, setShowRoleModal] = useState<number | null>(null);
-    const [memberRoles, setMemberRoles] = useState<Role[]>([]);
-    const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
-    const [loadingRoles, setLoadingRoles] = useState(false);
 
     // Загрузка данных при монтировании
     useEffect(() => {
         loadMembers();
         loadDepartments();
-        loadAvailableRoles();
     }, [projectId]);
 
     // Фильтрация участников при изменении поискового запроса
@@ -154,94 +143,6 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Загрузка доступных ролей
-    const loadAvailableRoles = async () => {
-        try {
-            const response = await fetch(API_CONFIG.FULL_URL.ROLES.BASE_URL(projectId), {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...authService.getAuthHeaders()
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setAvailableRoles(data.roles || []);
-            }
-        } catch (error: any) {
-            console.error('Ошибка загрузки ролей:', error);
-        }
-    };
-
-    // Загрузка ролей участника
-    const loadMemberRoles = async (userId: number) => {
-        try {
-            setLoadingRoles(true);
-            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.MEMBER_ROLES(projectId, userId), {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...authService.getAuthHeaders()
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setMemberRoles(data.roles || []);
-            }
-        } catch (error: any) {
-            console.error('Ошибка загрузки ролей участника:', error);
-        } finally {
-            setLoadingRoles(false);
-        }
-    };
-
-    // Назначение роли участнику
-    const assignRoleToMember = async (userId: number, roleId: number) => {
-        try {
-            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.ASSIGN_ROLE(projectId, userId), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...authService.getAuthHeaders()
-                },
-                body: JSON.stringify({ role_id: roleId })
-            });
-
-            if (response.ok) {
-                await loadMemberRoles(userId);
-            } else {
-                throw new Error('Ошибка назначения роли');
-            }
-        } catch (error: any) {
-            console.error('Ошибка назначения роли:', error);
-            setErrors(prev => ({ ...prev, assignRole: error.message || 'Ошибка назначения роли' }));
-        }
-    };
-
-    // Удаление роли у участника
-    const removeRoleFromMember = async (userId: number, roleId: number) => {
-        try {
-            const response = await fetch(API_CONFIG.FULL_URL.MEMBERS.REMOVE_ROLE(projectId, userId, roleId), {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...authService.getAuthHeaders()
-                }
-            });
-
-            if (response.ok) {
-                await loadMemberRoles(userId);
-            } else {
-                throw new Error('Ошибка удаления роли');
-            }
-        } catch (error: any) {
-            console.error('Ошибка удаления роли:', error);
-            setErrors(prev => ({ ...prev, removeRole: error.message || 'Ошибка удаления роли' }));
-        }
-    };
-
     // Переключение раскрытия отдела
     const toggleDepartment = (departmentId: number) => {
         const newExpanded = new Set(expandedDepartments);
@@ -256,7 +157,6 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     // Показать управление ролями
     const showRoleManagement = (userId: number) => {
         setShowRoleModal(userId);
-        loadMemberRoles(userId);
     };
 
     // Приглашение участника
@@ -274,9 +174,6 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
             setErrors(prev => ({ ...prev, invite: errorMessage }));
         }
     };
-
-    // Остальные методы остаются теми же...
-    // (методы для отделов, создания отделов, etc. - скопирую их без изменений)
 
     // Начать редактирование отдела
     const startEditDepartment = (department: Department) => {
@@ -1040,134 +937,11 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                     justifyContent: 'center',
                     zIndex: 1000
                 }}>
-                    <div style={{
-                        backgroundColor: '#FFFFFF',
-                        borderRadius: '20px',
-                        padding: '30px',
-                        maxWidth: '600px',
-                        width: '90%',
-                        maxHeight: '80vh',
-                        overflowY: 'auto'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <h3 style={{ fontSize: '24px', color: '#353536', margin: 0 }}>
-                                Управление ролями участника
-                            </h3>
-                            <button
-                                onClick={() => {
-                                    setShowRoleModal(null);
-                                    setMemberRoles([]);
-                                    setErrors(prev => ({ ...prev, assignRole: '', removeRole: '' }));
-                                }}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    fontSize: '24px',
-                                    color: '#7C7C7C',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        {loadingRoles ? (
-                            <div style={{ textAlign: 'center', padding: '20px' }}>
-                                Загрузка ролей...
-                            </div>
-                        ) : (
-                            <>
-                                {/* Текущие роли */}
-                                <div style={{ marginBottom: '30px' }}>
-                                    <h4 style={{ fontSize: '18px', color: '#353536', marginBottom: '15px' }}>
-                                        Текущие роли:
-                                    </h4>
-                                    {memberRoles.length > 0 ? (
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                            {memberRoles.map(role => (
-                                                <div
-                                                    key={role.id}
-                                                    style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        backgroundColor: role.color || '#FFDD2D',
-                                                        color: '#353536',
-                                                        padding: '8px 12px',
-                                                        borderRadius: '12px',
-                                                        fontSize: '14px',
-                                                        fontWeight: '500'
-                                                    }}
-                                                >
-                                                    {role.name}
-                                                    <button
-                                                        onClick={() => removeRoleFromMember(showRoleModal!, role.id)}
-                                                        style={{
-                                                            background: 'none',
-                                                            border: 'none',
-                                                            color: '#353536',
-                                                            marginLeft: '8px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '12px'
-                                                        }}
-                                                        title="Удалить роль"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p style={{ color: '#7C7C7C', fontStyle: 'italic' }}>
-                                            У участника пока нет ролей
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Доступные роли для назначения */}
-                                <div>
-                                    <h4 style={{ fontSize: '18px', color: '#353536', marginBottom: '15px' }}>
-                                        Назначить роль:
-                                    </h4>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                        {availableRoles
-                                            .filter(role => !memberRoles.find(mr => mr.id === role.id))
-                                            .map(role => (
-                                                <button
-                                                    key={role.id}
-                                                    onClick={() => assignRoleToMember(showRoleModal!, role.id)}
-                                                    style={{
-                                                        backgroundColor: '#F6F7F8',
-                                                        color: '#353536',
-                                                        border: '1px solid #E0E0E0',
-                                                        padding: '8px 12px',
-                                                        borderRadius: '12px',
-                                                        fontSize: '14px',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.2s ease'
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.backgroundColor = role.color || '#FFDD2D';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.backgroundColor = '#F6F7F8';
-                                                    }}
-                                                >
-                                                    + {role.name}
-                                                </button>
-                                            ))}
-                                    </div>
-                                    {availableRoles.filter(role => !memberRoles.find(mr => mr.id === role.id)).length === 0 && (
-                                        <p style={{ color: '#7C7C7C', fontStyle: 'italic' }}>
-                                            Все доступные роли уже назначены
-                                        </p>
-                                    )}
-                                </div>
-
-                                {errors.assignRole && <ErrorField message={errors.assignRole} />}
-                                {errors.removeRole && <ErrorField message={errors.removeRole} />}
-                            </>
-                        )}
-                    </div>
+                    <ProjectRoles
+                        projectId={projectId}
+                        selectedUserId={showRoleModal}
+                        onClose={() => setShowRoleModal(null)}
+                    />
                 </div>
             )}
         </div>
