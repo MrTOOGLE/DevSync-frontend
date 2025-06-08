@@ -8,6 +8,10 @@ export interface VotingOption {
     votes_count: number;
 }
 
+export interface VotingTag {
+    tag: string;
+}
+
 export interface Voting {
     id: number;
     title: string;
@@ -25,6 +29,8 @@ export interface Voting {
     status: string;
     options: VotingOption[];
     is_anonymous: boolean;
+    allow_multiple: boolean;
+    tags: VotingTag[];
 }
 
 export interface VotingChoice {
@@ -46,6 +52,8 @@ export interface VotingCreateData {
     end_date: string;
     options: { body: string }[];
     is_anonymous: boolean;
+    allow_multiple?: boolean;
+    tags?: { tag: string }[];
 }
 
 export interface VotingsResponse {
@@ -110,7 +118,12 @@ export const votingService = {
             }
 
             const data = await response.json();
-            return data.votings;
+            // ИСПРАВЛЕНИЕ: API возвращает структуру с вложенным votings объектом
+            if (data.votings && data.votings.votings) {
+                return data.votings;
+            }
+            // Если структура изменилась, возвращаем как есть
+            return data;
         } catch (error) {
             console.error('Ошибка при получении голосований:', error);
             throw error;

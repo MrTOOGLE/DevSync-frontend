@@ -5,11 +5,17 @@ import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
 import {
     votingService,
     Voting,
-    VotingCreateData
+    VotingCreateData,
+// @ts-ignore
+    VotingTag
 } from '../../hooks/VoitingService.tsx';
 
 interface ProjectVotingProps {
     projectId: number;
+}
+
+interface VotingOption {
+    body: string;
 }
 
 const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
@@ -24,13 +30,22 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
 
     // Создание голосования
     const [showCreateVoting, setShowCreateVoting] = useState(false);
-    const [newVoting, setNewVoting] = useState<VotingCreateData & { options_text: string }>({
+    const [newVoting, setNewVoting] = useState<{
+        title: string;
+        body: string;
+        end_date: string;
+        options: VotingOption[];
+        is_anonymous: boolean;
+        allow_multiple: boolean;
+        tags: string;
+    }>({
         title: '',
         body: '',
         end_date: '',
-        options: [],
+        options: [{ body: '' }, { body: '' }], // Начинаем с двух пустых вариантов
         is_anonymous: false,
-        options_text: ''
+        allow_multiple: false,
+        tags: ''
     });
     const [creating, setCreating] = useState(false);
 
@@ -46,7 +61,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             setErrors(prev => ({ ...prev, votings: '' }));
 
             const votingsResponse = await votingService.getProjectVotings(projectId);
-            setVotings(votingsResponse.votings);
+            setVotings(votingsResponse.votings || []);
         } catch (error: any) {
             console.error('Ошибка загрузки голосований:', error);
             setErrors(prev => ({ ...prev, votings: error.message || 'Ошибка загрузки голосований' }));
@@ -55,8 +70,39 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
         }
     };
 
+    // Добавление нового варианта ответа
+    const addOption = () => {
+        if (newVoting.options.length < 10) { // Ограничение на 10 вариантов
+            setNewVoting(prev => ({
+                ...prev,
+                options: [...prev.options, { body: '' }]
+            }));
+        }
+    };
+
+    // Удаление варианта ответа
+    const removeOption = (index: number) => {
+        if (newVoting.options.length > 2) { // Минимум 2 варианта
+            setNewVoting(prev => ({
+                ...prev,
+                options: prev.options.filter((_, i) => i !== index)
+            }));
+        }
+    };
+
+    // Изменение варианта ответа
+    const updateOption = (index: number, value: string) => {
+        setNewVoting(prev => ({
+            ...prev,
+            options: prev.options.map((option, i) =>
+                i === index ? { body: value } : option
+            )
+        }));
+    };
+
     // Создание голосования
     const handleCreateVoting = async () => {
+        // Валидация
         if (!newVoting.title.trim()) {
             setErrors(prev => ({ ...prev, votingTitle: 'Название голосования обязательно' }));
             return;
@@ -72,19 +118,18 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             return;
         }
 
-        if (!newVoting.options_text.trim()) {
-            setErrors(prev => ({ ...prev, votingOptions: 'Варианты ответов обязательны' }));
+        // Проверяем дату окончания - она должна быть в будущем
+        const endDate = new Date(newVoting.end_date);
+        const now = new Date();
+        if (endDate <= now) {
+            setErrors(prev => ({ ...prev, votingEndDate: 'Дата окончания должна быть в будущем' }));
             return;
         }
 
-        // Парсим варианты ответов из текста
-        const options = newVoting.options_text
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .map(line => ({ body: line }));
+        // Фильтруем пустые варианты ответов
+        const validOptions = newVoting.options.filter(option => option.body.trim().length > 0);
 
-        if (options.length < 2) {
+        if (validOptions.length < 2) {
             setErrors(prev => ({ ...prev, votingOptions: 'Необходимо минимум 2 варианта ответа' }));
             return;
         }
@@ -100,12 +145,21 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 votingOptions: ''
             }));
 
+            // Подготавливаем теги
+            const tags = newVoting.tags
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0)
+                .map(tag => ({ tag }));
+
             const votingData: VotingCreateData = {
                 title: newVoting.title.trim(),
                 body: newVoting.body.trim(),
-                end_date: newVoting.end_date,
-                options: options,
-                is_anonymous: newVoting.is_anonymous
+                end_date: new Date(newVoting.end_date).toISOString(),
+                options: validOptions,
+                is_anonymous: newVoting.is_anonymous,
+                allow_multiple: newVoting.allow_multiple,
+                tags: tags.length > 0 ? tags : undefined
             };
 
             const createdVoting = await votingService.createVoting(projectId, votingData);
@@ -116,9 +170,10 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                 title: '',
                 body: '',
                 end_date: '',
-                options: [],
+                options: [{ body: '' }, { body: '' }],
                 is_anonymous: false,
-                options_text: ''
+                allow_multiple: false,
+                tags: ''
             });
             setShowCreateVoting(false);
 
@@ -169,7 +224,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
 
     // Фильтрация голосований
     const filteredVotings = votings.filter(voting => {
-        const matchesStatus = statusFilter === 'all' || voting.status === statusFilter;
+        const matchesStatus = statusFilter === 'all' || voting.status.toLowerCase() === statusFilter.toLowerCase();
         const matchesSearch = voting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             voting.body.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesStatus && matchesSearch;
@@ -182,7 +237,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             'ended': 'Завершено',
             'draft': 'Черновик'
         };
-        return statusMap[status] || status;
+        return statusMap[status.toLowerCase()] || status;
     };
 
     // Получение цвета статуса
@@ -192,7 +247,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             'ended': '#7C7C7C',
             'draft': '#FFDD2D'
         };
-        return colorMap[status] || '#7C7C7C';
+        return colorMap[status.toLowerCase()] || '#7C7C7C';
     };
 
     // Форматирование даты
@@ -205,6 +260,13 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    // Получение минимальной даты для input[type="datetime-local"]
+    const getMinDateTime = () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 5); // Минимум на 5 минут в будущем
+        return now.toISOString().slice(0, 16);
     };
 
     if (loading) {
@@ -310,37 +372,83 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                     </div>
 
                     <div className={styles.formGroup}>
-                        <textarea
-                            className={styles.textarea}
-                            placeholder="Варианты ответов (каждый с новой строки)*"
-                            value={newVoting.options_text}
-                            onChange={(e) => setNewVoting(prev => ({ ...prev, options_text: e.target.value }))}
-                            style={{ height: '120px' }}
-                        />
+                        <h4 style={{ marginBottom: '10px', fontSize: '16px', color: '#353536' }}>
+                            Варианты ответов*
+                        </h4>
+                        {newVoting.options.map((option, index) => (
+                            <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' }}>
+                                <Input
+                                    placeholder={`Вариант ${index + 1}*`}
+                                    value={option.body}
+                                    onChange={(e) => updateOption(index, e.target.value)}
+                                    style={{ flex: 1 }}
+                                />
+                                {newVoting.options.length > 2 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => removeOption(index)}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: '#FF4444',
+                                            fontSize: '18px',
+                                            cursor: 'pointer',
+                                            padding: '5px'
+                                        }}
+                                        title="Удалить вариант"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+
+                        {newVoting.options.length < 10 && (
+                            <button
+                                type="button"
+                                onClick={addOption}
+                                style={{
+                                    backgroundColor: '#FFDD2D',
+                                    color: '#353536',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '8px 16px',
+                                    fontSize: '14px',
+                                    cursor: 'pointer',
+                                    marginBottom: '10px'
+                                }}
+                            >
+                                + Добавить вариант
+                            </button>
+                        )}
+
                         {errors.votingOptions && <ErrorField message={errors.votingOptions} />}
-                        <div style={{ fontSize: '12px', color: '#7C7C7C', marginTop: '5px' }}>
-                            Пример:<br />
-                            Вариант 1<br />
-                            Вариант 2<br />
-                            Вариант 3
-                        </div>
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
                         <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
-                            Дата окончания*
+                            Дата и время окончания*
                         </label>
                         <Input
                             type="datetime-local"
                             value={newVoting.end_date}
+                            min={getMinDateTime()}
                             onChange={(e) => setNewVoting(prev => ({ ...prev, end_date: e.target.value }))}
                             hasError={!!errors.votingEndDate}
                         />
                         {errors.votingEndDate && <ErrorField message={errors.votingEndDate} />}
                     </div>
 
+                    <div className={styles.formGroup}>
+                        <Input
+                            placeholder="Теги (через запятую)"
+                            value={newVoting.tags}
+                            onChange={(e) => setNewVoting(prev => ({ ...prev, tags: e.target.value }))}
+                        />
+                    </div>
+
                     <div style={{ marginBottom: '20px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: '10px' }}>
                             <input
                                 type="checkbox"
                                 checked={newVoting.is_anonymous}
@@ -349,6 +457,18 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                             />
                             <span style={{ fontFamily: 'Helvetica Neue', fontSize: '16px', color: '#353536' }}>
                                 Анонимное голосование
+                            </span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={newVoting.allow_multiple}
+                                onChange={(e) => setNewVoting(prev => ({ ...prev, allow_multiple: e.target.checked }))}
+                                style={{ width: '16px', height: '16px' }}
+                            />
+                            <span style={{ fontFamily: 'Helvetica Neue', fontSize: '16px', color: '#353536' }}>
+                                Разрешить выбор нескольких вариантов
                             </span>
                         </label>
                     </div>
@@ -364,9 +484,10 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                     title: '',
                                     body: '',
                                     end_date: '',
-                                    options: [],
+                                    options: [{ body: '' }, { body: '' }],
                                     is_anonymous: false,
-                                    options_text: ''
+                                    allow_multiple: false,
+                                    tags: ''
                                 });
                                 setErrors(prev => ({
                                     ...prev,
@@ -423,11 +544,31 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                             <br />
                                             Завершится: {formatDate(voting.end_date)}
                                         </div>
+                                        {/* Теги */}
+                                        {voting.tags && voting.tags.length > 0 && (
+                                            <div style={{ marginTop: '8px', display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                                {voting.tags.map((tag, index) => (
+                                                    <span
+                                                        key={index}
+                                                        style={{
+                                                            backgroundColor: '#FFDD2D',
+                                                            color: '#353536',
+                                                            fontSize: '12px',
+                                                            padding: '2px 8px',
+                                                            borderRadius: '12px',
+                                                            fontWeight: '500'
+                                                        }}
+                                                    >
+                                                        #{tag.tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                     <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                         <span style={{
                                             backgroundColor: getStatusColor(voting.status),
-                                            color: voting.status === 'draft' ? '#353536' : 'white',
+                                            color: voting.status.toLowerCase() === 'draft' ? '#353536' : 'white',
                                             fontSize: '14px',
                                             padding: '6px 12px',
                                             borderRadius: '12px',
@@ -499,7 +640,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                 </div>
 
                                 {/* Кнопки голосования */}
-                                {voting.status === 'active' ? (
+                                {voting.status.toLowerCase() === 'active' ? (
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                         {voting.options.map((option, index) => (
                                             <button
@@ -538,16 +679,21 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                     </div>
                                 )}
 
-                                {voting.is_anonymous && (
-                                    <div style={{
-                                        fontSize: '12px',
-                                        color: '#7C7C7C',
-                                        marginTop: '10px',
-                                        fontStyle: 'italic'
-                                    }}>
-                                        🔒 Анонимное голосование
-                                    </div>
-                                )}
+                                {/* Настройки голосования */}
+                                <div style={{
+                                    fontSize: '12px',
+                                    color: '#7C7C7C',
+                                    marginTop: '10px',
+                                    display: 'flex',
+                                    gap: '15px'
+                                }}>
+                                    {voting.is_anonymous && (
+                                        <span>🔒 Анонимное голосование</span>
+                                    )}
+                                    {voting.allow_multiple && (
+                                        <span>☑️ Множественный выбор</span>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
