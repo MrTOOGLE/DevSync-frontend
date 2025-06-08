@@ -9,6 +9,10 @@ import {Button} from "../../components/common/Button/Button.tsx";
 import {RadioButton} from "../../components/common/RadioButton/RadioButton.tsx";
 import img1 from "../../photos/WelcomePage/3 1.svg"
 import img2 from "../../photos/WelcomePage/2 1.svg"
+import projects from '../../photos/WelcomePage/projects.jpg'
+import members from '../../photos/WelcomePage/members.jpg'
+import tasks from '../../photos/WelcomePage/tasks.jpg'
+import voting from '../../photos/WelcomePage/voting.jpg'
 
 // Определяем типы для вкладок
 type TabType = 'projects' | 'roles' | 'offers' | 'voting';
@@ -22,15 +26,15 @@ const DevSyncPage: React.FC = () => {
     const getImageForTab = () => {
         switch (activeTab) {
             case 'projects':
-                return '/assets/images/projects.png';
+                return projects;
             case 'roles':
-                return '/assets/images/roles.png';
+                return members;
             case 'offers':
-                return '/assets/images/offers.png';
+                return tasks;
             case 'voting':
-                return '/assets/images/voting.png';
+                return voting;
             default:
-                return '/assets/images/projects.png';
+                return projects;
         }
     };
 
@@ -60,21 +64,21 @@ const DevSyncPage: React.FC = () => {
                         <h2>Возможности DevSync</h2>
                         <div className={styles.possibilitiesButtons}>
                             <RadioButton
-                                label="Проекты"
+                                label="Проект"
                                 value="projects"
                                 name="possibilities"
                                 checked={activeTab === 'projects'}
                                 onChange={() => setActiveTab('projects')}
                             />
                             <RadioButton
-                                label="Роли"
+                                label="Участники"
                                 value="roles"
                                 name="possibilities"
                                 checked={activeTab === 'roles'}
                                 onChange={() => setActiveTab('roles')}
                             />
                             <RadioButton
-                                label="Предложения"
+                                label="Задачи"
                                 value="offers"
                                 name="possibilities"
                                 checked={activeTab === 'offers'}
