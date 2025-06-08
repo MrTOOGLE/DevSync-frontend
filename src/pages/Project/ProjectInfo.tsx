@@ -118,6 +118,7 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ project, onUpdate }) => {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 hasError={!!errors.title}
+                                style={{width: '1095px'}}
                             />
                             {errors.title && <ErrorField message={errors.title} />}
                         </div>
@@ -128,6 +129,7 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ project, onUpdate }) => {
                                 placeholder="Описание проекта"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
+                                style={{width: '1095px'}}
                             />
                             {errors.description && <ErrorField message={errors.description} />}
                         </div>

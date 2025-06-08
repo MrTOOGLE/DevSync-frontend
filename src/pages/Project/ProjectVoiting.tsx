@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import styles from '../../styles/ProjectManagement.module.css';
-import { Input } from '../../components/common/Input/Input.tsx';
-import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
+import {Input} from '../../components/common/Input/Input.tsx';
+import {ErrorField} from '../../components/common/ErrorField/ErrorField.tsx';
 import {
     votingService,
     Voting,
@@ -12,11 +12,11 @@ interface ProjectVotingProps {
     projectId: number;
 }
 
-const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
+const ProjectVoting: React.FC<ProjectVotingProps> = ({projectId}) => {
     // Состояния
     const [votings, setVotings] = useState<Voting[]>([]);
     const [loading, setLoading] = useState(true);
-    const [errors, setErrors] = useState<{[key: string]: string}>({});
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     // Фильтры
     const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -43,13 +43,13 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     const loadVotings = async () => {
         try {
             setLoading(true);
-            setErrors(prev => ({ ...prev, votings: '' }));
+            setErrors(prev => ({...prev, votings: ''}));
 
             const votingsResponse = await votingService.getProjectVotings(projectId);
             setVotings(votingsResponse.votings);
         } catch (error: any) {
             console.error('Ошибка загрузки голосований:', error);
-            setErrors(prev => ({ ...prev, votings: error.message || 'Ошибка загрузки голосований' }));
+            setErrors(prev => ({...prev, votings: error.message || 'Ошибка загрузки голосований'}));
         } finally {
             setLoading(false);
         }
@@ -58,22 +58,22 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     // Создание голосования
     const handleCreateVoting = async () => {
         if (!newVoting.title.trim()) {
-            setErrors(prev => ({ ...prev, votingTitle: 'Название голосования обязательно' }));
+            setErrors(prev => ({...prev, votingTitle: 'Название голосования обязательно'}));
             return;
         }
 
         if (!newVoting.body.trim()) {
-            setErrors(prev => ({ ...prev, votingBody: 'Описание голосования обязательно' }));
+            setErrors(prev => ({...prev, votingBody: 'Описание голосования обязательно'}));
             return;
         }
 
         if (!newVoting.end_date) {
-            setErrors(prev => ({ ...prev, votingEndDate: 'Дата окончания обязательна' }));
+            setErrors(prev => ({...prev, votingEndDate: 'Дата окончания обязательна'}));
             return;
         }
 
         if (!newVoting.options_text.trim()) {
-            setErrors(prev => ({ ...prev, votingOptions: 'Варианты ответов обязательны' }));
+            setErrors(prev => ({...prev, votingOptions: 'Варианты ответов обязательны'}));
             return;
         }
 
@@ -82,10 +82,10 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             .split('\n')
             .map(line => line.trim())
             .filter(line => line.length > 0)
-            .map(line => ({ body: line }));
+            .map(line => ({body: line}));
 
         if (options.length < 2) {
-            setErrors(prev => ({ ...prev, votingOptions: 'Необходимо минимум 2 варианта ответа' }));
+            setErrors(prev => ({...prev, votingOptions: 'Необходимо минимум 2 варианта ответа'}));
             return;
         }
 
@@ -125,7 +125,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
         } catch (error: any) {
             console.error('Ошибка создания голосования:', error);
             const errorMessage = error.data?.title?.[0] || error.data?.detail || error.message || 'Ошибка при создании голосования';
-            setErrors(prev => ({ ...prev, votingCreate: errorMessage }));
+            setErrors(prev => ({...prev, votingCreate: errorMessage}));
         } finally {
             setCreating(false);
         }
@@ -134,7 +134,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     // Голосование
     const handleVote = async (votingId: number, optionId: number) => {
         try {
-            setErrors(prev => ({ ...prev, vote: '' }));
+            setErrors(prev => ({...prev, vote: ''}));
 
             await votingService.vote(projectId, votingId, optionId);
 
@@ -143,7 +143,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
         } catch (error: any) {
             console.error('Ошибка голосования:', error);
             const errorMessage = error.data?.detail || error.message || 'Ошибка при голосовании';
-            setErrors(prev => ({ ...prev, vote: errorMessage }));
+            setErrors(prev => ({...prev, vote: errorMessage}));
         }
     };
 
@@ -157,13 +157,13 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
         }
 
         try {
-            setErrors(prev => ({ ...prev, deleteVoting: '' }));
+            setErrors(prev => ({...prev, deleteVoting: ''}));
             await votingService.deleteVoting(projectId, votingId);
             setVotings(prev => prev.filter(v => v.id !== votingId));
         } catch (error: any) {
             console.error('Ошибка удаления голосования:', error);
             const errorMessage = error.data?.detail || error.message || 'Ошибка при удалении голосования';
-            setErrors(prev => ({ ...prev, deleteVoting: errorMessage }));
+            setErrors(prev => ({...prev, deleteVoting: errorMessage}));
         }
     };
 
@@ -177,7 +177,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
 
     // Получение названия статуса
     const getStatusName = (status: string): string => {
-        const statusMap: {[key: string]: string} = {
+        const statusMap: { [key: string]: string } = {
             'active': 'Активное',
             'ended': 'Завершено',
             'draft': 'Черновик'
@@ -187,7 +187,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
 
     // Получение цвета статуса
     const getStatusColor = (status: string): string => {
-        const colorMap: {[key: string]: string} = {
+        const colorMap: { [key: string]: string } = {
             'active': '#28A745',
             'ended': '#7C7C7C',
             'draft': '#FFDD2D'
@@ -218,7 +218,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
     return (
         <div>
             {/* Заголовок и кнопка создания */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
                 <h2 className={styles.sectionTitle}>Голосования</h2>
                 <button
                     className={styles.primaryButton}
@@ -242,17 +242,17 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                     placeholder="🔍 Поиск голосований"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ flex: 1 }}
+                    style={{flex: 1}}
                 />
 
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', color: '#7C7C7C', whiteSpace: 'nowrap' }}>Статус:</span>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                    <span style={{fontSize: '14px', color: '#7C7C7C', whiteSpace: 'nowrap'}}>Статус:</span>
+                    <div style={{display: 'flex', gap: '8px'}}>
                         {[
-                            { value: 'all', label: 'Все' },
-                            { value: 'active', label: 'Активные' },
-                            { value: 'ended', label: 'Завершенные' },
-                            { value: 'draft', label: 'Черновики' }
+                            {value: 'all', label: 'Все'},
+                            {value: 'active', label: 'Активные'},
+                            {value: 'ended', label: 'Завершенные'},
+                            {value: 'draft', label: 'Черновики'}
                         ].map(filter => (
                             <button
                                 key={filter.value}
@@ -284,7 +284,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                     borderRadius: '14px',
                     marginBottom: '20px'
                 }}>
-                    <h3 style={{ marginBottom: '20px', fontSize: '20px', color: '#353536' }}>
+                    <h3 style={{marginBottom: '20px', fontSize: '20px', color: '#353536'}}>
                         Новое голосование
                     </h3>
 
@@ -292,10 +292,11 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                         <Input
                             placeholder="Название голосования*"
                             value={newVoting.title}
-                            onChange={(e) => setNewVoting(prev => ({ ...prev, title: e.target.value }))}
+                            onChange={(e) => setNewVoting(prev => ({...prev, title: e.target.value}))}
                             hasError={!!errors.votingTitle}
+                            style={{width: '1120px'}}
                         />
-                        {errors.votingTitle && <ErrorField message={errors.votingTitle} />}
+                        {errors.votingTitle && <ErrorField message={errors.votingTitle}/>}
                     </div>
 
                     <div className={styles.formGroup}>
@@ -303,10 +304,10 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                             className={styles.textarea}
                             placeholder="Описание голосования*"
                             value={newVoting.body}
-                            onChange={(e) => setNewVoting(prev => ({ ...prev, body: e.target.value }))}
-                            style={{ height: '120px' }}
+                            onChange={(e) => setNewVoting(prev => ({...prev, body: e.target.value}))}
+                            style={{height: '120px', width: '1120px'}}
                         />
-                        {errors.votingBody && <ErrorField message={errors.votingBody} />}
+                        {errors.votingBody && <ErrorField message={errors.votingBody}/>}
                     </div>
 
                     <div className={styles.formGroup}>
@@ -314,46 +315,46 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                             className={styles.textarea}
                             placeholder="Варианты ответов (каждый с новой строки)*"
                             value={newVoting.options_text}
-                            onChange={(e) => setNewVoting(prev => ({ ...prev, options_text: e.target.value }))}
-                            style={{ height: '120px' }}
+                            onChange={(e) => setNewVoting(prev => ({...prev, options_text: e.target.value}))}
+                            style={{height: '120px', width: '1120px'}}
                         />
-                        {errors.votingOptions && <ErrorField message={errors.votingOptions} />}
-                        <div style={{ fontSize: '12px', color: '#7C7C7C', marginTop: '5px' }}>
-                            Пример:<br />
-                            Вариант 1<br />
-                            Вариант 2<br />
+                        {errors.votingOptions && <ErrorField message={errors.votingOptions}/>}
+                        <div style={{fontSize: '12px', color: '#7C7C7C', marginTop: '5px'}}>
+                            Пример:<br/>
+                            Вариант 1<br/>
+                            Вариант 2<br/>
                             Вариант 3
                         </div>
                     </div>
 
-                    <div style={{ marginBottom: '20px' }}>
-                        <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
+                    <div style={{marginBottom: '20px'}}>
+                        <label style={{fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block'}}>
                             Дата окончания*
                         </label>
                         <Input
                             type="datetime-local"
                             value={newVoting.end_date}
-                            onChange={(e) => setNewVoting(prev => ({ ...prev, end_date: e.target.value }))}
+                            onChange={(e) => setNewVoting(prev => ({...prev, end_date: e.target.value}))}
                             hasError={!!errors.votingEndDate}
                         />
-                        {errors.votingEndDate && <ErrorField message={errors.votingEndDate} />}
+                        {errors.votingEndDate && <ErrorField message={errors.votingEndDate}/>}
                     </div>
 
-                    <div style={{ marginBottom: '20px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                    <div style={{marginBottom: '20px'}}>
+                        <label style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer'}}>
                             <input
                                 type="checkbox"
                                 checked={newVoting.is_anonymous}
-                                onChange={(e) => setNewVoting(prev => ({ ...prev, is_anonymous: e.target.checked }))}
-                                style={{ width: '16px', height: '16px' }}
+                                onChange={(e) => setNewVoting(prev => ({...prev, is_anonymous: e.target.checked}))}
+                                style={{width: '16px', height: '16px'}}
                             />
-                            <span style={{ fontFamily: 'Helvetica Neue', fontSize: '16px', color: '#353536' }}>
+                            <span style={{fontFamily: 'Helvetica Neue', fontSize: '16px', color: '#353536'}}>
                                 Анонимное голосование
                             </span>
                         </label>
                     </div>
 
-                    {errors.votingCreate && <ErrorField message={errors.votingCreate} />}
+                    {errors.votingCreate && <ErrorField message={errors.votingCreate}/>}
 
                     <div className={styles.actionButtons}>
                         <button
@@ -407,8 +408,13 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                             }}>
                                 {/* Заголовок и статус */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
-                                    <div style={{ flex: 1 }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                    marginBottom: '15px'
+                                }}>
+                                    <div style={{flex: 1}}>
                                         <h3 style={{
                                             fontSize: '20px',
                                             color: '#353536',
@@ -418,13 +424,13 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                         }}>
                                             #{voting.id} {voting.title}
                                         </h3>
-                                        <div style={{ fontSize: '14px', color: '#7C7C7C' }}>
+                                        <div style={{fontSize: '14px', color: '#7C7C7C'}}>
                                             Создано: {formatDate(voting.date_started)} • {voting.creator.first_name} {voting.creator.last_name}
-                                            <br />
+                                            <br/>
                                             Завершится: {formatDate(voting.end_date)}
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
                                         <span style={{
                                             backgroundColor: getStatusColor(voting.status),
                                             color: voting.status === 'draft' ? '#353536' : 'white',
@@ -457,8 +463,8 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                 </p>
 
                                 {/* Варианты ответов */}
-                                <div style={{ marginBottom: '15px' }}>
-                                    <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '10px' }}>
+                                <div style={{marginBottom: '15px'}}>
+                                    <div style={{fontSize: '16px', fontWeight: '500', marginBottom: '10px'}}>
                                         Варианты ответов ({totalVotes} голосов)
                                     </div>
 
@@ -466,9 +472,17 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                         const percentage = totalVotes > 0 ? Math.round((option.votes_count / totalVotes) * 100) : 0;
 
                                         return (
-                                            <div key={option.id} style={{ marginBottom: '10px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                                                    <span style={{ fontSize: '16px', marginRight: '10px', minWidth: '60px' }}>
+                                            <div key={option.id} style={{marginBottom: '10px'}}>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    marginBottom: '5px'
+                                                }}>
+                                                    <span style={{
+                                                        fontSize: '16px',
+                                                        marginRight: '10px',
+                                                        minWidth: '60px'
+                                                    }}>
                                                         Вариант {index + 1}
                                                     </span>
                                                     <div style={{
@@ -484,13 +498,14 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                                             height: '100%',
                                                             backgroundColor: '#FFDD2D',
                                                             borderRadius: '4px'
-                                                        }} />
+                                                        }}/>
                                                     </div>
-                                                    <span style={{ fontSize: '16px', fontWeight: '500', minWidth: '80px' }}>
+                                                    <span
+                                                        style={{fontSize: '16px', fontWeight: '500', minWidth: '80px'}}>
                                                         {option.votes_count} ({percentage}%)
                                                     </span>
                                                 </div>
-                                                <div style={{ fontSize: '14px', color: '#353536', marginLeft: '70px' }}>
+                                                <div style={{fontSize: '14px', color: '#353536', marginLeft: '70px'}}>
                                                     {option.body}
                                                 </div>
                                             </div>
@@ -500,7 +515,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
 
                                 {/* Кнопки голосования */}
                                 {voting.status === 'active' ? (
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                    <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
                                         {voting.options.map((option, index) => (
                                             <button
                                                 key={option.id}
@@ -568,9 +583,9 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
             )}
 
             {/* Отображение ошибок */}
-            {errors.votings && <ErrorField message={errors.votings} />}
-            {errors.vote && <ErrorField message={errors.vote} />}
-            {errors.deleteVoting && <ErrorField message={errors.deleteVoting} />}
+            {errors.votings && <ErrorField message={errors.votings}/>}
+            {errors.vote && <ErrorField message={errors.vote}/>}
+            {errors.deleteVoting && <ErrorField message={errors.deleteVoting}/>}
         </div>
     );
 };

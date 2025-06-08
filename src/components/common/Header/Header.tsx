@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './Header.module.css';
 import arrowBack from "../../../photos/pngwing.com.png";
 import { useNavigate } from "react-router-dom";
-import logo from "../../../photos/logo.png";
+import logo from "../../../photos/logo2.svg";
 import bell from "../../../photos/bell.png";
 import { Notifications } from "../../../utils/Notifications.tsx";
 import { authService } from "../../../hooks/AuthService.tsx";

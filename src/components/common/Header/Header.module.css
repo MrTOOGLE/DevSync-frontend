@@ -52,6 +52,7 @@
     width: 122px;
     height: 58px;
     object-fit: contain;
+    cursor: pointer;
 }
 
 .nav {

@@ -372,7 +372,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                         marginBottom: '20px',
                         border: '1px solid #E0E0E0'
                     }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', fontFamily: '"Helvetica Neue", sans-serif' }}>
                             <h3 style={{ fontSize: '18px', color: '#353536', margin: 0 }}>Добавление отдела</h3>
                             <button
                                 onClick={() => {
@@ -509,7 +509,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                 {expandedDepartments.has(department.id!) && editingDepartment !== department.id && (
                                     <div className={styles.departmentContent}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                                            <h4 style={{ fontSize: '16px', color: '#353536', margin: 0 }}>
+                                            <h4 style={{ fontSize: '16px', color: '#353536', margin: 0, fontFamily: '"Helvetica Neue", sans-serif' }}>
                                                 Участники отдела:
                                             </h4>
                                             <button
@@ -618,6 +618,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                                             placeholder="🔍 Поиск участников"
                                                             value={departmentMemberSearch}
                                                             onChange={(e) => setDepartmentMemberSearch(e.target.value)}
+                                                            style={{width: '455px'}}
                                                         />
                                                     </div>
 

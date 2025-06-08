@@ -4,6 +4,10 @@
     margin: 0 auto;
     padding: 40px 20px;
     font-family: 'Helvetica Neue', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Заголовок */
@@ -130,7 +134,7 @@
 
 /* Список ролей */
 .rolesList {
-    width: 300px;
+    width: 560px;
     background-color: #FFFFFF;
     border-radius: 14px;
     padding: 20px;
@@ -565,6 +569,7 @@
     width: 100%;
     max-height: 80vh;
     overflow-y: auto;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.2);
 }
 
 .currentRoles, .availableRoles, .createNewRole {

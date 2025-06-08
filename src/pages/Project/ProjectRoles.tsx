@@ -758,6 +758,7 @@ const ProjectRolesPage: React.FC = () => {
                                                 value={newRoleName}
                                                 onChange={(e) => setNewRoleName(e.target.value)}
                                                 hasError={!!errors.createRole}
+                                                style={{width: '350px'}}
                                             />
                                             {errors.createRole && <ErrorField message={errors.createRole} />}
                                         </div>
