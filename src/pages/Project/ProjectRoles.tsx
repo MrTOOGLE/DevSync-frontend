@@ -122,25 +122,16 @@ const ProjectRolesPage: React.FC = () => {
         }
     };
 
-    // Загрузка ролей пользователя
+    // ИСПРАВЛЕНИЕ: Загрузка ролей пользователя через правильный API endpoint
     const loadUserRoles = async () => {
         if (!userId) return;
 
         try {
-            const response = await fetch(`http://localhost:80/api/v1/projects/${projectId}/members/${userId}/roles/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setUserRoles(data.roles || []);
-            }
+            const userRolesData = await projectService.getMemberRoles(parseInt(projectId!), parseInt(userId));
+            setUserRoles(userRolesData);
         } catch (error: any) {
             console.error('Ошибка загрузки ролей пользователя:', error);
+            setErrors(prev => ({ ...prev, userRoles: error.message || 'Ошибка загрузки ролей пользователя' }));
         }
     };
 
@@ -149,20 +140,8 @@ const ProjectRolesPage: React.FC = () => {
         try {
             setErrors(prev => ({ ...prev, permissions: '' }));
 
-            const response = await fetch(`http://localhost:80/api/v1/projects/${projectId}/roles/${roleId}/permissions/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setRolePermissions(data.permissions || []);
-            } else {
-                throw new Error('Ошибка загрузки прав роли');
-            }
+            const response = await projectService.getRolePermissions(parseInt(projectId!), roleId);
+            setRolePermissions(response.permissions || []);
         } catch (error: any) {
             console.error('Ошибка загрузки прав роли:', error);
             setErrors(prev => ({ ...prev, permissions: error.message || 'Ошибка загрузки прав роли' }));
@@ -177,7 +156,7 @@ const ProjectRolesPage: React.FC = () => {
         }
     };
 
-    // Назначение роли пользователю
+    // ИСПРАВЛЕНИЕ: Назначение роли пользователю через правильный сервис
     const handleAssignRole = async (roleId: number) => {
         if (!userId) return;
 
@@ -185,30 +164,18 @@ const ProjectRolesPage: React.FC = () => {
             setAssigningRole(true);
             setErrors(prev => ({ ...prev, assignRole: '' }));
 
-            const response = await fetch(`http://localhost:80/api/v1/projects/${projectId}/members/${userId}/roles/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ role_id: roleId })
-            });
-
-            if (response.ok) {
-                await loadUserRoles();
-                alert('Роль успешно назначена');
-            } else {
-                throw new Error('Ошибка назначения роли');
-            }
+            await projectService.assignRoleToMember(parseInt(projectId!), parseInt(userId), roleId);
+            await loadUserRoles();
         } catch (error: any) {
             console.error('Ошибка назначения роли:', error);
-            setErrors(prev => ({ ...prev, assignRole: error.message || 'Ошибка назначения роли' }));
+            const errorMessage = error.data?.detail || error.message || 'Ошибка назначения роли';
+            setErrors(prev => ({ ...prev, assignRole: errorMessage }));
         } finally {
             setAssigningRole(false);
         }
     };
 
-    // Удаление роли у пользователя
+    // ИСПРАВЛЕНИЕ: Удаление роли у пользователя через правильный сервис
     const handleRemoveRole = async (roleId: number) => {
         if (!userId) return;
 
@@ -216,23 +183,12 @@ const ProjectRolesPage: React.FC = () => {
             setRemovingRole(true);
             setErrors(prev => ({ ...prev, removeRole: '' }));
 
-            const response = await fetch(`http://localhost:80/api/v1/projects/${projectId}/members/${userId}/roles/${roleId}/`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (response.ok) {
-                await loadUserRoles();
-                alert('Роль успешно удалена');
-            } else {
-                throw new Error('Ошибка удаления роли');
-            }
+            await projectService.removeRoleFromMember(parseInt(projectId!), parseInt(userId), roleId);
+            await loadUserRoles();
         } catch (error: any) {
             console.error('Ошибка удаления роли:', error);
-            setErrors(prev => ({ ...prev, removeRole: error.message || 'Ошибка удаления роли' }));
+            const errorMessage = error.data?.detail || error.message || 'Ошибка удаления роли';
+            setErrors(prev => ({ ...prev, removeRole: errorMessage }));
         } finally {
             setRemovingRole(false);
         }
@@ -298,23 +254,12 @@ const ProjectRolesPage: React.FC = () => {
                 permissionsData[rp.permission.codename] = rp.value;
             });
 
-            const response = await fetch(`http://localhost:80/api/v1/projects/${projectId}/roles/${selectedRole.id}/permissions/batch/`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(permissionsData)
-            });
-
-            if (response.ok) {
-                alert('Права роли успешно обновлены');
-            } else {
-                throw new Error('Ошибка сохранения прав роли');
-            }
+            await projectService.updateRolePermissions(parseInt(projectId!), selectedRole.id!, permissionsData);
+            alert('Права роли успешно обновлены');
         } catch (error: any) {
             console.error('Ошибка сохранения прав роли:', error);
-            setErrors(prev => ({ ...prev, savePermissions: error.message || 'Ошибка сохранения прав роли' }));
+            const errorMessage = error.data?.detail || error.message || 'Ошибка сохранения прав роли';
+            setErrors(prev => ({ ...prev, savePermissions: errorMessage }));
         } finally {
             setSavingPermissions(false);
         }
@@ -370,6 +315,12 @@ const ProjectRolesPage: React.FC = () => {
     const filteredRoles = roles.filter(role =>
         role.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    // ИСПРАВЛЕНИЕ: Получение доступных ролей для назначения (исключаем уже назначенные)
+    const getAvailableRoles = () => {
+        const userRoleIds = userRoles.map(role => role.id);
+        return roles.filter(role => !userRoleIds.includes(role.id));
+    };
 
     // Группировка прав по категориям
     const groupedPermissions = rolePermissions.reduce((groups, rp) => {
@@ -501,27 +452,25 @@ const ProjectRolesPage: React.FC = () => {
                                 <div className={rolesStyles.availableRoles}>
                                     <h3>Назначить роль:</h3>
                                     <div className={rolesStyles.rolesList}>
-                                        {roles
-                                            .filter(role => !userRoles.find(ur => ur.id === role.id))
-                                            .map(role => (
-                                                <div key={role.id} className={rolesStyles.roleItem}>
-                                                    <div
-                                                        className={rolesStyles.roleColor}
-                                                        style={{ backgroundColor: role.color }}
-                                                    ></div>
-                                                    <span className={rolesStyles.roleName}>{role.name}</span>
-                                                    <button
-                                                        onClick={() => handleAssignRole(role.id!)}
-                                                        disabled={assigningRole}
-                                                        className={rolesStyles.assignRoleButton}
-                                                    >
-                                                        + Назначить
-                                                    </button>
-                                                </div>
-                                            ))}
+                                        {getAvailableRoles().map(role => (
+                                            <div key={role.id} className={rolesStyles.roleItem}>
+                                                <div
+                                                    className={rolesStyles.roleColor}
+                                                    style={{ backgroundColor: role.color }}
+                                                ></div>
+                                                <span className={rolesStyles.roleName}>{role.name}</span>
+                                                <button
+                                                    onClick={() => handleAssignRole(role.id!)}
+                                                    disabled={assigningRole}
+                                                    className={rolesStyles.assignRoleButton}
+                                                >
+                                                    + Назначить
+                                                </button>
+                                            </div>
+                                        ))}
                                     </div>
 
-                                    {roles.filter(role => !userRoles.find(ur => ur.id === role.id)).length === 0 && (
+                                    {getAvailableRoles().length === 0 && (
                                         <p>Все доступные роли уже назначены</p>
                                     )}
                                 </div>
@@ -538,6 +487,7 @@ const ProjectRolesPage: React.FC = () => {
 
                                 {errors.assignRole && <ErrorField message={errors.assignRole} />}
                                 {errors.removeRole && <ErrorField message={errors.removeRole} />}
+                                {errors.userRoles && <ErrorField message={errors.userRoles} />}
                             </div>
                         ) : (
                             /* Режим полного управления ролями проекта */

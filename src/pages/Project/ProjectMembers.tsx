@@ -142,18 +142,17 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Переключение раскрытия отдела - ИСПРАВЛЕНО!
-    const toggleDepartment = (e: React.MouseEvent, departmentId: number) => {
-        e.preventDefault(); // Предотвращаем обновление страницы
-        e.stopPropagation(); // Останавливаем всплытие события
-
-        const newExpanded = new Set(expandedDepartments);
-        if (newExpanded.has(departmentId)) {
-            newExpanded.delete(departmentId);
-        } else {
-            newExpanded.add(departmentId);
-        }
-        setExpandedDepartments(newExpanded);
+    // ИСПРАВЛЕНИЕ: Переключение раскрытия отдела без использования preventDefault
+    const toggleDepartment = (departmentId: number) => {
+        setExpandedDepartments(prev => {
+            const newExpanded = new Set(prev);
+            if (newExpanded.has(departmentId)) {
+                newExpanded.delete(departmentId);
+            } else {
+                newExpanded.add(departmentId);
+            }
+            return newExpanded;
+        });
     };
 
     // Переход на страницу управления ролями пользователя
@@ -177,10 +176,8 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Начать редактирование отдела
-    const startEditDepartment = (e: React.MouseEvent, department: Department) => {
-        e.preventDefault();
-        e.stopPropagation();
+    // ИСПРАВЛЕНИЕ: Начать редактирование отдела без preventDefault
+    const startEditDepartment = (department: Department) => {
         setEditingDepartment(department.id!);
         setEditDepartmentTitle(department.title);
         setEditDepartmentDescription(department.description);
@@ -260,11 +257,8 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Удаление отдела
-    const handleDeleteDepartment = async (e: React.MouseEvent, departmentId: number) => {
-        e.preventDefault();
-        e.stopPropagation();
-
+    // ИСПРАВЛЕНИЕ: Удаление отдела без preventDefault
+    const handleDeleteDepartment = async (departmentId: number) => {
         const department = departments.find(d => d.id === departmentId);
         if (!department) return;
 
@@ -433,12 +427,12 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {departments.map(department => (
                             <div key={department.id} className={styles.departmentCard}>
-                                {/* Заголовок отдела */}
-                                <div
-                                    className={styles.departmentHeader}
-                                    onClick={(e) => toggleDepartment(e, department.id!)}
-                                >
-                                    <div>
+                                {/* ИСПРАВЛЕНИЕ: Заголовок отдела с правильными обработчиками */}
+                                <div className={styles.departmentHeader}>
+                                    <div
+                                        onClick={() => toggleDepartment(department.id!)}
+                                        style={{ flex: 1, cursor: 'pointer' }}
+                                    >
                                         <div className={styles.departmentTitle}>
                                             {department.title} ({department.members?.length || 0})
                                         </div>
@@ -450,20 +444,30 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                     </div>
                                     <div className={styles.departmentActions}>
                                         <button
-                                            onClick={(e) => startEditDepartment(e, department)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                startEditDepartment(department);
+                                            }}
                                             className={styles.departmentEditButton}
                                             title="Редактировать отдел"
                                         >
                                             ✏️
                                         </button>
                                         <button
-                                            onClick={(e) => handleDeleteDepartment(e, department.id!)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteDepartment(department.id!);
+                                            }}
                                             className={styles.departmentDeleteButton}
                                             title="Удалить отдел"
                                         >
                                             🗑️
                                         </button>
-                                        <span className={`${styles.departmentExpandIcon} ${expandedDepartments.has(department.id!) ? styles.departmentExpandIconRotated : ''}`}>
+                                        <span
+                                            className={`${styles.departmentExpandIcon} ${expandedDepartments.has(department.id!) ? styles.departmentExpandIconRotated : ''}`}
+                                            onClick={() => toggleDepartment(department.id!)}
+                                            style={{ cursor: 'pointer' }}
+                                        >
                                             ▼
                                         </span>
                                     </div>

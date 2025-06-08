@@ -36,14 +36,18 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
     // Создание задачи
     const [showCreateTask, setShowCreateTask] = useState(false);
-    const [newTask, setNewTask] = useState<TaskCreateData & {
-        start_date_string?: string;
-        end_date_string?: string;
+    const [newTask, setNewTask] = useState<{
+        title: string;
+        assignees: number[];
+        department?: number;
+        start_date?: string;
+        end_date?: string;
     }>({
         title: '',
         assignees: [],
-        start_date_string: '',
-        end_date_string: ''
+        department: undefined,
+        start_date: undefined,
+        end_date: undefined
     });
     const [creating, setCreating] = useState(false);
 
@@ -101,13 +105,14 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
             setCreating(true);
             setErrors(prev => ({ ...prev, taskCreate: '', taskTitle: '' }));
 
-            // Преобразуем строки дат в ISO формат
+            // Подготавливаем данные для создания задачи
             const taskData: TaskCreateData = {
                 title: newTask.title.trim(),
                 assignees: newTask.assignees,
                 department: newTask.department,
-                start_date: newTask.start_date_string ? new Date(newTask.start_date_string).toISOString() : undefined,
-                end_date: newTask.end_date_string ? new Date(newTask.end_date_string).toISOString() : undefined
+                // Преобразуем даты в ISO формат только если они заполнены
+                start_date: newTask.start_date ? new Date(newTask.start_date).toISOString() : undefined,
+                end_date: newTask.end_date ? new Date(newTask.end_date).toISOString() : undefined
             };
 
             const createdTask = await tasksService.createTask(projectId, taskData);
@@ -117,8 +122,9 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
             setNewTask({
                 title: '',
                 assignees: [],
-                start_date_string: '',
-                end_date_string: ''
+                department: undefined,
+                start_date: undefined,
+                end_date: undefined
             });
             setShowCreateTask(false);
 
@@ -205,6 +211,11 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'Не указана';
         return new Date(dateString).toLocaleDateString('ru-RU');
+    };
+
+    // Получение минимальной даты для input[type="date"]
+    const getTodayDate = () => {
+        return new Date().toISOString().split('T')[0];
     };
 
     if (loading) {
@@ -421,8 +432,9 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                                     setNewTask({
                                         title: '',
                                         assignees: [],
-                                        start_date_string: '',
-                                        end_date_string: ''
+                                        department: undefined,
+                                        start_date: undefined,
+                                        end_date: undefined
                                     });
                                     setErrors(prev => ({ ...prev, taskTitle: '', taskCreate: '' }));
                                 }}
@@ -453,22 +465,32 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
 
                         <div className={styles.formGroup}>
                             <label style={{ fontSize: '16px', color: '#353536', marginBottom: '8px', display: 'block' }}>
-                                Период выполнения
+                                Период выполнения (необязательно)
                             </label>
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                <Input
-                                    type="date"
-                                    value={newTask.start_date_string}
-                                    onChange={(e) => setNewTask(prev => ({ ...prev, start_date_string: e.target.value }))}
-                                    style={{ flex: 1 }}
-                                />
-                                <span style={{ color: '#7C7C7C' }}>—</span>
-                                <Input
-                                    type="date"
-                                    value={newTask.end_date_string}
-                                    onChange={(e) => setNewTask(prev => ({ ...prev, end_date_string: e.target.value }))}
-                                    style={{ flex: 1 }}
-                                />
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
+                                        Дата начала
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={newTask.start_date || ''}
+                                        min={getTodayDate()}
+                                        onChange={(e) => setNewTask(prev => ({ ...prev, start_date: e.target.value || undefined }))}
+                                    />
+                                </div>
+                                <span style={{ color: '#7C7C7C', marginTop: '20px' }}>—</span>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
+                                        Дата окончания
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={newTask.end_date || ''}
+                                        min={newTask.start_date || getTodayDate()}
+                                        onChange={(e) => setNewTask(prev => ({ ...prev, end_date: e.target.value || undefined }))}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -477,6 +499,21 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                                 Отдел
                             </label>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setNewTask(prev => ({ ...prev, department: undefined }))}
+                                    style={{
+                                        padding: '8px 16px',
+                                        backgroundColor: !newTask.department ? '#FFDD2D' : '#F6F7F8',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        fontWeight: !newTask.department ? '500' : '400'
+                                    }}
+                                >
+                                    Без отдела
+                                </button>
                                 {departments.map(department => (
                                     <button
                                         key={department.id}
