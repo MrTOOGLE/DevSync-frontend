@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from '../../styles/ProjectManagement.module.css';
 import { Input } from '../../components/common/Input/Input.tsx';
 import { ErrorField } from '../../components/common/ErrorField/ErrorField.tsx';
@@ -10,13 +11,14 @@ import {
 } from '../../hooks/CreateProjectService.tsx';
 import { authService } from '../../hooks/AuthService.tsx';
 import API_CONFIG from '../../utils/Urls.ts';
-import ProjectRoles from './ProjectRoles.tsx'; // Импортируем компонент ролей
 
 interface ProjectMembersProps {
     projectId: number;
 }
 
 const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
+    const navigate = useNavigate();
+
     // Состояния для участников и отделов
     const [members, setMembers] = useState<ProjectMember[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
@@ -48,9 +50,6 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     // Состояния для управления участниками отделов
     const [showAddMemberToDepartment, setShowAddMemberToDepartment] = useState<number | null>(null);
     const [departmentMemberSearch, setDepartmentMemberSearch] = useState('');
-
-    // Состояния для управления ролями
-    const [showRoleModal, setShowRoleModal] = useState<number | null>(null);
 
     // Загрузка данных при монтировании
     useEffect(() => {
@@ -143,8 +142,11 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Переключение раскрытия отдела
-    const toggleDepartment = (departmentId: number) => {
+    // Переключение раскрытия отдела - ИСПРАВЛЕНО!
+    const toggleDepartment = (e: React.MouseEvent, departmentId: number) => {
+        e.preventDefault(); // Предотвращаем обновление страницы
+        e.stopPropagation(); // Останавливаем всплытие события
+
         const newExpanded = new Set(expandedDepartments);
         if (newExpanded.has(departmentId)) {
             newExpanded.delete(departmentId);
@@ -154,9 +156,9 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         setExpandedDepartments(newExpanded);
     };
 
-    // Показать управление ролями
-    const showRoleManagement = (userId: number) => {
-        setShowRoleModal(userId);
+    // Переход на страницу управления ролями пользователя
+    const handleManageUserRoles = (userId: number) => {
+        navigate(`/projects/${projectId}/roles/${userId}`);
     };
 
     // Приглашение участника
@@ -176,7 +178,9 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     };
 
     // Начать редактирование отдела
-    const startEditDepartment = (department: Department) => {
+    const startEditDepartment = (e: React.MouseEvent, department: Department) => {
+        e.preventDefault();
+        e.stopPropagation();
         setEditingDepartment(department.id!);
         setEditDepartmentTitle(department.title);
         setEditDepartmentDescription(department.description);
@@ -257,7 +261,10 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     };
 
     // Удаление отдела
-    const handleDeleteDepartment = async (departmentId: number) => {
+    const handleDeleteDepartment = async (e: React.MouseEvent, departmentId: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         const department = departments.find(d => d.id === departmentId);
         if (!department) return;
 
@@ -429,7 +436,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                 {/* Заголовок отдела */}
                                 <div
                                     className={styles.departmentHeader}
-                                    onClick={() => toggleDepartment(department.id!)}
+                                    onClick={(e) => toggleDepartment(e, department.id!)}
                                 >
                                     <div>
                                         <div className={styles.departmentTitle}>
@@ -443,20 +450,14 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                     </div>
                                     <div className={styles.departmentActions}>
                                         <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                startEditDepartment(department);
-                                            }}
+                                            onClick={(e) => startEditDepartment(e, department)}
                                             className={styles.departmentEditButton}
                                             title="Редактировать отдел"
                                         >
                                             ✏️
                                         </button>
                                         <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeleteDepartment(department.id!);
-                                            }}
+                                            onClick={(e) => handleDeleteDepartment(e, department.id!)}
                                             className={styles.departmentDeleteButton}
                                             title="Удалить отдел"
                                         >
@@ -761,7 +762,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                 <div className={styles.itemActions}>
                                     <button
                                         className={styles.primaryButton}
-                                        onClick={() => showRoleManagement(member.user.id)}
+                                        onClick={() => handleManageUserRoles(member.user.id)}
                                         style={{ marginRight: '10px', padding: '8px 12px', fontSize: '14px' }}
                                     >
                                         Роли
@@ -920,28 +921,6 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
                         {errors.invite && <ErrorField message={errors.invite} />}
                     </div>
-                </div>
-            )}
-
-            {/* Модальное окно управления ролями */}
-            {showRoleModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <ProjectRoles
-                        projectId={projectId}
-                        selectedUserId={showRoleModal}
-                        onClose={() => setShowRoleModal(null)}
-                    />
                 </div>
             )}
         </div>
