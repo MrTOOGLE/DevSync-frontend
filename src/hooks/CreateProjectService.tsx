@@ -83,6 +83,11 @@ export interface Role {
     rank: number;
 }
 
+export interface MemberRole {
+    role: Role;
+    date_added: string;
+}
+
 // Типы для приглашения в проект
 export interface Invitation {
     id?: number;
@@ -578,7 +583,7 @@ export const projectService = {
             }
 
             const data = await response.json();
-            return data.roles || [];
+            return data.roles.map((item: MemberRole) => item.role);
         } catch (error) {
             console.error('Ошибка при получении ролей участника:', error);
             throw error;

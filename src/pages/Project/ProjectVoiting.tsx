@@ -640,7 +640,7 @@ const ProjectVoting: React.FC<ProjectVotingProps> = ({ projectId }) => {
                                 </div>
 
                                 {/* Кнопки голосования */}
-                                {voting.status.toLowerCase() === 'active' ? (
+                                {voting.status.toLowerCase() !== 'ended' ? (
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                         {voting.options.map((option, index) => (
                                             <button

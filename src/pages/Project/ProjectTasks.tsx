@@ -8,6 +8,7 @@ import {
     TaskCreateData
 } from '../../hooks/TaskService.tsx';
 import { projectService, Department, ProjectMember } from '../../hooks/CreateProjectService.tsx';
+import { format } from 'date-fns'
 
 interface ProjectTasksProps {
     projectId: number;
@@ -111,8 +112,9 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                 assignees: newTask.assignees,
                 department: newTask.department,
                 // Преобразуем даты в ISO формат только если они заполнены
-                start_date: newTask.start_date ? new Date(newTask.start_date).toISOString() : undefined,
-                end_date: newTask.end_date ? new Date(newTask.end_date).toISOString() : undefined
+
+                start_date: newTask.start_date ? format(new Date(newTask.start_date), 'yyyy-MM-dd') : undefined,
+                end_date: newTask.end_date ? format(new Date(newTask.end_date), 'yyyy-MM-dd') : undefined
             };
 
             const createdTask = await tasksService.createTask(projectId, taskData);
