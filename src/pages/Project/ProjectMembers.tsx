@@ -51,6 +51,77 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     const [showAddMemberToDepartment, setShowAddMemberToDepartment] = useState<number | null>(null);
     const [departmentMemberSearch, setDepartmentMemberSearch] = useState('');
 
+    // Функция безопасной фильтрации участников отдела
+    const getSafeMembers = (members?: ProjectMember[]): ProjectMember[] => {
+        if (!members || !Array.isArray(members)) {
+            return [];
+        }
+
+        return members.filter(member =>
+            member &&
+            member.user &&
+            member.user.id &&
+            member.user.first_name &&
+            member.user.last_name
+        );
+    };
+
+    // Error boundary для рендеринга участников отдела
+    const renderDepartmentMembers = (department: Department) => {
+        try {
+            const safeMembers = getSafeMembers(department.members);
+
+            if (safeMembers.length === 0) {
+                return (
+                    <p style={{ color: '#7C7C7C', textAlign: 'center', margin: '20px 0' }}>
+                        В отделе пока нет участников
+                    </p>
+                );
+            }
+
+            return (
+                <div className={styles.departmentMembers}>
+                    {safeMembers.map(member => (
+                        <div key={member.user.id} className={styles.departmentMember}>
+                            <div className={styles.departmentMemberAvatar}>
+                                {member.user.first_name?.charAt(0) || '?'}
+                            </div>
+                            <div className={styles.departmentMemberInfo}>
+                                <div className={styles.departmentMemberName}>
+                                    {member.user.first_name || 'Без имени'} {member.user.last_name || ''}
+                                </div>
+                                <div className={styles.departmentMemberEmail}>
+                                    {member.user.email || 'Нет email'}
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleRemoveMemberFromDepartment(department.id!, member.user.id)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#FF4444',
+                                    fontSize: '16px',
+                                    cursor: 'pointer',
+                                    padding: '5px'
+                                }}
+                                title="Удалить из отдела"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            );
+        } catch (error) {
+            console.error('Ошибка рендеринга участников отдела:', error);
+            return (
+                <p style={{ color: '#FF4444', textAlign: 'center', margin: '20px 0' }}>
+                    Ошибка загрузки участников отдела
+                </p>
+            );
+        }
+    };
+
     // Загрузка данных при монтировании
     useEffect(() => {
         loadMembers();
@@ -112,7 +183,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Загрузка отделов с участниками
+    // Загрузка отделов
     const loadDepartments = async () => {
         try {
             setErrors(prev => ({ ...prev, departments: '' }));
@@ -130,19 +201,41 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                setDepartments(data.departments || []);
+                const rawDepartments = data.departments || [];
+
+                // Очищаем данные от некорректных участников
+                const cleanDepartments = rawDepartments.map((dept: Department) => ({
+                    ...dept,
+                    members: getSafeMembers(dept.members)
+                }));
+
+                setDepartments(cleanDepartments);
             } else {
                 console.warn('Не удалось загрузить отделы с участниками, загружаем без участников');
                 const departmentsData = await projectService.getProjectDepartments(projectId);
-                setDepartments(departmentsData);
+                setDepartments(departmentsData.map((dept: Department) => ({
+                    ...dept,
+                    members: []
+                })));
             }
         } catch (error: any) {
             console.error('Ошибка загрузки отделов:', error);
             setErrors(prev => ({ ...prev, departments: error.message || 'Ошибка загрузки отделов' }));
+
+            // Fallback при ошибке - загружаем отделы без участников
+            try {
+                const departmentsData = await projectService.getProjectDepartments(projectId);
+                setDepartments(departmentsData.map((dept: Department) => ({
+                    ...dept,
+                    members: []
+                })));
+            } catch (fallbackError) {
+                console.error('Fallback тоже не сработал:', fallbackError);
+            }
         }
     };
 
-    // ИСПРАВЛЕНИЕ: Переключение раскрытия отдела без использования preventDefault
+    // Переключение раскрытия отдела
     const toggleDepartment = (departmentId: number) => {
         setExpandedDepartments(prev => {
             const newExpanded = new Set(prev);
@@ -176,7 +269,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // ИСПРАВЛЕНИЕ: Начать редактирование отдела без preventDefault
+    // Начать редактирование отдела
     const startEditDepartment = (department: Department) => {
         setEditingDepartment(department.id!);
         setEditDepartmentTitle(department.title);
@@ -257,7 +350,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // ИСПРАВЛЕНИЕ: Удаление отдела без preventDefault
+    // Удаление отдела
     const handleDeleteDepartment = async (departmentId: number) => {
         const department = departments.find(d => d.id === departmentId);
         if (!department) return;
@@ -295,7 +388,8 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     // Удаление участника из отдела
     const handleRemoveMemberFromDepartment = async (departmentId: number, userId: number) => {
         const department = departments.find(d => d.id === departmentId);
-        const member = department?.members?.find(m => m.user.id === userId);
+        const safeMembers = getSafeMembers(department?.members);
+        const member = safeMembers.find(m => m.user.id === userId);
 
         if (!member || !department) return;
 
@@ -326,13 +420,18 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         }
     };
 
-    // Фильтрация участников для добавления в отдел (исключаем уже добавленных)
+    // Безопасное получение доступных участников для отдела
     const getAvailableMembersForDepartment = (departmentId: number) => {
         const department = departments.find(d => d.id === departmentId);
         if (!department) return members;
 
-        const departmentMemberIds = department.members?.map(m => m.user.id) || [];
-        return members.filter(member => !departmentMemberIds.includes(member.user.id));
+        const safeMembers = getSafeMembers(department.members);
+        const departmentMemberIds = safeMembers.map(m => m.user.id);
+
+        return members.filter(member =>
+            member?.user?.id &&
+            !departmentMemberIds.includes(member.user.id)
+        );
     };
 
     if (loading) {
@@ -427,14 +526,15 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {departments.map(department => (
                             <div key={department.id} className={styles.departmentCard}>
-                                {/* ИСПРАВЛЕНИЕ: Заголовок отдела с правильными обработчиками */}
+                                {/* Заголовок отдела */}
                                 <div className={styles.departmentHeader}>
                                     <div
                                         onClick={() => toggleDepartment(department.id!)}
                                         style={{ flex: 1, cursor: 'pointer' }}
                                     >
                                         <div className={styles.departmentTitle}>
-                                            {department.title} ({department.members?.length || 0})
+                                            {/* Подсчет участников */}
+                                            {department.title} ({getSafeMembers(department.members).length})
                                         </div>
                                         {department.description && (
                                             <div className={styles.departmentDescription}>
@@ -535,43 +635,8 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                                             </button>
                                         </div>
 
-                                        {department.members && department.members.length > 0 ? (
-                                            <div className={styles.departmentMembers}>
-                                                {department.members.map(member => (
-                                                    <div key={member.user.id} className={styles.departmentMember}>
-                                                        <div className={styles.departmentMemberAvatar}>
-                                                            {member.user.first_name.charAt(0)}
-                                                        </div>
-                                                        <div className={styles.departmentMemberInfo}>
-                                                            <div className={styles.departmentMemberName}>
-                                                                {member.user.first_name} {member.user.last_name}
-                                                            </div>
-                                                            <div className={styles.departmentMemberEmail}>
-                                                                {member.user.email}
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => handleRemoveMemberFromDepartment(department.id!, member.user.id)}
-                                                            style={{
-                                                                background: 'none',
-                                                                border: 'none',
-                                                                color: '#FF4444',
-                                                                fontSize: '16px',
-                                                                cursor: 'pointer',
-                                                                padding: '5px'
-                                                            }}
-                                                            title="Удалить из отдела"
-                                                        >
-                                                            ✕
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p style={{ color: '#7C7C7C', textAlign: 'center', margin: '20px 0' }}>
-                                                В отделе пока нет участников
-                                            </p>
-                                        )}
+                                        {/* Рендеринг участников */}
+                                        {renderDepartmentMembers(department)}
 
                                         {/* Модальное окно для добавления участника в отдел */}
                                         {showAddMemberToDepartment === department.id && (
