@@ -42,7 +42,7 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
         markAsRead,
         markAllAsRead,
         markAsHidden,
-        markAllAsHidden
+        // markAllAsHidden
     } = useWebSocketNotifications({
         onNotificationReceived: handleNotificationReceived,
         onNotificationUpdated: handleNotificationUpdated,

@@ -180,7 +180,7 @@ export const notificationsService = {
     executeNotificationAction: async (action: NotificationAction): Promise<any> => {
         try {
             const method = action.payload.method || 'GET';
-            const response = await fetch(API_CONFIG.BASE_URL + action.payload.url, {
+            const response = await fetch(API_CONFIG.BASE_URL + action.payload.url.substring(1), {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
