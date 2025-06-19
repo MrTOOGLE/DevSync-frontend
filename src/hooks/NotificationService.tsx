@@ -126,32 +126,6 @@ export const notificationsService = {
         }
     },
 
-    // Получение моих приглашений в проекты
-    getMyInvitations: async (): Promise<MyInvitation[]> => {
-        try {
-            const response = await fetch(API_CONFIG.FULL_URL.MY_INVITATIONS.BASE_URL, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...authService.getAuthHeaders()
-                }
-            });
-
-            if (!response.ok) {
-                throw {
-                    status: response.status,
-                    message: 'Ошибка получения приглашений'
-                };
-            }
-
-            const data: MyInvitationsResponse = await response.json();
-            return data.invitations || [];
-        } catch (error) {
-            console.error('Ошибка при получении приглашений:', error);
-            throw error;
-        }
-    },
-
     // Принять приглашение
     acceptInvitation: async (invitationId: number): Promise<{ success: boolean }> => {
         try {
@@ -206,7 +180,7 @@ export const notificationsService = {
     executeNotificationAction: async (action: NotificationAction): Promise<any> => {
         try {
             const method = action.payload.method || 'GET';
-            const response = await fetch(action.payload.url, {
+            const response = await fetch(API_CONFIG.BASE_URL + action.payload.url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
@@ -263,15 +237,12 @@ export const notificationsService = {
     // Получение всех уведомлений (системные + приглашения)
     getAllNotifications: async (): Promise<Notification[]> => {
         try {
-            const [notifications, invitations] = await Promise.all([
-                notificationsService.getNotifications(),
-                notificationsService.getMyInvitations()
+            const [notifications] = await Promise.all([
+                notificationsService.getNotifications()
             ]);
 
-            const invitationNotifications = notificationsService.convertInvitationsToNotifications(invitations);
-
             // Объединяем и сортируем по дате
-            const allNotifications = [...notifications, ...invitationNotifications];
+            const allNotifications = [...notifications];
             allNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
             return allNotifications;

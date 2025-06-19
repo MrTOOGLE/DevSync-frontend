@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styles from './Header.module.css';
 import arrowBack from "../../../photos/pngwing.com.png";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import bell from "../../../photos/bell.png";
 import { Notifications } from "../../../utils/Notifications.tsx";
 import { authService } from "../../../hooks/AuthService.tsx";
 import { notificationsService, Notification } from "../../../hooks/NotificationService.tsx";
+import { useWebSocketNotifications } from "../../../hooks/UseWebSocketNotifications";
 
 interface HeaderProps {
     variant?: 'default' | 'back';
@@ -18,6 +19,34 @@ export const Header: React.FC<HeaderProps> = ({ variant = 'default' }) => {
     const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
     const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
     const isAuthenticated = authService.isAuthenticated();
+
+    // WebSocket обработчики для уведомлений
+    const handleNotificationReceived = (notification: Notification) => {
+        setNotificationsList(prev => [notification, ...prev]);
+    };
+
+    const handleNotificationUpdated = (updatedNotification: Notification) => {
+        setNotificationsList(prev => prev.map(notification =>
+            notification.id === updatedNotification.id ? updatedNotification : notification
+        ));
+    };
+
+    const handleNotificationDeleted = (notificationId: number) => {
+        setNotificationsList(prev => prev.filter(notification => notification.id !== notificationId));
+    };
+
+    // Стабилизированные опции для WebSocket
+    const websocketOptions = useMemo(() => ({
+        onNotificationReceived: handleNotificationReceived,
+        onNotificationUpdated: handleNotificationUpdated,
+        onNotificationDeleted: handleNotificationDeleted,
+        onError: (error: string) => {
+            console.error('WebSocket ошибка в Header:', error);
+        }
+    }), []);
+
+    // Подключаем WebSocket только если пользователь авторизован (ДОБАВЛЕНО ТОЛЬКО ЭТО)
+    useWebSocketNotifications(isAuthenticated ? websocketOptions : {});
 
     // Загрузка уведомлений при монтировании компонента
     useEffect(() => {

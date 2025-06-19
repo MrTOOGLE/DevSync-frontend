@@ -469,8 +469,8 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                             <label style={{ fontSize: '16px', color: '#353536', marginBottom: '8px', display: 'block' }}>
                                 Период выполнения (необязательно)
                             </label>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <div>
                                     <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
                                         Дата начала
                                     </label>
@@ -481,8 +481,7 @@ const ProjectTasks: React.FC<ProjectTasksProps> = ({ projectId }) => {
                                         onChange={(e) => setNewTask(prev => ({ ...prev, start_date: e.target.value || undefined }))}
                                     />
                                 </div>
-                                <span style={{ color: '#7C7C7C', marginTop: '20px' }}>—</span>
-                                <div style={{ flex: 1 }}>
+                                <div>
                                     <label style={{ fontSize: '14px', color: '#7C7C7C', marginBottom: '5px', display: 'block' }}>
                                         Дата окончания
                                     </label>

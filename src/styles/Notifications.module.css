@@ -182,3 +182,352 @@
 .notificationDecline:hover {
     background-color: #E0E0E0;
 }
+
+/* Контейнер уведомлений */
+.notificationsContainer {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 400px;
+    max-height: 500px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid #E5E7EB;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+/* Заголовок панели уведомлений */
+.notificationsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #E5E7EB;
+    background: #F9FAFB;
+}
+
+.notificationsHeader h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.notificationsControls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Индикатор подключения WebSocket */
+.connectionStatus {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.connected {
+    opacity: 1;
+}
+
+.disconnected {
+    opacity: 0.5;
+}
+
+/* Кнопка "Прочитать все" */
+.markAllReadButton {
+    background: #3B82F6;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.markAllReadButton:hover {
+    background: #2563EB;
+}
+
+/* Кнопка закрытия */
+.notificationsClose {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+}
+
+.notificationsClose:hover {
+    color: #374151;
+}
+
+/* Сообщение об ошибке */
+.errorMessage {
+    padding: 12px 20px;
+    background: #FEF2F2;
+    color: #DC2626;
+    font-size: 14px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+/* Список уведомлений */
+.notificationsList {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Элемент уведомления */
+.notificationItem {
+    padding: 16px 20px;
+    border-bottom: 1px solid #E5E7EB;
+    transition: background-color 0.2s;
+}
+
+.notificationItem:hover {
+    background: #F9FAFB;
+}
+
+.notificationItem:last-child {
+    border-bottom: none;
+}
+
+/* Непрочитанное уведомление */
+.unread {
+    background: #FEF3C7;
+    border-left: 4px solid #F59E0B;
+}
+
+.unread:hover {
+    background: #FDE68A;
+}
+
+/* Прочитанное уведомление */
+.read {
+    opacity: 0.8;
+}
+
+/* Содержимое уведомления */
+.notificationContent {
+    width: 100%;
+}
+
+.notificationHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.notificationTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    flex: 1;
+    line-height: 1.3;
+}
+
+.notificationMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 12px;
+}
+
+.notificationDate {
+    font-size: 12px;
+    color: #6B7280;
+    white-space: nowrap;
+}
+
+.hideButton {
+    background: none;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.hideButton:hover {
+    color: #374151;
+}
+
+/* Сообщение уведомления */
+.notificationMessage {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+}
+
+/* Действия уведомления */
+.notificationActions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.actionButtonPrimary {
+    background: #3B82F6;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.actionButtonPrimary:hover {
+    background: #2563EB;
+}
+
+.actionButtonSecondary {
+    background: #F3F4F6;
+    color: #374151;
+    border: 1px solid #D1D5DB;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.actionButtonSecondary:hover {
+    background: #E5E7EB;
+    border-color: #9CA3AF;
+}
+
+.actionButtonDanger {
+    background: #DC2626;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.actionButtonDanger:hover {
+    background: #B91C1C;
+}
+
+/* Подвал уведомления */
+.notificationFootnote {
+    font-size: 12px;
+    color: #6B7280;
+    font-style: italic;
+    margin-top: 8px;
+}
+
+/* Кнопка "Отметить как прочитанное" */
+.markAsReadButton {
+    background: none;
+    border: 1px solid #D1D5DB;
+    color: #6B7280;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+}
+
+.markAsReadButton:hover {
+    background: #F3F4F6;
+    color: #374151;
+}
+
+/* Пустое состояние */
+.notificationsEmpty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #6B7280;
+}
+
+.loadingSpinner {
+    font-size: 14px;
+}
+
+/* Стили для Header */
+.notificationWrapper {
+    position: relative;
+}
+
+.notificationButton {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.notificationButton:hover {
+    background: #F3F4F6;
+}
+
+.notificationButton.active {
+    background: #EBF8FF;
+}
+
+.bellIcon {
+    width: 24px;
+    height: 24px;
+}
+
+.notificationBadge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #DC2626;
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .notificationsContainer {
+        width: 350px;
+        right: -50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notificationsContainer {
+        width: 300px;
+        right: -100px;
+        max-height: 400px;
+    }
+
+    .notificationItem {
+        padding: 12px 16px;
+    }
+
+    .notificationActions {
+        flex-direction: column;
+    }
+
+    .actionButtonPrimary,
+    .actionButtonSecondary,
+    .actionButtonDanger {
+        width: 100%;
+        justify-content: center;
+    }
+}
